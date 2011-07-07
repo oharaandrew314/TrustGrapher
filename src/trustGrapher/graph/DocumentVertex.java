@@ -15,6 +15,7 @@ package trustGrapher.graph;
  * @author Matthew Smith
  * @version May 12, 2011
  */
+@Deprecated
 public class DocumentVertex extends TrustVertex {
 	
 	//[start] Constructors

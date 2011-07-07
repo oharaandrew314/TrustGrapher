@@ -71,11 +71,11 @@ public class TrustConnection implements Comparable<TrustConnection> {
 
     @Override
     public String toString() {
-        String string = "";
-        for (int i=0 ; i<feedback.size() ; i++){
-            string = string + "+" + feedback.get(i) + "\n";
+        String string = "" + feedback.get(0);
+        for (int i=1 ; i<feedback.size() ; i++){
+            string = string + ", " + feedback.get(i) + "\n";
         }
-        return "edge " + key.toString() + "\n" + string;
+        return string;
     }
 ///////////////////////////////////Methods//////////////////////////////////////
 

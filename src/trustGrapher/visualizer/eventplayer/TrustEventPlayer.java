@@ -1,4 +1,4 @@
-/////////////////////////////////////EventPlayer////////////////////////////////
+/////////////////////////////////////TrustEventPlayer////////////////////////////////
 package trustGrapher.visualizer.eventplayer;
 
 import trustGrapher.graph.TrustGraph;
@@ -20,7 +20,7 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  *
  */
-public class EventPlayer implements ActionListener {
+public class TrustEventPlayer implements ActionListener {
 
     private Timer schedule;
     private TimeCounter timeCounter;
@@ -37,7 +37,7 @@ public class EventPlayer implements ActionListener {
     private boolean playable; //for when a graph is loaded without any events
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public EventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
+    public TrustEventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
         this.hiddenGraph = hiddenGraph;
         this.visibleGraph = visibleGraph;
         this.playbackSlider = playbackSlider;
@@ -51,7 +51,7 @@ public class EventPlayer implements ActionListener {
         playable = true;
     }
 
-    public EventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph) {
+    public TrustEventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph) {
         this.hiddenGraph = hiddenGraph;
         this.visibleGraph = visibleGraph;
         this.playbackSlider = null;

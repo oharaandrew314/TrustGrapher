@@ -15,6 +15,7 @@ package trustGrapher.graph;
  * @author Matthew Smith
  * @version May 19, 2011
  */
+@Deprecated
 public class PeerDocumentVertex extends TrustVertex {
 	
 	//[start] Private Attributes

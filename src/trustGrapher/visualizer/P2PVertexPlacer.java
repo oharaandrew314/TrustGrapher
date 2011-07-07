@@ -16,12 +16,12 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
  * @author alan
  *
  */
-public class TrustVertexPlacer implements Transformer<TrustVertex, Point2D> {
+public class P2PVertexPlacer implements Transformer<TrustVertex, Point2D> {
 
     private Layout<TrustVertex, TrustConnection> existinglayout;
     private RandomLocationTransformer<TrustVertex> rt;
 
-    public TrustVertexPlacer(Layout<TrustVertex, TrustConnection> l, Dimension d) {
+    public P2PVertexPlacer(Layout<TrustVertex, TrustConnection> l, Dimension d) {
         existinglayout = l;
         rt = new RandomLocationTransformer<TrustVertex>(d);
     }

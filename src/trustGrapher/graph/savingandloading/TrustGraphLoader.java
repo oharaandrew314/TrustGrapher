@@ -1,8 +1,6 @@
 package trustGrapher.graph.savingandloading;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -54,7 +52,7 @@ public class TrustGraphLoader {
                     for (LoadingListener l : loadingListeners) {
                         logBuilder.addLoadingListener(l);
                     }
-                    
+
                     logList = logBuilder.createList(file);
 
                     hiddenGraph = logBuilder.getHiddenGraph(); //load hidden graph but keep visible graph empty
@@ -160,7 +158,7 @@ public class TrustGraphLoader {
                         startGraph.addEdge(new TrustConnection(edgeCounter), peer1, peer2);
                         hiddenGraph.addEdge(new TrustConnection(edgeCounter), peer1, peer2);
                         edgeCounter++;
-                    }else{
+                    } else {
                         ChatterBox.debug(this, "graphBuilder()", "no diea what to do here.");
                     }
                     loadingProgress(++counter);
@@ -237,7 +235,7 @@ public class TrustGraphLoader {
                     int paramTwo = Integer.parseInt(event.getChildText("param2"));
                     ChatterBox.debug(this, "addEventsToGraph()", "A new LogEvent was created but I don't know how to get the rating.  So it has a rating of +1");
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
-                    
+
                     //Asuuming all events are feedback events
                     TrustVertex assessor = hiddenGraph.getVertexInGraph(new TrustVertex(evt.getAssessee()));
                     TrustVertex assessee = hiddenGraph.getVertexInGraph(new TrustVertex(evt.getAssessor()));

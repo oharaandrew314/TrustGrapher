@@ -5,8 +5,9 @@ import trustGrapher.graph.*;
 import trustGrapher.visualizer.*;
 import trustGrapher.graph.savingandloading.*;
 import trustGrapher.visualizer.eventplayer.*;
-
 import trustGrapher.networking.*;
+
+import utilities.ChatterBox;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -68,6 +69,11 @@ import edu.uci.ics.jung.visualization.renderers.Renderer;
 import edu.uci.ics.jung.visualization.renderers.BasicEdgeLabelRenderer;
 
 /**
+ * //////////////NOTE/////////////////
+ * I modified the mouseReleasedEvent() method to skip the doPop() method
+ * On Linux, this caused the popup menu to dissapear as soon as the mouse button was released
+ * I am not sure what effect this would have on a windows machine.
+ *
  * an applet that will display a graph using a spring layout, and as the graph changes the layout is updated.
  * @author Alan
  * @author Matt
@@ -88,8 +94,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     private VisualizationViewer<TrustVertex, TrustConnection> collapsedPeerAndDocumentViewViewer = null;
     private AbstractLayout<TrustVertex, TrustConnection> layout = null;
     private LinkedList<TrustLogEvent> myGraphEvolution;
-    //a hidden graph that contains all the nodes that will ever be added...
-    //in order to calculate the positions of all the nodes
+    //a hidden graph that contains all the nodes that will ever be added in order to calculate the positions of all the nodes
     private TrustGraph hiddenGraph, visibleGraph = null;
     private List<LoadingListener> loadingListeners;
     private HTTPClient networkClient;
@@ -98,7 +103,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     protected JButton fastForwardButton, forwardButton, pauseButton, reverseButton, fastReverseButton;
     protected JSlider fastSpeedSlider, playbackSlider;
     protected JPopupMenu mouseContext;
-    protected EventPlayer eventThread;
+    protected TrustEventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
@@ -109,6 +114,9 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         start();
         JFrame frame = new JFrame();
 
+        //The default frame state is now maximized
+        frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+        
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(this);
 
@@ -117,7 +125,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     }
 
     /**
-     *
      * @return The Initialized Visualization Viewer
      */
     private VisualizationViewer<TrustVertex, TrustConnection> visualizationViewerBuilder(final Layout<TrustVertex, TrustConnection> layout, int width, int height, GraphMouse gm) {
@@ -132,6 +139,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         viewer.getRenderer().getVertexLabelRenderer().setPosition(Renderer.VertexLabel.Position.CNTR);
         //the vertex labeler will use the tostring method which is fine, the TrustVertex class has an appropriate toString() method implementation
         viewer.getRenderContext().setVertexLabelTransformer(new ToStringLabeller<TrustVertex>());
+        viewer.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller<TrustConnection>());
         viewer.getRenderContext().setVertexFillPaintTransformer(new P2PVertexFillPaintTransformer(viewer.getPickedVertexState()));
         // TrustVertex objects also now have multiple states : we can represent which nodes are documents, picked, querying, queried, etc.
 
@@ -167,13 +175,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         viewer.getRenderContext().setEdgeStrokeTransformer(new P2PEdgeStrokeTransformer()); //stroke width
         viewer.getRenderContext().setEdgeShapeTransformer(new P2PEdgeShapeTransformer(P2PEdgeShape, P2DocEdgeShape, Doc2PDocEdgeShape, P2PDocEdgeShape)); //stroke width
         BasicEdgeLabelRenderer labeller = new BasicEdgeLabelRenderer();
-        viewer.getRenderContext().setEdgeLabelRenderer(null);
 
     }
     //[end] Create the visualization viewer
 
     //[start] Create Components
-    //[start] File Menu
     private JMenuBar createFileMenu() {
         //[start] File Menu
         JMenu file = new JMenu("File");
@@ -282,9 +288,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         bar.setVisible(true);
         return bar;
     }
-    //[end] File Menu
 
-    //[start] Table Panel
     private JPanel initializeLogList(List<TrustLogEvent> logEvents) {
         for (LoadingListener l : loadingListeners) {
             l.loadingStarted(logEvents.size(), "Log List");
@@ -331,9 +335,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         return tablePanel;
     }
-    //[end] Table Panel
 
-    //[start] South Panel
     /**
      * Helper Method for initializing the Buttons and slider for the South Panel.
      * @return The South Panel, laid out properly, to be displayed.
@@ -402,9 +404,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         return south;
     }
-    //[end] South Panel
 
-    //[start] Mouse Context Menu
     private void initializeMouseContext(final DefaultModalGraphMouse<TrustVertex, TrustConnection> gm) {
         mouseContext = new JPopupMenu("Mouse Mode");
         JMenuItem picking = new JMenuItem("Picking");
@@ -440,13 +440,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         mouseContext.addSeparator();
         mouseContext.add("Set Layout:").setEnabled(false);
     }
-
-    //[end] Mouse Context Menu
     //[end] Create Components
-    //[start] init method
-    /**
-     * applet initialization
-     */
+
     public void init() {
 
         //[start] Tabs Pane
@@ -490,9 +485,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         //startGraph();
         loadingListeners.add(new LoadingBar());
     }
-    //[end] init method
 
-    //[start] Init Graph
     public void startGraph() {
         for (LoadingListener l : loadingListeners) {
             l.loadingStarted(7, "Building Visualizer");
@@ -501,7 +494,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         //layout = springLayoutBuilder(DEFWIDTH,DEFHEIGHT,hiddenGraph);
         layout = new FRLayout2<TrustVertex, TrustConnection>(hiddenGraph);
-        layout.setInitializer(new TrustVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
+        layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
 
         for (LoadingListener l : loadingListeners) {
             l.loadingChanged(5, "Building Visualizer");
@@ -590,7 +583,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
             playbackSlider.addMouseListener(s);
 
             /// create the event player
-            eventThread = new EventPlayer(hiddenGraph, visibleGraph);
+            eventThread = new TrustEventPlayer(hiddenGraph, visibleGraph);
             eventThread.addEventPlayerListener(this);
         } else {
             SliderListener s = new SliderListener();
@@ -602,7 +595,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
 
             /// create the event player
-            eventThread = new EventPlayer(hiddenGraph, visibleGraph, myGraphEvolution, playbackSlider);
+            eventThread = new TrustEventPlayer(hiddenGraph, visibleGraph, myGraphEvolution, playbackSlider);
             eventThread.addEventPlayerListener(this);
         }
         for (LoadingListener l : loadingListeners) {
@@ -634,12 +627,9 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         doRepaint();
         eventThread.run();
     }
-    //[end] Init Graph
 
     //[end] Initialization
-    //[start] Main
     /**
-     *
      * to run this applet as a java application
      * @param args optional argument : the log file to process
      */
@@ -647,10 +637,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         @SuppressWarnings("unused")
         TrustApplet myapp = new TrustApplet();
     }
-    //[end] Main
 
-    //[start] Helper Methods
-    //[start] Layout Items for context menu
+
     public List<JMenuItem> getLayoutItems() {
         List<JMenuItem> menuItems = new LinkedList<JMenuItem>();
 
@@ -740,10 +728,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         return menuItems;
     }
-    //[end] Layout Items for context menu
 
-    //[end] Helper Methods
-    //[start] EventPlayer Handlers
     @Override
     public void playbackFastReverse() {
         fastReverseButton.setEnabled(false);
@@ -801,7 +786,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     @Override
     public void doRepaint() {
-        //ChatterBox.debug(this, "doRepaint()", "We're in the repaint method!");
         fullViewViewer.repaint();
         //collapsedDocumentViewViewer.repaint();
         collapsedPeerViewViewer.repaint();
@@ -822,7 +806,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            doPop(e);
+            //doPop(e);
         }
 
         private void doPop(MouseEvent e) {
@@ -1091,7 +1075,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         @Override
         public void actionPerformed(ActionEvent e) {
             BalloonLayout<TrustVertex, TrustConnection> graphLayout = new BalloonLayout<TrustVertex, TrustConnection>(TrustGraph.makeTreeGraph(hiddenGraph));
-            graphLayout.setInitializer(new TrustVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
+            graphLayout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
 
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
