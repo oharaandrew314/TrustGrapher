@@ -31,9 +31,9 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
 
     @Override
     public String toString(){
-        String s = feedbacks.get(0).toString();
+        String s = "" + feedbacks.get(0).value;
         for (int i=1 ; i<feedbacks.size() ; i++){
-            s = s + ", " + feedbacks.get(i);
+            s = s + ", " + feedbacks.get(i).value;
         }
         return s;
     }
