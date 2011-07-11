@@ -5,9 +5,10 @@ import java.awt.Shape;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.ConstantTransformer;
 
-import trustGrapher.graph.AgentWrapper;
+import trustGrapher.graph.MyAgent;
 
 import edu.uci.ics.jung.visualization.decorators.AbstractVertexShapeTransformer;
+import utilities.ChatterBox;
 
 /**
  * A "transformer" that maps vertices to shapes.
@@ -22,52 +23,34 @@ import edu.uci.ics.jung.visualization.decorators.AbstractVertexShapeTransformer;
  *
  * @param <V>
  */
-public class P2PVertexShapeTransformer extends AbstractVertexShapeTransformer<AgentWrapper>
-        implements Transformer<AgentWrapper, Shape> {
+public class P2PVertexShapeTransformer extends AbstractVertexShapeTransformer<MyAgent>
+        implements Transformer<MyAgent, Shape> {
 
-    public static final int DOC_SIZE = 20;
     public static final int PEER_SIZE = 25;
-    public static final int PEER_DOC_SIZE = 15;
     private VertexShapeType peerShape;
-    private VertexShapeType documentShape;
-    private VertexShapeType peerDocumentShape;
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public P2PVertexShapeTransformer(VertexShapeType peerShape, VertexShapeType documentShape, VertexShapeType peerDocumentShape) {
-        super(new P2PVertexSizeFunction(DOC_SIZE, PEER_SIZE, PEER_DOC_SIZE), new ConstantTransformer(1.0f));
+    public P2PVertexShapeTransformer(VertexShapeType peerShape) {
+        super(new P2PVertexSizeFunction(PEER_SIZE), new ConstantTransformer(1.0f));
         this.peerShape = peerShape;
-        this.documentShape = documentShape;
-        this.peerDocumentShape = peerDocumentShape;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public P2PVertexShapeTransformer(VertexShapeType peerShape, VertexShapeType documentShape, VertexShapeType peerDocumentShape,
-            int peerSize, int documentSize, int peerDocumentSize) {
-        super(new P2PVertexSizeFunction(peerSize, documentSize, peerDocumentSize), new ConstantTransformer(1.0f));
+    public P2PVertexShapeTransformer(VertexShapeType peerShape, int peerSize) {
+        super(new P2PVertexSizeFunction(peerSize), new ConstantTransformer(1.0f));
         this.peerShape = peerShape;
-        this.documentShape = documentShape;
-        this.peerDocumentShape = peerDocumentShape;
     }
 
-    public Shape transform(AgentWrapper v) {
+    public Shape transform(MyAgent v) {
         return shapeChooser(v, peerShape);
     }
 
-    private Shape shapeChooser(AgentWrapper v, VertexShapeType chosenShape) {
-        //factory.getEllipse(v);
+    private Shape shapeChooser(MyAgent v, VertexShapeType chosenShape) {
         switch (chosenShape) {
             case ELLIPSE:
                 return factory.getEllipse(v);
-            case RECTANGLE:
-                return factory.getRectangle(v);
-            case PENTAGON:
-                return factory.getRegularPolygon(v, 5);
-            case STAR:
-                return factory.getRegularStar(v, 8);
-            case ROUND_RECTANGLE:
-                return factory.getRoundRectangle(v);
-
         }
+        ChatterBox.debug(this, "shapeChooser()", "Tried to select a shape for an unsupported vertex.");
         return factory.getRectangle(v);
     }
 }

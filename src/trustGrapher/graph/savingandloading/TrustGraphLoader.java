@@ -132,8 +132,8 @@ public class TrustGraphLoader {
 
                     if (type.equals("PeerVertex")) {
                         int key = Integer.parseInt(elem.getChild("key").getText());
-                        hiddenGraph.addVertex(new AgentWrapper(key));
-                        startGraph.addVertex(new AgentWrapper(key));
+                        hiddenGraph.addVertex(new MyAgent(key));
+                        startGraph.addVertex(new MyAgent(key));
                     }
                     loadingProgress(++counter);
                 }
@@ -151,8 +151,8 @@ public class TrustGraphLoader {
                     if (type.equals("PeerToPeer")) { //Peer to Peer
                         int v1Key = Integer.parseInt(elem.getChild("v1").getText());
                         int v2Key = Integer.parseInt(elem.getChild("v2").getText());
-                        AgentWrapper peer1 = hiddenGraph.getVertexInGraph(new AgentWrapper(v1Key));
-                        AgentWrapper peer2 = hiddenGraph.getVertexInGraph(new AgentWrapper(v2Key));
+                        MyAgent peer1 = hiddenGraph.getVertexInGraph(new MyAgent(v1Key));
+                        MyAgent peer2 = hiddenGraph.getVertexInGraph(new MyAgent(v2Key));
                         try{
                             startGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
                             hiddenGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
@@ -189,8 +189,8 @@ public class TrustGraphLoader {
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
 
 //                    Asuuming all events are feedback events
-                    AgentWrapper assessor = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessee()));
-                    AgentWrapper assessee = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessor()));
+                    MyAgent assessor = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessee()));
+                    MyAgent assessee = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessor()));
 
                     //If the peers don't exist, add them
                     if (hiddenGraph.getPeer(evt.getAssessee()) == null) {
@@ -239,8 +239,8 @@ public class TrustGraphLoader {
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
 
                     //Asuuming all events are feedback events
-                    AgentWrapper assessor = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessee()));
-                    AgentWrapper assessee = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessor()));
+                    MyAgent assessor = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessee()));
+                    MyAgent assessee = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessor()));
 
                     //If the peers don't exist, add them
                     if (hiddenGraph.getPeer(evt.getAssessee()) == null) {

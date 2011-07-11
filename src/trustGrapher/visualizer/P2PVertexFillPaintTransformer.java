@@ -5,7 +5,7 @@ import java.awt.Paint;
 
 import org.apache.commons.collections15.Transformer;
 
-import trustGrapher.graph.AgentWrapper;
+import trustGrapher.graph.MyAgent;
 
 import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.picking.PickedInfo;
@@ -19,7 +19,7 @@ import edu.uci.ics.jung.visualization.picking.PickedInfo;
  *
  * @param <V>
  */
-public class P2PVertexFillPaintTransformer extends PickableVertexPaintTransformer<AgentWrapper> implements Transformer<AgentWrapper, Paint> {
+public class P2PVertexFillPaintTransformer extends PickableVertexPaintTransformer<MyAgent> implements Transformer<MyAgent, Paint> {
 
     public static final Color DEF_PEER_COLOR = Color.RED;
     public static final Color DEF_PICKED_PEER_COLOR = Color.YELLOW;
@@ -35,11 +35,11 @@ public class P2PVertexFillPaintTransformer extends PickableVertexPaintTransforme
     private Color peerDocColor = DEF_PEERDOC_COLOR;
     private Color docColor = DEF_DOC_COLOR;
 
-    public P2PVertexFillPaintTransformer(PickedInfo<AgentWrapper> pi) {
+    public P2PVertexFillPaintTransformer(PickedInfo<MyAgent> pi) {
         super(pi, DEF_PEER_COLOR, DEF_PICKED_PEER_COLOR);
     }
 
-    public P2PVertexFillPaintTransformer(PickedInfo<AgentWrapper> pi, Color peerColor, Color pickedPeerColor,
+    public P2PVertexFillPaintTransformer(PickedInfo<MyAgent> pi, Color peerColor, Color pickedPeerColor,
             Color peerQueryColor, Color peerDocQueryHitColor, Color peerDocColor, Color docColor) {
         super(pi, peerColor, pickedPeerColor);
         this.peerColor = peerColor;
@@ -51,9 +51,9 @@ public class P2PVertexFillPaintTransformer extends PickableVertexPaintTransforme
 
     }
 
-    public Paint transform(AgentWrapper v) {
+    public Paint transform(MyAgent v) {
         //is it a peer
-        if (v instanceof AgentWrapper) {
+        if (v instanceof MyAgent) {
             if (pi.isPicked(v)) { //differentiate picked peers with unpicked peers.
                 return pickedPeerColor;
             } else {

@@ -79,13 +79,13 @@ public class TrustGraphSaver {
             //[start] Creating Graph Elements
 
             //[start] compile separate lists for peers, documents and peerdocuments
-            LinkedList<AgentWrapper> peers = new LinkedList<AgentWrapper>();
+            LinkedList<MyAgent> peers = new LinkedList<MyAgent>();
             LinkedList<FeedbackHistoryGraphEdge> edges = new LinkedList<FeedbackHistoryGraphEdge>(graph.getEdges());
             int count = 0;
             loadingStarted(graph.getVertices().size(), "Compiling Vertex Lists");
-            for (AgentWrapper vertex : graph.getVertices()) {
-                if (vertex.getClass().equals(AgentWrapper.class)) {
-                    peers.addLast((AgentWrapper) vertex);
+            for (MyAgent vertex : graph.getVertices()) {
+                if (vertex.getClass().equals(MyAgent.class)) {
+                    peers.addLast((MyAgent) vertex);
                 }
                 loadingProgress(count);
                 count++;
@@ -100,7 +100,7 @@ public class TrustGraphSaver {
             Element nodemap = new Element("nodemap");
             count = 0;
             loadingChanged(peers.size(), "Peer Vertices");
-            for (AgentWrapper peer : peers) { //write out all the peer information
+            for (MyAgent peer : peers) { //write out all the peer information
                 Element node = new Element("node");
                 node.setAttribute("type", "TrustVertex");
 
@@ -142,7 +142,7 @@ public class TrustGraphSaver {
                 //Replaced by
                 edge.setAttribute("type", "PeerToPeer");
 
-                Pair<AgentWrapper> ends = graph.getEndpoints(e);
+                Pair<MyAgent> ends = graph.getEndpoints(e);
 
                 String key1 = Integer.toString(ends.getFirst().getKey());
                 String key2 = Integer.toString(ends.getSecond().getKey());

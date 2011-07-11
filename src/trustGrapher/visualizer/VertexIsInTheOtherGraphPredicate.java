@@ -3,22 +3,22 @@ package trustGrapher.visualizer;
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import org.apache.commons.collections15.Predicate;
 
-import trustGrapher.graph.AgentWrapper;
+import trustGrapher.graph.MyAgent;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 
 public class VertexIsInTheOtherGraphPredicate implements
-		Predicate<Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, AgentWrapper>> {
+		Predicate<Context<Graph<MyAgent, FeedbackHistoryGraphEdge>, MyAgent>> {
 
-	protected Graph<AgentWrapper, FeedbackHistoryGraphEdge> othergraph;
+	protected Graph<MyAgent, FeedbackHistoryGraphEdge> othergraph;
 	
-	public VertexIsInTheOtherGraphPredicate(Graph<AgentWrapper, FeedbackHistoryGraphEdge> g){
+	public VertexIsInTheOtherGraphPredicate(Graph<MyAgent, FeedbackHistoryGraphEdge> g){
 		othergraph = g;
 		
 	}
 	@Override
-	public boolean evaluate(Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, AgentWrapper> context) {
+	public boolean evaluate(Context<Graph<MyAgent, FeedbackHistoryGraphEdge>, MyAgent> context) {
 		return (othergraph.containsVertex(context.element));
 		
 	}

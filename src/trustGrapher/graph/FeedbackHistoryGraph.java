@@ -12,7 +12,7 @@ import edu.uci.ics.jung.graph.Forest;
 import edu.uci.ics.jung.graph.Graph;
 import utilities.ChatterBox;
 
-public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper, FeedbackHistoryGraphEdge> implements Graph<AgentWrapper, FeedbackHistoryGraphEdge> {
+public class FeedbackHistoryGraph extends DirectedSparseMultigraph<MyAgent, FeedbackHistoryGraphEdge> implements Graph<MyAgent, FeedbackHistoryGraphEdge> {
 
     private static final long serialVersionUID = 1L;
     int edgecounter = 0;
@@ -27,18 +27,18 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
         return (FeedbackEdge) findEdge(getVertexInGraph(from), getVertexInGraph(to));
     }
 
-    public AgentWrapper getVertexInGraph(int peerNum) {
-        return getVertexInGraph(new AgentWrapper(peerNum));
+    public MyAgent getVertexInGraph(int peerNum) {
+        return getVertexInGraph(new MyAgent(peerNum));
     }
 
     /**
      * this methods gets a vertex already in the graph that is equal to the input vertex
      * to be used when adding edges; the edge should relate two vertices actually in the graph, not copies of these vertices.
-     * @param input a AgentWrapper object
-     * @return a AgentWrapper v such that v.equals(input) and v is in the graph
+     * @param input a MyAgent object
+     * @return a MyAgent v such that v.equals(input) and v is in the graph
      */
-    public AgentWrapper getVertexInGraph(AgentWrapper input) {
-        for (AgentWrapper v : vertices.keySet()) {
+    public MyAgent getVertexInGraph(MyAgent input) {
+        for (MyAgent v : vertices.keySet()) {
             if (v.equals(input)) {
                 return v;
             }
@@ -46,8 +46,8 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
         return null;
     }
 
-    public AgentWrapper getPeer(int peerNumber) {
-        return (AgentWrapper) getVertexInGraph(new AgentWrapper(peerNumber));
+    public MyAgent getPeer(int peerNumber) {
+        return (MyAgent) getVertexInGraph(new MyAgent(peerNumber));
     }
 
     //override these methods so the underlying collection is not unmodifiable
@@ -57,7 +57,7 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
     }
 
     @Override
-    public Collection<AgentWrapper> getVertices() {
+    public Collection<MyAgent> getVertices() {
         return vertices.keySet();
     }
 
@@ -65,14 +65,14 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
     /** adding a peer in the network*/
     public void addPeer(int peernumber) {
         if (getVertexInGraph(peernumber) == null){
-            addVertex(new AgentWrapper(peernumber));
+            addVertex(new MyAgent(peernumber));
         }else{
             ChatterBox.error(this, "addPeer()", "Tried to add a peer that already exists");
         }
     }
 
     public void removePeer(int peerNum) {
-        AgentWrapper peer = new AgentWrapper(peerNum);
+        MyAgent peer = new MyAgent(peerNum);
         Collection<FeedbackHistoryGraphEdge> edgeset = getIncidentEdges(peer);
         for (FeedbackHistoryGraphEdge e : edgeset) {
             removeEdge(e);
@@ -93,8 +93,8 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
         if (getVertexInGraph(to) == null) {
             addPeer(to);
         }
-        AgentWrapper assessor = getVertexInGraph(from);
-        AgentWrapper assessee = getVertexInGraph(to);
+        MyAgent assessor = getVertexInGraph(from);
+        MyAgent assessee = getVertexInGraph(to);
         FeedbackEdge edge = findConnection(from, to);
         if (edge == null) {//If the edge doesn't  exist, add it
             try {
@@ -113,9 +113,9 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
             if (edge.hasMultipleFeedback()) {
                 edge.removeFeedback(feedback);
             } else {
-                Collection<AgentWrapper> verts = super.getIncidentVertices(edge);
+                Collection<MyAgent> verts = super.getIncidentVertices(edge);
                 super.removeEdge(edge);
-                for (AgentWrapper v : verts) {
+                for (MyAgent v : verts) {
                     if (super.getIncidentEdges(v).isEmpty()) {
                         super.removeVertex(v);
                     }
@@ -131,9 +131,9 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<AgentWrapper,
      * @param graph	The source which the tree Graph will be made from
      * @return	The Document Tree Graph
      */
-    public static Forest<AgentWrapper, FeedbackHistoryGraphEdge> makeTreeGraph(FeedbackHistoryGraph graph) {
-        Forest<AgentWrapper, FeedbackHistoryGraphEdge> tree = new DelegateForest<AgentWrapper, FeedbackHistoryGraphEdge>();
-        for (AgentWrapper documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
+    public static Forest<MyAgent, FeedbackHistoryGraphEdge> makeTreeGraph(FeedbackHistoryGraph graph) {
+        Forest<MyAgent, FeedbackHistoryGraphEdge> tree = new DelegateForest<MyAgent, FeedbackHistoryGraphEdge>();
+        for (MyAgent documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
         }
         return tree;
     }

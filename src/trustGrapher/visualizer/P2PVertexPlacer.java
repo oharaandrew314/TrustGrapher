@@ -6,7 +6,7 @@ import java.awt.geom.Point2D;
 
 import org.apache.commons.collections15.Transformer;
 
-import trustGrapher.graph.AgentWrapper;
+import trustGrapher.graph.MyAgent;
 
 import edu.uci.ics.jung.algorithms.layout.Layout;
 
@@ -16,18 +16,18 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
  * @author alan
  *
  */
-public class P2PVertexPlacer implements Transformer<AgentWrapper, Point2D> {
+public class P2PVertexPlacer implements Transformer<MyAgent, Point2D> {
 
-    private Layout<AgentWrapper, FeedbackHistoryGraphEdge> existinglayout;
-    private RandomLocationTransformer<AgentWrapper> rt;
+    private Layout<MyAgent, FeedbackHistoryGraphEdge> existinglayout;
+    private RandomLocationTransformer<MyAgent> rt;
 
-    public P2PVertexPlacer(Layout<AgentWrapper, FeedbackHistoryGraphEdge> l, Dimension d) {
+    public P2PVertexPlacer(Layout<MyAgent, FeedbackHistoryGraphEdge> l, Dimension d) {
         existinglayout = l;
-        rt = new RandomLocationTransformer<AgentWrapper>(d);
+        rt = new RandomLocationTransformer<MyAgent>(d);
     }
 
     @Override
-    public Point2D transform(AgentWrapper v) {
+    public Point2D transform(MyAgent v) {
         return rt.transform(v); //placing a peer
     }
 }

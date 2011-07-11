@@ -15,7 +15,7 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
 
 //////////////////////////////////Constructor///////////////////////////////////
 
-    public FeedbackEdge(Integer key, AgentWrapper assessor, AgentWrapper assessee) throws Exception {
+    public FeedbackEdge(Integer key, MyAgent assessor, MyAgent assessee) throws Exception {
         super(assessor, assessee);
         this.key = key;
     }
@@ -38,16 +38,16 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
         return s;
     }
 
-    public AgentWrapper getAssessor(){
-        return (AgentWrapper) src;
+    public MyAgent getAssessor(){
+        return (MyAgent) src;
     }
 
-    public AgentWrapper getAssessee(){
-        return (AgentWrapper) sink;
+    public MyAgent getAssessee(){
+        return (MyAgent) sink;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    public void addFeedback(AgentWrapper assessor, AgentWrapper assessee, double feedback) {
+    public void addFeedback(MyAgent assessor, MyAgent assessee, double feedback) {
         try {
             super.addFeedback(new Feedback(assessor, assessee, feedback));
         } catch (Exception ex) {

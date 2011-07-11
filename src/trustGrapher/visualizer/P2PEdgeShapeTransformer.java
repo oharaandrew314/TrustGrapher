@@ -1,7 +1,7 @@
 package trustGrapher.visualizer;
 
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
-import trustGrapher.graph.AgentWrapper;
+import trustGrapher.graph.MyAgent;
 
 import java.awt.Shape;
 
@@ -23,13 +23,13 @@ import edu.uci.ics.jung.visualization.decorators.EdgeShape;
  */
 public class P2PEdgeShapeTransformer
 		implements
-		Transformer<Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>, Shape> {
+		Transformer<Context<Graph<MyAgent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>, Shape> {
 
-//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> P2PEdgeShape;
-//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> P2DocEdgeShape;
-//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> Doc2PDocEdgeShape;
-//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> P2PDocEdgeShape;
-	private final AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> defaultEdgeShape;
+//	private AbstractEdgeShapeTransformer<MyAgent, FeedbackHistoryGraphEdge> P2PEdgeShape;
+//	private AbstractEdgeShapeTransformer<MyAgent, FeedbackHistoryGraphEdge> P2DocEdgeShape;
+//	private AbstractEdgeShapeTransformer<MyAgent, FeedbackHistoryGraphEdge> Doc2PDocEdgeShape;
+//	private AbstractEdgeShapeTransformer<MyAgent, FeedbackHistoryGraphEdge> P2PDocEdgeShape;
+	private final AbstractEdgeShapeTransformer<MyAgent, FeedbackHistoryGraphEdge> defaultEdgeShape;
 	
 	/**
 	 * 
@@ -43,10 +43,10 @@ public class P2PEdgeShapeTransformer
 //		this.P2DocEdgeShape = shapeChooser(P2DocEdgeShape);
 //		this.Doc2PDocEdgeShape = shapeChooser(Doc2PDocEdgeShape);
 //		this.P2PDocEdgeShape = shapeChooser(P2PDocEdgeShape);		
-		defaultEdgeShape = new EdgeShape.QuadCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+		defaultEdgeShape = new EdgeShape.QuadCurve<MyAgent, FeedbackHistoryGraphEdge>();
 	}
 	@Override
-	public Shape transform(Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
+	public Shape transform(Context<Graph<MyAgent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
 
             /** Removed by me
             if (context.element.isP2P()) {
@@ -70,31 +70,31 @@ public class P2PEdgeShapeTransformer
             return defaultEdgeShape.transform(context);
 	}
 	
-	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> shapeChooser(EdgeShapeType chosenShape) {
-            return new EdgeShape.QuadCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+	private AbstractEdgeShapeTransformer<MyAgent, FeedbackHistoryGraphEdge> shapeChooser(EdgeShapeType chosenShape) {
+            return new EdgeShape.QuadCurve<MyAgent, FeedbackHistoryGraphEdge>();
 //		switch(chosenShape) {
 //
 //		case BENT_LINE:
-//			return new EdgeShape.BentLine<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.BentLine<MyAgent, FeedbackHistoryGraphEdge>();
 //		case BOX:
-//			return new EdgeShape.Box<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.Box<MyAgent, FeedbackHistoryGraphEdge>();
 //		case CUBIC_CURVE:
-//			return new EdgeShape.CubicCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.CubicCurve<MyAgent, FeedbackHistoryGraphEdge>();
 //		case LINE:
-//			return new EdgeShape.Line<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.Line<MyAgent, FeedbackHistoryGraphEdge>();
 //		case LOOP:
-//			return new EdgeShape.Loop<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.Loop<MyAgent, FeedbackHistoryGraphEdge>();
 //		case ORTHOGONAL:
-//			return new EdgeShape.Orthogonal<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.Orthogonal<MyAgent, FeedbackHistoryGraphEdge>();
 //		case QUAD_CURVE:
-//			return new EdgeShape.QuadCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.QuadCurve<MyAgent, FeedbackHistoryGraphEdge>();
 //		case SIMPLE_LOOP:
-//			return new EdgeShape.SimpleLoop<AgentWrapper, FeedbackHistoryGraphEdge>();
+//			return new EdgeShape.SimpleLoop<MyAgent, FeedbackHistoryGraphEdge>();
 //		case WEDGE:
-//			return new EdgeShape.Wedge<AgentWrapper, FeedbackHistoryGraphEdge>(3);
+//			return new EdgeShape.Wedge<MyAgent, FeedbackHistoryGraphEdge>(3);
 //
 //		}
-//		return new EdgeShape.Line<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		return new EdgeShape.Line<MyAgent, FeedbackHistoryGraphEdge>();
 	}
 
 }

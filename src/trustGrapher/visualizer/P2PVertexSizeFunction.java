@@ -2,7 +2,7 @@ package trustGrapher.visualizer;
 
 import org.apache.commons.collections15.Transformer;
 
-import trustGrapher.graph.AgentWrapper;
+import trustGrapher.graph.MyAgent;
 
 /**
  * Size function for the vertices in a graph representing a P2P network.
@@ -14,10 +14,7 @@ import trustGrapher.graph.AgentWrapper;
  *
  * 
  */
-public class P2PVertexSizeFunction implements Transformer<AgentWrapper, Integer> {
-
-    int my_doc_size;
-    int my_peer_doc_size;
+public class P2PVertexSizeFunction implements Transformer<MyAgent, Integer> {
     int my_peer_size;
 
     /**
@@ -26,15 +23,12 @@ public class P2PVertexSizeFunction implements Transformer<AgentWrapper, Integer>
      * @param ds document vertex size
      * @param ps peer document size
      */
-    public P2PVertexSizeFunction(int ds, int ps, int pds) {
-
-        my_doc_size = ds;
-        my_peer_size = ps;
-        my_peer_doc_size = pds;
+    public P2PVertexSizeFunction(int peerSize) {
+        my_peer_size = peerSize;
     }
 
     @Override
-    public Integer transform(AgentWrapper vertexID) {
+    public Integer transform(MyAgent vertexID) {
         return new Integer(my_peer_size);
     }
 }
