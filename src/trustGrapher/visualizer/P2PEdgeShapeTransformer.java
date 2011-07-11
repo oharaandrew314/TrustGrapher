@@ -21,14 +21,8 @@ import edu.uci.ics.jung.visualization.decorators.EdgeShape;
  * @author alan
  *
  */
-public class P2PEdgeShapeTransformer
-		implements
-		Transformer<Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>, Shape> {
-
-//	private AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> P2PEdgeShape;
-//	private AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> P2DocEdgeShape;
-//	private AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> Doc2PDocEdgeShape;
-//	private AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> P2PDocEdgeShape;
+public class P2PEdgeShapeTransformer implements
+	Transformer<Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>, Shape> {
 	private final AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> defaultEdgeShape;
 	
 	/**
@@ -38,63 +32,16 @@ public class P2PEdgeShapeTransformer
 	 * @param Doc2PDocEdgeShape	Document to PeerDocument Edge Shape.
 	 * @param P2PDocEdgeShape	Peer to PeerDocument Edge Shape.
 	 */
-	public P2PEdgeShapeTransformer(){
-//		this.P2PEdgeShape = shapeChooser(P2PEdgeShape);
-//		this.P2DocEdgeShape = shapeChooser(P2DocEdgeShape);
-//		this.Doc2PDocEdgeShape = shapeChooser(Doc2PDocEdgeShape);
-//		this.P2PDocEdgeShape = shapeChooser(P2PDocEdgeShape);		
+	public P2PEdgeShapeTransformer(){		
 		defaultEdgeShape = new EdgeShape.QuadCurve<Agent, FeedbackHistoryGraphEdge>();
 	}
 	@Override
 	public Shape transform(Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
-
-            /** Removed by me
-            if (context.element.isP2P()) {
-                    return P2PEdgeShape.transform(context); //a curve if this is between peers
-            }
-            else if (context.element.isP2DOC()){
-                    return P2DocEdgeShape.transform(context); // between peer and doc, a straight line
-            }
-            else if (context.element.isDOC2PDOC()){
-
-                    return Doc2PDocEdgeShape.transform(context); // between peer and doc, a straight line
-            }
-            else if (context.element.isP2PDOC()){
-
-                    return P2PDocEdgeShape.transform(context); // between peer and doc, a straight line
-            }
-            return defaultEdgeShape.transform(context);
-             */
-            //Replaced by
-
             return defaultEdgeShape.transform(context);
 	}
 	
 	private AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> shapeChooser(EdgeShapeType chosenShape) {
             return new EdgeShape.QuadCurve<Agent, FeedbackHistoryGraphEdge>();
-//		switch(chosenShape) {
-//
-//		case BENT_LINE:
-//			return new EdgeShape.BentLine<Agent, FeedbackHistoryGraphEdge>();
-//		case BOX:
-//			return new EdgeShape.Box<Agent, FeedbackHistoryGraphEdge>();
-//		case CUBIC_CURVE:
-//			return new EdgeShape.CubicCurve<Agent, FeedbackHistoryGraphEdge>();
-//		case LINE:
-//			return new EdgeShape.Line<Agent, FeedbackHistoryGraphEdge>();
-//		case LOOP:
-//			return new EdgeShape.Loop<Agent, FeedbackHistoryGraphEdge>();
-//		case ORTHOGONAL:
-//			return new EdgeShape.Orthogonal<Agent, FeedbackHistoryGraphEdge>();
-//		case QUAD_CURVE:
-//			return new EdgeShape.QuadCurve<Agent, FeedbackHistoryGraphEdge>();
-//		case SIMPLE_LOOP:
-//			return new EdgeShape.SimpleLoop<Agent, FeedbackHistoryGraphEdge>();
-//		case WEDGE:
-//			return new EdgeShape.Wedge<Agent, FeedbackHistoryGraphEdge>(3);
-//
-//		}
-//		return new EdgeShape.Line<Agent, FeedbackHistoryGraphEdge>();
 	}
 
 }

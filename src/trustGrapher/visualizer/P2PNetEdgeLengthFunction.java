@@ -8,13 +8,6 @@ public class P2PNetEdgeLengthFunction implements Transformer<FeedbackHistoryGrap
 	
     @Override
     public Integer transform(FeedbackHistoryGraphEdge edge) {
-        /** Removed by me
-        if( edge.isP2P())
-                return new Integer(75); //distance between two peers
-        else
-                return new Integer(20); //distance between a peer and a document
-         */
-        //Replaced by
         return new Integer(75); //distance between two peers
     }
 

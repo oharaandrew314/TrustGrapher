@@ -28,13 +28,11 @@ public class P2PVertexShapeTransformer extends AbstractVertexShapeTransformer<Ag
     public static final int PEER_SIZE = 25;
     private VertexShapeType peerShape;
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public P2PVertexShapeTransformer(VertexShapeType peerShape) {
         super(new P2PVertexSizeFunction(PEER_SIZE), new ConstantTransformer(1.0f));
         this.peerShape = peerShape;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public P2PVertexShapeTransformer(VertexShapeType peerShape, int peerSize) {
         super(new P2PVertexSizeFunction(peerSize), new ConstantTransformer(1.0f));
         this.peerShape = peerShape;

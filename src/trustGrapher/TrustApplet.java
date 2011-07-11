@@ -66,6 +66,7 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.VisualizationViewer.GraphMouse;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse.Mode;
+import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
 import edu.uci.ics.jung.visualization.renderers.BasicEdgeLabelRenderer;
@@ -88,7 +89,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     //default size for the swing graphic components
     public static final int DEFWIDTH = 1360;
     public static final int DEFHEIGHT = 768;
-    private static final long serialVersionUID = 2L;
     private VisualizationViewer<Agent, FeedbackHistoryGraphEdge> feedbackViewer = null;
     private AbstractLayout<Agent, FeedbackHistoryGraphEdge> layout = null;
     private LinkedList<TrustLogEvent> events;
@@ -113,8 +113,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         JFrame frame = new JFrame();
 
         //The default frame state is now maximized
-        frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-        
+        frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(this);
 
@@ -138,7 +138,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         //the vertex labeler will use the tostring method which is fine, the Agent class has an appropriate toString() method implementation
         viewer.getRenderContext().setVertexLabelTransformer(new ToStringLabeller<Agent>());
         viewer.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller<FeedbackHistoryGraphEdge>());
-        viewer.getRenderContext().setVertexFillPaintTransformer(new P2PVertexFillPaintTransformer(viewer.getPickedVertexState()));
+        viewer.getRenderContext().setVertexFillPaintTransformer(new PickableVertexPaintTransformer(viewer.getPickedVertexState(), Color.red, Color.yellow));
         // Agent objects also now have multiple states : we can represent which nodes are documents, picked, querying, queried, etc.
 
         viewer.getRenderContext().setVertexStrokeTransformer(new P2PVertexStrokeTransformer());
@@ -582,7 +582,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         TrustApplet myapp = new TrustApplet();
     }
 
-
     public List<JMenuItem> getLayoutItems() {
         List<JMenuItem> menuItems = new LinkedList<JMenuItem>();
 
@@ -609,7 +608,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
             menuItems.add(kkLayout);
             menuItems.add(springLayout);
         } else {
-            ChatterBox.error(this, "getLayoutItems()", "Tried to create popup menu for a view other than feedback view.  You will have to implement this.  See original method for reference");
+            ChatterBox.error(this, "getLayoutItems()", "Tried to create popup menu for a view other than feedback view.\nYou will have to implement this.  See original method for reference");
         }
 
         return menuItems;
@@ -692,7 +691,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (System.getProperty("os.name").toLowerCase().equals("linux") == false){
+            if (System.getProperty("os.name").toLowerCase().equals("linux") == false) {
                 doPop(e);
             }
         }
