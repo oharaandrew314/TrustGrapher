@@ -21,17 +21,18 @@ import utilities.ChatterBox;
 
 public class TrustGraphLoader {
 
+    public static final File STARTING_DIRECTORY = new File("/home/zalpha314/Documents/Programming/Java/Work/TrustGrapher2/test");
     private LinkedList<TrustLogEvent> logList;
-    private TrustGraph hiddenGraph;
-    private TrustGraph visibleGraph;
+    private FeedbackHistoryGraph hiddenGraph;
+    private FeedbackHistoryGraph visibleGraph;
     private List<LoadingListener> loadingListeners;
 
     //[start] Constructor
     public TrustGraphLoader() {
         logList = new LinkedList<TrustLogEvent>();
         ChatterBox.debug(this, "P2PNetworkGraphLoader()", "A new graph was instanciated.  I have set it to feedback history by default.");
-        hiddenGraph = new TrustGraph(TrustGraph.FEEDBACK_HISTORY);
-        visibleGraph = new TrustGraph(TrustGraph.FEEDBACK_HISTORY);
+        hiddenGraph = new FeedbackHistoryGraph();
+        visibleGraph = new FeedbackHistoryGraph();
         loadingListeners = new LinkedList<LoadingListener>();
     }
     //[end] Constructor
@@ -111,9 +112,10 @@ public class TrustGraphLoader {
 
     //[start] Graph Builder
     private void graphBuilder(Document networkDoc) {
+        ChatterBox.error(this, "graphBuilder()", "graphBuilder() method has been called.  I'm pretty sure it doesn't work.");
         if (networkDoc.getRootElement().getName().equals("network")) {
             int edgeCounter = 0;
-            TrustGraph startGraph = new TrustGraph(TrustGraph.FEEDBACK_HISTORY);
+            FeedbackHistoryGraph startGraph = new FeedbackHistoryGraph();
             ChatterBox.debug(this, "P2PNetworkGraphLoader()", "A new graph was instanciated.  I have set it to feedback history by default.");
             Element networkElem = networkDoc.getRootElement();
             int counter = 0;
@@ -130,12 +132,8 @@ public class TrustGraphLoader {
 
                     if (type.equals("PeerVertex")) {
                         int key = Integer.parseInt(elem.getChild("key").getText());
-                        hiddenGraph.addVertex(new TrustVertex(key));
-                        startGraph.addVertex(new TrustVertex(key));
-                    } else if (type.equals("DocumentVertex")) {
-                        int key = Integer.parseInt(elem.getChild("key").getText());
-                        hiddenGraph.addVertex(new DocumentVertex(key));
-                        startGraph.addVertex(new DocumentVertex(key));
+                        hiddenGraph.addVertex(new AgentWrapper(key));
+                        startGraph.addVertex(new AgentWrapper(key));
                     }
                     loadingProgress(++counter);
                 }
@@ -153,10 +151,14 @@ public class TrustGraphLoader {
                     if (type.equals("PeerToPeer")) { //Peer to Peer
                         int v1Key = Integer.parseInt(elem.getChild("v1").getText());
                         int v2Key = Integer.parseInt(elem.getChild("v2").getText());
-                        TrustVertex peer1 = hiddenGraph.getVertexInGraph(new TrustVertex(v1Key));
-                        TrustVertex peer2 = hiddenGraph.getVertexInGraph(new TrustVertex(v2Key));
-                        startGraph.addEdge(new TrustConnection(edgeCounter), peer1, peer2);
-                        hiddenGraph.addEdge(new TrustConnection(edgeCounter), peer1, peer2);
+                        AgentWrapper peer1 = hiddenGraph.getVertexInGraph(new AgentWrapper(v1Key));
+                        AgentWrapper peer2 = hiddenGraph.getVertexInGraph(new AgentWrapper(v2Key));
+                        try{
+                            startGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
+                            hiddenGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
+                        }catch (Exception ex){
+                            ChatterBox.error(this, "graphBuilder()", "Could not create an edge");
+                        }
                         edgeCounter++;
                     } else {
                         ChatterBox.debug(this, "graphBuilder()", "no diea what to do here.");
@@ -186,9 +188,9 @@ public class TrustGraphLoader {
                     ChatterBox.debug(this, "graphBuilder()", "A new LogEvent was created but I don't know how to get the feedback.  So it has a rating of +1");
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
 
-                    //Asuuming all events are feedback events
-                    TrustVertex assessor = hiddenGraph.getVertexInGraph(new TrustVertex(evt.getAssessee()));
-                    TrustVertex assessee = hiddenGraph.getVertexInGraph(new TrustVertex(evt.getAssessor()));
+//                    Asuuming all events are feedback events
+                    AgentWrapper assessor = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessee()));
+                    AgentWrapper assessee = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessor()));
 
                     //If the peers don't exist, add them
                     if (hiddenGraph.getPeer(evt.getAssessee()) == null) {
@@ -197,11 +199,11 @@ public class TrustGraphLoader {
                     if (hiddenGraph.getPeer(evt.getAssessor()) == null) {
                         hiddenGraph.addPeer(evt.getAssessor());
                     }
-                    TrustConnection edge = null;
-                    if (hiddenGraph.getType() == TrustGraph.FEEDBACK_HISTORY) {
-                        edge = new TrustConnection(edgeCounter, TrustConnection.FEEDBACK, evt.getFeedback());
-                    } else {
-                        ChatterBox.debug(this, "graphBuilder()", "I haven't implemented adding edges to different types of graphs yet");
+                    FeedbackEdge edge = null;
+                    try{
+                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getPeer(evt.getAssessor()), hiddenGraph.getPeer(evt.getAssessee()));
+                    }catch (Exception ex){
+                        ChatterBox.error(this, "graphBuilder()", ex.getMessage());
                     }
                     edgeCounter++;
                     hiddenGraph.addEdge(edge, assessor, assessee);
@@ -237,8 +239,8 @@ public class TrustGraphLoader {
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
 
                     //Asuuming all events are feedback events
-                    TrustVertex assessor = hiddenGraph.getVertexInGraph(new TrustVertex(evt.getAssessee()));
-                    TrustVertex assessee = hiddenGraph.getVertexInGraph(new TrustVertex(evt.getAssessor()));
+                    AgentWrapper assessor = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessee()));
+                    AgentWrapper assessee = hiddenGraph.getVertexInGraph(new AgentWrapper(evt.getAssessor()));
 
                     //If the peers don't exist, add them
                     if (hiddenGraph.getPeer(evt.getAssessee()) == null) {
@@ -247,11 +249,11 @@ public class TrustGraphLoader {
                     if (hiddenGraph.getPeer(evt.getAssessor()) == null) {
                         hiddenGraph.addPeer(evt.getAssessor());
                     }
-                    TrustConnection edge = null;
-                    if (hiddenGraph.getType() == TrustGraph.FEEDBACK_HISTORY) {
-                        edge = new TrustConnection(edgeCounter, TrustConnection.FEEDBACK, evt.getFeedback());
-                    } else {
-                        ChatterBox.debug(this, "addEventsToGraph()", "I haven't implemented adding edges to different types of graphs yet");
+                    FeedbackEdge edge = null;
+                    try{
+                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getPeer(evt.getAssessor()), hiddenGraph.getPeer(evt.getAssessee()));
+                    }catch (Exception ex){
+                        ChatterBox.error(this, "graphBuilder()", ex.getMessage());
                     }
                     edgeCounter++;
                     hiddenGraph.addEdge(edge, assessor, assessee);
@@ -267,18 +269,18 @@ public class TrustGraphLoader {
         return logList;
     }
 
-    public TrustGraph getHiddenP2PNetworkGraph() {
+    public FeedbackHistoryGraph getHiddenP2PNetworkGraph() {
         return hiddenGraph;
     }
 
-    public TrustGraph getVisibleP2PNetworkGraph() {
+    public FeedbackHistoryGraph getVisibleP2PNetworkGraph() {
         return visibleGraph;
     }
     //[end] Getters
 
     //[start] Static Methods
     public static File chooseLoadFile(String filterDescription, String[] acceptedExtensions) {
-        JFileChooser fileNamer = new JFileChooser();
+        JFileChooser fileNamer = new JFileChooser(STARTING_DIRECTORY);
         fileNamer.setFileFilter(new ExtensionFileFilter(filterDescription, acceptedExtensions));
         int returnVal = fileNamer.showOpenDialog(null);
 
@@ -312,7 +314,7 @@ public class TrustGraphLoader {
         return loader;
     }
 
-    public static LinkedList<TrustLogEvent> buildLogs(InputStream inStream, TrustGraph hiddenGraph) throws JDOMException, IOException {
+    public static LinkedList<TrustLogEvent> buildLogs(InputStream inStream, FeedbackHistoryGraph hiddenGraph) throws JDOMException, IOException {
 
         SAXBuilder parser = new SAXBuilder();
         Document doc = parser.build(inStream);

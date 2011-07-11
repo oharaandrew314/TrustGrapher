@@ -1,7 +1,7 @@
 package trustGrapher.visualizer;
 
-import trustGrapher.graph.TrustConnection;
-import trustGrapher.graph.TrustVertex;
+import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
+import trustGrapher.graph.AgentWrapper;
 
 import java.awt.Shape;
 
@@ -23,13 +23,13 @@ import edu.uci.ics.jung.visualization.decorators.EdgeShape;
  */
 public class P2PEdgeShapeTransformer
 		implements
-		Transformer<Context<Graph<TrustVertex, TrustConnection>, TrustConnection>, Shape> {
+		Transformer<Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>, Shape> {
 
-	private AbstractEdgeShapeTransformer<TrustVertex, TrustConnection> P2PEdgeShape;
-	private AbstractEdgeShapeTransformer<TrustVertex, TrustConnection> P2DocEdgeShape;
-	private AbstractEdgeShapeTransformer<TrustVertex, TrustConnection> Doc2PDocEdgeShape;
-	private AbstractEdgeShapeTransformer<TrustVertex, TrustConnection> P2PDocEdgeShape;
-	private final AbstractEdgeShapeTransformer<TrustVertex, TrustConnection> defaultEdgeShape;
+//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> P2PEdgeShape;
+//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> P2DocEdgeShape;
+//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> Doc2PDocEdgeShape;
+//	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> P2PDocEdgeShape;
+	private final AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> defaultEdgeShape;
 	
 	/**
 	 * 
@@ -38,16 +38,15 @@ public class P2PEdgeShapeTransformer
 	 * @param Doc2PDocEdgeShape	Document to PeerDocument Edge Shape.
 	 * @param P2PDocEdgeShape	Peer to PeerDocument Edge Shape.
 	 */
-	public P2PEdgeShapeTransformer(EdgeShapeType P2PEdgeShape, EdgeShapeType P2DocEdgeShape, EdgeShapeType Doc2PDocEdgeShape, EdgeShapeType P2PDocEdgeShape){
-		this.P2PEdgeShape = shapeChooser(P2PEdgeShape);
-		this.P2DocEdgeShape = shapeChooser(P2DocEdgeShape);
-		this.Doc2PDocEdgeShape = shapeChooser(Doc2PDocEdgeShape);
-		this.P2PDocEdgeShape = shapeChooser(P2PDocEdgeShape);
-		
-		defaultEdgeShape = new EdgeShape.Box<TrustVertex, TrustConnection>();
+	public P2PEdgeShapeTransformer(){
+//		this.P2PEdgeShape = shapeChooser(P2PEdgeShape);
+//		this.P2DocEdgeShape = shapeChooser(P2DocEdgeShape);
+//		this.Doc2PDocEdgeShape = shapeChooser(Doc2PDocEdgeShape);
+//		this.P2PDocEdgeShape = shapeChooser(P2PDocEdgeShape);		
+		defaultEdgeShape = new EdgeShape.QuadCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
 	}
 	@Override
-	public Shape transform(Context<Graph<TrustVertex, TrustConnection>, TrustConnection> context) {
+	public Shape transform(Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
 
             /** Removed by me
             if (context.element.isP2P()) {
@@ -67,33 +66,35 @@ public class P2PEdgeShapeTransformer
             return defaultEdgeShape.transform(context);
              */
             //Replaced by
-            return P2PEdgeShape.transform(context); //a curve if this is between peers
+
+            return defaultEdgeShape.transform(context);
 	}
 	
-	private AbstractEdgeShapeTransformer<TrustVertex, TrustConnection> shapeChooser(EdgeShapeType chosenShape) {
-		switch(chosenShape) {
-		
-		case BENT_LINE:
-			return new EdgeShape.BentLine<TrustVertex, TrustConnection>();
-		case BOX:
-			return new EdgeShape.Box<TrustVertex, TrustConnection>();
-		case CUBIC_CURVE:
-			return new EdgeShape.CubicCurve<TrustVertex, TrustConnection>();
-		case LINE:
-			return new EdgeShape.Line<TrustVertex, TrustConnection>();
-		case LOOP:
-			return new EdgeShape.Loop<TrustVertex, TrustConnection>();
-		case ORTHOGONAL:
-			return new EdgeShape.Orthogonal<TrustVertex, TrustConnection>();
-		case QUAD_CURVE:
-			return new EdgeShape.QuadCurve<TrustVertex, TrustConnection>();
-		case SIMPLE_LOOP:
-			return new EdgeShape.SimpleLoop<TrustVertex, TrustConnection>();
-		case WEDGE:
-			return new EdgeShape.Wedge<TrustVertex, TrustConnection>(3);
-    		
-		}
-		return new EdgeShape.Line<TrustVertex, TrustConnection>();
+	private AbstractEdgeShapeTransformer<AgentWrapper, FeedbackHistoryGraphEdge> shapeChooser(EdgeShapeType chosenShape) {
+            return new EdgeShape.QuadCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		switch(chosenShape) {
+//
+//		case BENT_LINE:
+//			return new EdgeShape.BentLine<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case BOX:
+//			return new EdgeShape.Box<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case CUBIC_CURVE:
+//			return new EdgeShape.CubicCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case LINE:
+//			return new EdgeShape.Line<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case LOOP:
+//			return new EdgeShape.Loop<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case ORTHOGONAL:
+//			return new EdgeShape.Orthogonal<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case QUAD_CURVE:
+//			return new EdgeShape.QuadCurve<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case SIMPLE_LOOP:
+//			return new EdgeShape.SimpleLoop<AgentWrapper, FeedbackHistoryGraphEdge>();
+//		case WEDGE:
+//			return new EdgeShape.Wedge<AgentWrapper, FeedbackHistoryGraphEdge>(3);
+//
+//		}
+//		return new EdgeShape.Line<AgentWrapper, FeedbackHistoryGraphEdge>();
 	}
 
 }

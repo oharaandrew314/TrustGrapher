@@ -5,13 +5,13 @@ import java.awt.Stroke;
 
 import org.apache.commons.collections15.Transformer;
 
-import trustGrapher.graph.TrustVertex;;
+import trustGrapher.graph.AgentWrapper;;
 
 public class P2PVertexStrokeTransformer implements
-		Transformer<TrustVertex, Stroke> {
+		Transformer<AgentWrapper, Stroke> {
 
 	@Override
-	public Stroke transform(TrustVertex v) {
+	public Stroke transform(AgentWrapper v) {
             return new BasicStroke(1.0f); // if it's to a document, make it narrow
 	}
 

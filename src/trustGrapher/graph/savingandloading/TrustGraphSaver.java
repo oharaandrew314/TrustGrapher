@@ -1,5 +1,6 @@
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -23,11 +24,11 @@ public class TrustGraphSaver {
 
     private long currentTime;
     private List<TrustLogEvent> logList;
-    private TrustGraph graph;
+    private FeedbackHistoryGraph graph;
     private List<LoadingListener> progressListeners;
 
     //[start] Constructors
-    public TrustGraphSaver(TrustGraph graph) {
+    public TrustGraphSaver(FeedbackHistoryGraph graph) {
         this(graph, null, 0);
     }
 
@@ -35,7 +36,7 @@ public class TrustGraphSaver {
         this(null, events, currentTime);
     }
 
-    public TrustGraphSaver(TrustGraph graph, List<TrustLogEvent> events, long currentTime) {
+    public TrustGraphSaver(FeedbackHistoryGraph graph, List<TrustLogEvent> events, long currentTime) {
         this.currentTime = currentTime;
         this.logList = events;
         this.graph = graph;
@@ -62,7 +63,7 @@ public class TrustGraphSaver {
         saverThread.start();
     }
 
-    public static Document getGraphDocument(TrustGraph graph) {
+    public static Document getGraphDocument(FeedbackHistoryGraph graph) {
         TrustGraphSaver saver = new TrustGraphSaver(graph);
         Document doc = saver.buildDoc();
 
@@ -78,16 +79,13 @@ public class TrustGraphSaver {
             //[start] Creating Graph Elements
 
             //[start] compile separate lists for peers, documents and peerdocuments
-            LinkedList<TrustVertex> peers = new LinkedList<TrustVertex>();
-            LinkedList<DocumentVertex> documents = new LinkedList<DocumentVertex>();
-            LinkedList<TrustConnection> edges = new LinkedList<TrustConnection>(graph.getEdges());
+            LinkedList<AgentWrapper> peers = new LinkedList<AgentWrapper>();
+            LinkedList<FeedbackHistoryGraphEdge> edges = new LinkedList<FeedbackHistoryGraphEdge>(graph.getEdges());
             int count = 0;
             loadingStarted(graph.getVertices().size(), "Compiling Vertex Lists");
-            for (TrustVertex vertex : graph.getVertices()) {
-                if (vertex.getClass().equals(TrustVertex.class)) {
-                    peers.addLast((TrustVertex) vertex);
-                } else if (vertex.getClass().equals(DocumentVertex.class)) {
-                    documents.addLast((DocumentVertex) vertex);
+            for (AgentWrapper vertex : graph.getVertices()) {
+                if (vertex.getClass().equals(AgentWrapper.class)) {
+                    peers.addLast((AgentWrapper) vertex);
                 }
                 loadingProgress(count);
                 count++;
@@ -102,7 +100,7 @@ public class TrustGraphSaver {
             Element nodemap = new Element("nodemap");
             count = 0;
             loadingChanged(peers.size(), "Peer Vertices");
-            for (TrustVertex peer : peers) { //write out all the peer information
+            for (AgentWrapper peer : peers) { //write out all the peer information
                 Element node = new Element("node");
                 node.setAttribute("type", "TrustVertex");
 
@@ -115,20 +113,7 @@ public class TrustGraphSaver {
                 count++;
             }
             count = 0;
-            loadingChanged(documents.size(), "Document Vertices");
-            for (DocumentVertex doc : documents) {//write out all the document information
-                Element node = new Element("node");
-                node.setAttribute("type", "DocumentVertex");
-
-                Element key = new Element("key");
-                key.addContent(Integer.toString(doc.getDocumentNumber()));
-                node.addContent(key);
-
-                nodemap.addContent(node);
-
-                loadingProgress(count);
-                count++;
-            }
+//            loadingChanged(documents.size(), "Document Vertices");
             graphElement.addContent(nodemap);
             //[end] Create vertices
 
@@ -136,18 +121,18 @@ public class TrustGraphSaver {
             Element edgemap = new Element("edgemap");
             count = 0;
             loadingChanged(edges.size(), "Edges");
-            for (TrustConnection e : edges) {//write out all the edge information
+            for (FeedbackHistoryGraphEdge e : edges) {//write out all the edge information
                 Element edge = new Element("edge");
 
                 /**Removed by me
                 switch(e.getType()) {
-                case TrustConnection.P2P:
+                case FeedbackHistoryGraphEdge.P2P:
                 edge.setAttribute("type", "PeerToPeer");
                 break;
-                case TrustConnection.P2DOC:
+                case FeedbackHistoryGraphEdge.P2DOC:
                 edge.setAttribute("type", "PeerToDocument");
                 break;
-                case TrustConnection.DOC2DOC:
+                case FeedbackHistoryGraphEdge.DOC2DOC:
                 edge.setAttribute("type", "DocumentToDocument");
                 break;
                 default:
@@ -157,7 +142,7 @@ public class TrustGraphSaver {
                 //Replaced by
                 edge.setAttribute("type", "PeerToPeer");
 
-                Pair<TrustVertex> ends = graph.getEndpoints(e);
+                Pair<AgentWrapper> ends = graph.getEndpoints(e);
 
                 String key1 = Integer.toString(ends.getFirst().getKey());
                 String key2 = Integer.toString(ends.getSecond().getKey());

@@ -7,7 +7,7 @@ import utilities.BitStylus;
 import utilities.ChatterBox;
 
 /**
- * Generates a random EventLog text file
+ * Generates a random EventLog file
  * @author Andrew O'Hara
  */
 public class logGen {

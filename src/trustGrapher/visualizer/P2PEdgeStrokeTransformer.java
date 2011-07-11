@@ -1,16 +1,17 @@
 package trustGrapher.visualizer;
 
-import trustGrapher.graph.TrustConnection;
 
+
+import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import java.awt.BasicStroke;
 import java.awt.Stroke;
 
 import org.apache.commons.collections15.Transformer;
 
-public class P2PEdgeStrokeTransformer implements Transformer<TrustConnection, Stroke> {
+public class P2PEdgeStrokeTransformer implements Transformer<FeedbackHistoryGraphEdge, Stroke> {
 
     @Override
-    public Stroke transform(TrustConnection edge) {
+    public Stroke transform(FeedbackHistoryGraphEdge edge) {
         /** Removed by me
         if(edge.isP2P())
                 if (edge.isQuerying())

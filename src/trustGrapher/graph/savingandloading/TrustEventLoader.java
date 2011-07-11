@@ -20,18 +20,18 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class TrustEventLoader {
-    private TrustGraph hiddenGraph;
+    private FeedbackHistoryGraph hiddenGraph;
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventLoader(TrustGraph hiddenGraph) {
+    public TrustEventLoader(FeedbackHistoryGraph hiddenGraph) {
         loadingListeners = new ArrayList<LoadingListener>();
         this.hiddenGraph = hiddenGraph;
     }
 
     public TrustEventLoader() {
-        this(new TrustGraph(TrustGraph.FEEDBACK_HISTORY));
+        this(new FeedbackHistoryGraph());
         ChatterBox.debug(this, "LogEventListBuilder", "A new graph was instanciated.  I have set it to feedback history by default.");
     }
 
@@ -41,28 +41,28 @@ public class TrustEventLoader {
         loadingListeners.add(loadingListener);
     }
 
-    public TrustGraph getHiddenGraph() {
+    public FeedbackHistoryGraph getHiddenGraph() {
         return hiddenGraph;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
 
-    public LinkedList<TrustLogEvent> createList(File file){
+    public LinkedList<TrustLogEvent> createList(File logFile){
         logEvents = new LinkedList<TrustLogEvent>();
-        TrustGraph tempGraph = new TrustGraph(TrustGraph.FEEDBACK_HISTORY);
+        FeedbackHistoryGraph tempGraph = new FeedbackHistoryGraph();
         ChatterBox.debug(this, "createList()", "A new graph was instanciated.  I have set it to feedback history by default.");
         String line = ""; //will contain each log event as it is read.
         int lineCount = 0;
         int totalLines;
 
         try{
-            BufferedReader logFile = new BufferedReader(new FileReader(file));
+            BufferedReader logReader = new BufferedReader(new FileReader(logFile));
 
-            if (file.getAbsolutePath().endsWith(".arff")){
-                totalLines = findTotalLines(file);
-                skipToData(logFile);
+            if (logFile.getAbsolutePath().endsWith(".arff")){
+                totalLines = findTotalLines(logFile);
+                skipToData(logReader);
             }else{
-                totalLines = Integer.parseInt(logFile.readLine()); //the total number of lines so the loading bar can size itself properly
+                totalLines = Integer.parseInt(logReader.readLine()); //the total number of lines so the loading bar can size itself properly
             }
 
             for (LoadingListener l : loadingListeners) { //notify the listeners that the log events have begun loading
@@ -71,12 +71,12 @@ public class TrustEventLoader {
 
             logEvents.add(TrustLogEvent.getStartEvent()); //a start event to know when to stop playback of a reversing graph
 
-            while ((line = logFile.readLine()) != null) { //reading lines log file
+            while ((line = logReader.readLine()) != null) { //reading lines log logFile
                 lineCount++;
                 for (LoadingListener l : loadingListeners) { //Notify loading bar that another line has been read
                     l.loadingProgress(lineCount);
                 }
-                if (file.getAbsolutePath().endsWith(".arff")){
+                if (logFile.getAbsolutePath().endsWith(".arff")){
                     line = (lineCount * 100) + "," + line;
                 }
                 TrustLogEvent gev = new TrustLogEvent(line);//create the log event
@@ -84,7 +84,7 @@ public class TrustEventLoader {
 
                 // Update the temporary graph afterwards so it can be used as a reference
                 hiddenGraph.graphConstructionEvent(gev);
-                tempGraph.graphEvent(gev, true, hiddenGraph);
+                //tempGraph.graphEvent(gev, true, hiddenGraph);
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the graph 100 ms after
 
@@ -94,9 +94,9 @@ public class TrustEventLoader {
             return (LinkedList<TrustLogEvent>) logEvents;
     }
 
-    private int findTotalLines(File file){
+    private int findTotalLines(File logFile){
         try{
-            BufferedReader reader = new BufferedReader(new FileReader(file));
+            BufferedReader reader = new BufferedReader(new FileReader(logFile));
             int totalLines = 0;
             while (true){
                 if (reader.readLine() != null){
@@ -111,12 +111,12 @@ public class TrustEventLoader {
         return 0;
     }
 
-    private void skipToData(BufferedReader logFile){
+    private void skipToData(BufferedReader log){
         boolean dataReached = false;
         String line;
         while (true) { //reading lines log file
             try{
-                line = logFile.readLine();
+                line = log.readLine();
                 if (line.equals("@data")  || line.equals("@data\n")){ //Wait until the data filed has started
                     dataReached = true;
                     return;

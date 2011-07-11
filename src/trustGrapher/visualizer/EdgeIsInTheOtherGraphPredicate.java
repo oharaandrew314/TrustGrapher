@@ -2,9 +2,9 @@ package trustGrapher.visualizer;
 
 import org.apache.commons.collections15.Predicate;
 
-import trustGrapher.graph.TrustConnection;
-import trustGrapher.graph.TrustGraph;
-import trustGrapher.graph.TrustVertex;
+import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
+import trustGrapher.graph.FeedbackHistoryGraph;
+import trustGrapher.graph.AgentWrapper;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
@@ -18,25 +18,22 @@ import edu.uci.ics.jung.graph.util.Context;
  * @author alan
  *
  */
-public class EdgeIsInTheOtherGraphPredicate implements
-		Predicate<Context<Graph<TrustVertex, TrustConnection>, TrustConnection>> {
+public class EdgeIsInTheOtherGraphPredicate implements Predicate<Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>> {
 
-	private Graph<TrustVertex, TrustConnection> othergraph;
-	
-	public EdgeIsInTheOtherGraphPredicate(Graph<TrustVertex, TrustConnection> g){
-		othergraph= g;
-		
-	}
+    private Graph<AgentWrapper, FeedbackHistoryGraphEdge> othergraph;
 
-    public EdgeIsInTheOtherGraphPredicate(TrustGraph visibleGraph) {
+    public EdgeIsInTheOtherGraphPredicate(Graph<AgentWrapper, FeedbackHistoryGraphEdge> g) {
+        othergraph = g;
+
+    }
+
+    public EdgeIsInTheOtherGraphPredicate(FeedbackHistoryGraph visibleGraph) {
+
         othergraph = visibleGraph;
     }
-	@Override
-	public boolean evaluate(Context<Graph<TrustVertex, TrustConnection>, TrustConnection> context) {
-		
-		return (othergraph.containsEdge(context.element));
-		
-	}
-	
 
+    @Override
+    public boolean evaluate(Context<Graph<AgentWrapper, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
+        return (othergraph.containsEdge(context.element));
+    }
 }
