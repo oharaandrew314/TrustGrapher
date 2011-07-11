@@ -1,5 +1,6 @@
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.entities.Agent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -132,8 +133,8 @@ public class TrustGraphLoader {
 
                     if (type.equals("PeerVertex")) {
                         int key = Integer.parseInt(elem.getChild("key").getText());
-                        hiddenGraph.addVertex(new MyAgent(key));
-                        startGraph.addVertex(new MyAgent(key));
+                        hiddenGraph.addVertex(new Agent(key));
+                        startGraph.addVertex(new Agent(key));
                     }
                     loadingProgress(++counter);
                 }
@@ -151,8 +152,8 @@ public class TrustGraphLoader {
                     if (type.equals("PeerToPeer")) { //Peer to Peer
                         int v1Key = Integer.parseInt(elem.getChild("v1").getText());
                         int v2Key = Integer.parseInt(elem.getChild("v2").getText());
-                        MyAgent peer1 = hiddenGraph.getVertexInGraph(new MyAgent(v1Key));
-                        MyAgent peer2 = hiddenGraph.getVertexInGraph(new MyAgent(v2Key));
+                        Agent peer1 = hiddenGraph.getVertexInGraph(new Agent(v1Key));
+                        Agent peer2 = hiddenGraph.getVertexInGraph(new Agent(v2Key));
                         try{
                             startGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
                             hiddenGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
@@ -189,19 +190,19 @@ public class TrustGraphLoader {
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
 
 //                    Asuuming all events are feedback events
-                    MyAgent assessor = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessee()));
-                    MyAgent assessee = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessor()));
+                    Agent assessor = hiddenGraph.getVertexInGraph(new Agent(evt.getAssessee()));
+                    Agent assessee = hiddenGraph.getVertexInGraph(new Agent(evt.getAssessor()));
 
                     //If the peers don't exist, add them
-                    if (hiddenGraph.getPeer(evt.getAssessee()) == null) {
+                    if (hiddenGraph.getVertexInGraph(evt.getAssessee()) == null) {
                         hiddenGraph.addPeer(evt.getAssessee());
                     }
-                    if (hiddenGraph.getPeer(evt.getAssessor()) == null) {
+                    if (hiddenGraph.getVertexInGraph(evt.getAssessor()) == null) {
                         hiddenGraph.addPeer(evt.getAssessor());
                     }
                     FeedbackEdge edge = null;
                     try{
-                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getPeer(evt.getAssessor()), hiddenGraph.getPeer(evt.getAssessee()));
+                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getVertexInGraph(evt.getAssessor()), hiddenGraph.getVertexInGraph(evt.getAssessee()));
                     }catch (Exception ex){
                         ChatterBox.error(this, "graphBuilder()", ex.getMessage());
                     }
@@ -239,19 +240,19 @@ public class TrustGraphLoader {
                     TrustLogEvent evt = new TrustLogEvent(timeDifference, paramOne, paramTwo, 1.0);
 
                     //Asuuming all events are feedback events
-                    MyAgent assessor = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessee()));
-                    MyAgent assessee = hiddenGraph.getVertexInGraph(new MyAgent(evt.getAssessor()));
+                    Agent assessor = hiddenGraph.getVertexInGraph(new Agent(evt.getAssessee()));
+                    Agent assessee = hiddenGraph.getVertexInGraph(new Agent(evt.getAssessor()));
 
                     //If the peers don't exist, add them
-                    if (hiddenGraph.getPeer(evt.getAssessee()) == null) {
+                    if (hiddenGraph.getVertexInGraph(evt.getAssessee()) == null) {
                         hiddenGraph.addPeer(evt.getAssessee());
                     }
-                    if (hiddenGraph.getPeer(evt.getAssessor()) == null) {
+                    if (hiddenGraph.getVertexInGraph(evt.getAssessor()) == null) {
                         hiddenGraph.addPeer(evt.getAssessor());
                     }
                     FeedbackEdge edge = null;
                     try{
-                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getPeer(evt.getAssessor()), hiddenGraph.getPeer(evt.getAssessee()));
+                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getVertexInGraph(evt.getAssessor()), hiddenGraph.getVertexInGraph(evt.getAssessee()));
                     }catch (Exception ex){
                         ChatterBox.error(this, "graphBuilder()", ex.getMessage());
                     }

@@ -1,5 +1,6 @@
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
@@ -79,13 +80,13 @@ public class TrustGraphSaver {
             //[start] Creating Graph Elements
 
             //[start] compile separate lists for peers, documents and peerdocuments
-            LinkedList<MyAgent> peers = new LinkedList<MyAgent>();
+            LinkedList<Agent> peers = new LinkedList<Agent>();
             LinkedList<FeedbackHistoryGraphEdge> edges = new LinkedList<FeedbackHistoryGraphEdge>(graph.getEdges());
             int count = 0;
             loadingStarted(graph.getVertices().size(), "Compiling Vertex Lists");
-            for (MyAgent vertex : graph.getVertices()) {
-                if (vertex.getClass().equals(MyAgent.class)) {
-                    peers.addLast((MyAgent) vertex);
+            for (Agent vertex : graph.getVertices()) {
+                if (vertex.getClass().equals(Agent.class)) {
+                    peers.addLast((Agent) vertex);
                 }
                 loadingProgress(count);
                 count++;
@@ -100,12 +101,12 @@ public class TrustGraphSaver {
             Element nodemap = new Element("nodemap");
             count = 0;
             loadingChanged(peers.size(), "Peer Vertices");
-            for (MyAgent peer : peers) { //write out all the peer information
+            for (Agent peer : peers) { //write out all the peer information
                 Element node = new Element("node");
                 node.setAttribute("type", "TrustVertex");
 
                 Element key = new Element("key");
-                key.addContent(Integer.toString(peer.getKey()));
+                key.addContent(Integer.toString(peer.id));
                 node.addContent(key);
 
                 nodemap.addContent(node);
@@ -142,10 +143,10 @@ public class TrustGraphSaver {
                 //Replaced by
                 edge.setAttribute("type", "PeerToPeer");
 
-                Pair<MyAgent> ends = graph.getEndpoints(e);
+                Pair<Agent> ends = graph.getEndpoints(e);
 
-                String key1 = Integer.toString(ends.getFirst().getKey());
-                String key2 = Integer.toString(ends.getSecond().getKey());
+                String key1 = Integer.toString(ends.getFirst().id);
+                String key2 = Integer.toString(ends.getSecond().id);
                 Element v1 = new Element("v1");
                 v1.addContent(key1);
                 edge.addContent(v1);

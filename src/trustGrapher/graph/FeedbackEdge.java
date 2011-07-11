@@ -3,6 +3,7 @@ package trustGrapher.graph;
 
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import cu.repsystestbed.data.Feedback;
+import cu.repsystestbed.entities.Agent;
 import utilities.ChatterBox;
 
 /**
@@ -15,7 +16,7 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
 
 //////////////////////////////////Constructor///////////////////////////////////
 
-    public FeedbackEdge(Integer key, MyAgent assessor, MyAgent assessee) throws Exception {
+    public FeedbackEdge(Integer key, Agent assessor, Agent assessee) throws Exception {
         super(assessor, assessee);
         this.key = key;
     }
@@ -38,16 +39,16 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
         return s;
     }
 
-    public MyAgent getAssessor(){
-        return (MyAgent) src;
+    public Agent getAssessor(){
+        return (Agent) src;
     }
 
-    public MyAgent getAssessee(){
-        return (MyAgent) sink;
+    public Agent getAssessee(){
+        return (Agent) sink;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    public void addFeedback(MyAgent assessor, MyAgent assessee, double feedback) {
+    public void addFeedback(Agent assessor, Agent assessee, double feedback) {
         try {
             super.addFeedback(new Feedback(assessor, assessee, feedback));
         } catch (Exception ex) {

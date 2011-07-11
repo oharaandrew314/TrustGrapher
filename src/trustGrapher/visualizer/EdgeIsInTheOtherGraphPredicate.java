@@ -1,10 +1,10 @@
 package trustGrapher.visualizer;
 
+import cu.repsystestbed.entities.Agent;
 import org.apache.commons.collections15.Predicate;
 
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import trustGrapher.graph.FeedbackHistoryGraph;
-import trustGrapher.graph.MyAgent;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
@@ -18,11 +18,11 @@ import edu.uci.ics.jung.graph.util.Context;
  * @author alan
  *
  */
-public class EdgeIsInTheOtherGraphPredicate implements Predicate<Context<Graph<MyAgent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>> {
+public class EdgeIsInTheOtherGraphPredicate implements Predicate<Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>> {
 
-    private Graph<MyAgent, FeedbackHistoryGraphEdge> othergraph;
+    private Graph<Agent, FeedbackHistoryGraphEdge> othergraph;
 
-    public EdgeIsInTheOtherGraphPredicate(Graph<MyAgent, FeedbackHistoryGraphEdge> g) {
+    public EdgeIsInTheOtherGraphPredicate(Graph<Agent, FeedbackHistoryGraphEdge> g) {
         othergraph = g;
 
     }
@@ -33,7 +33,7 @@ public class EdgeIsInTheOtherGraphPredicate implements Predicate<Context<Graph<M
     }
 
     @Override
-    public boolean evaluate(Context<Graph<MyAgent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
+    public boolean evaluate(Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
         return (othergraph.containsEdge(context.element));
     }
 }

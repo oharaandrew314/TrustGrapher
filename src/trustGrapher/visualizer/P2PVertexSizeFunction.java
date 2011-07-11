@@ -1,8 +1,7 @@
 package trustGrapher.visualizer;
 
+import cu.repsystestbed.entities.Agent;
 import org.apache.commons.collections15.Transformer;
-
-import trustGrapher.graph.MyAgent;
 
 /**
  * Size function for the vertices in a graph representing a P2P network.
@@ -14,7 +13,7 @@ import trustGrapher.graph.MyAgent;
  *
  * 
  */
-public class P2PVertexSizeFunction implements Transformer<MyAgent, Integer> {
+public class P2PVertexSizeFunction implements Transformer<Agent, Integer> {
     int my_peer_size;
 
     /**
@@ -28,7 +27,7 @@ public class P2PVertexSizeFunction implements Transformer<MyAgent, Integer> {
     }
 
     @Override
-    public Integer transform(MyAgent vertexID) {
+    public Integer transform(Agent vertexID) {
         return new Integer(my_peer_size);
     }
 }

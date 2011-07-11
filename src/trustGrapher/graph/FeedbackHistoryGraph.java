@@ -1,78 +1,66 @@
 ////////////////////////////////////FeedbackHistoryGraph//////////////////////////////////
 package trustGrapher.graph;
 
+import org.jgrapht.graph.SimpleDirectedGraph;
+
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
-import trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.repsystestbed.graphs.JungAdapterGraph;
+import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
+import cu.repsystestbed.entities.Agent;
 
 import java.util.Collection;
 
 import edu.uci.ics.jung.graph.DelegateForest;
-import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.Forest;
-import edu.uci.ics.jung.graph.Graph;
+
+import trustGrapher.visualizer.eventplayer.TrustLogEvent;
+
 import utilities.ChatterBox;
 
-public class FeedbackHistoryGraph extends DirectedSparseMultigraph<MyAgent, FeedbackHistoryGraphEdge> implements Graph<MyAgent, FeedbackHistoryGraphEdge> {
-
-    private static final long serialVersionUID = 1L;
+public class FeedbackHistoryGraph extends JungAdapterGraph<Agent, FeedbackHistoryGraphEdge>{
     int edgecounter = 0;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public FeedbackHistoryGraph() {
-        super();
+    public FeedbackHistoryGraph() { 
+        super(new SimpleDirectedGraph(new FeedbackHistoryEdgeFactory()));
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public FeedbackEdge findConnection(int from, int to) {
-        return (FeedbackEdge) findEdge(getVertexInGraph(from), getVertexInGraph(to));
+    public FeedbackEdge fineEdge(int from, int to) {
+        return (FeedbackEdge) super.findEdge(getVertexInGraph(from), getVertexInGraph(to));
     }
 
-    public MyAgent getVertexInGraph(int peerNum) {
-        return getVertexInGraph(new MyAgent(peerNum));
+    public Agent getVertexInGraph(int peerNum) {
+        return getVertexInGraph(new Agent(peerNum));
     }
 
     /**
      * this methods gets a vertex already in the graph that is equal to the input vertex
      * to be used when adding edges; the edge should relate two vertices actually in the graph, not copies of these vertices.
-     * @param input a MyAgent object
-     * @return a MyAgent v such that v.equals(input) and v is in the graph
+     * @param input a Agent object
+     * @return a Agent v such that v.equals(input) and v is in the graph
      */
-    public MyAgent getVertexInGraph(MyAgent input) {
-        for (MyAgent v : vertices.keySet()) {
+    public Agent getVertexInGraph(Agent input) {
+        for (Agent v : super.getVertices()) {
             if (v.equals(input)) {
-                return v;
+                return (Agent) v;
             }
         }
         return null;
-    }
-
-    public MyAgent getPeer(int peerNumber) {
-        return (MyAgent) getVertexInGraph(new MyAgent(peerNumber));
-    }
-
-    //override these methods so the underlying collection is not unmodifiable
-    @Override
-    public Collection<FeedbackHistoryGraphEdge> getEdges() {
-        return edges.keySet();
-    }
-
-    @Override
-    public Collection<MyAgent> getVertices() {
-        return vertices.keySet();
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     /** adding a peer in the network*/
     public void addPeer(int peernumber) {
         if (getVertexInGraph(peernumber) == null){
-            addVertex(new MyAgent(peernumber));
+            addVertex(new Agent(peernumber));
         }else{
             ChatterBox.error(this, "addPeer()", "Tried to add a peer that already exists");
         }
     }
 
     public void removePeer(int peerNum) {
-        MyAgent peer = new MyAgent(peerNum);
+        Agent peer = new Agent(peerNum);
         Collection<FeedbackHistoryGraphEdge> edgeset = getIncidentEdges(peer);
         for (FeedbackHistoryGraphEdge e : edgeset) {
             removeEdge(e);
@@ -86,16 +74,15 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<MyAgent, Feed
     }
 
     public void feedback(int from, int to, double feedback, Integer key) {
-        //ChatterBox.debug(this, "feedback()", "from " + from + " to " + to + " rating " + feedback + " key " + key.toString());
         if (getVertexInGraph(from) == null) {
             addPeer(from);
         }
         if (getVertexInGraph(to) == null) {
             addPeer(to);
         }
-        MyAgent assessor = getVertexInGraph(from);
-        MyAgent assessee = getVertexInGraph(to);
-        FeedbackEdge edge = findConnection(from, to);
+        Agent assessor = getVertexInGraph(from);
+        Agent assessee = getVertexInGraph(to);
+        FeedbackEdge edge = fineEdge(from, to);
         if (edge == null) {//If the edge doesn't  exist, add it
             try {
                 edge = new FeedbackEdge(key, assessor, assessee);
@@ -108,14 +95,14 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<MyAgent, Feed
     }
 
     public void unFeedback(int from, int to, double feedback, int key) {
-        FeedbackEdge edge = findConnection(from, to);
+        FeedbackEdge edge = fineEdge(from, to);
         if (edge != null) {
             if (edge.hasMultipleFeedback()) {
                 edge.removeFeedback(feedback);
             } else {
-                Collection<MyAgent> verts = super.getIncidentVertices(edge);
+                Collection<Agent> verts = super.getIncidentVertices(edge);
                 super.removeEdge(edge);
-                for (MyAgent v : verts) {
+                for (Agent v : verts) {
                     if (super.getIncidentEdges(v).isEmpty()) {
                         super.removeVertex(v);
                     }
@@ -131,9 +118,9 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<MyAgent, Feed
      * @param graph	The source which the tree Graph will be made from
      * @return	The Document Tree Graph
      */
-    public static Forest<MyAgent, FeedbackHistoryGraphEdge> makeTreeGraph(FeedbackHistoryGraph graph) {
-        Forest<MyAgent, FeedbackHistoryGraphEdge> tree = new DelegateForest<MyAgent, FeedbackHistoryGraphEdge>();
-        for (MyAgent documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
+    public static Forest<Agent, FeedbackHistoryGraphEdge> makeTreeGraph(FeedbackHistoryGraph graph) {
+        Forest<Agent, FeedbackHistoryGraphEdge> tree = new DelegateForest<Agent, FeedbackHistoryGraphEdge>();
+        for (Agent documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
         }
         return tree;
     }
@@ -148,7 +135,7 @@ public class FeedbackHistoryGraph extends DirectedSparseMultigraph<MyAgent, Feed
         int from = gev.getAssessor();
         int to = gev.getAssessee();
         double feedback = gev.getFeedback();
-        int key = referenceGraph.findConnection(from, to).getKey();
+        int key = referenceGraph.fineEdge(from, to).getKey();
         if (forward) {
             feedback(from, to, feedback, key);
         } else {

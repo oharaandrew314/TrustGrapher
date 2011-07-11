@@ -1,11 +1,10 @@
 package trustGrapher.visualizer;
 
+import cu.repsystestbed.entities.Agent;
 import java.awt.Shape;
 
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.ConstantTransformer;
-
-import trustGrapher.graph.MyAgent;
 
 import edu.uci.ics.jung.visualization.decorators.AbstractVertexShapeTransformer;
 import utilities.ChatterBox;
@@ -23,8 +22,8 @@ import utilities.ChatterBox;
  *
  * @param <V>
  */
-public class P2PVertexShapeTransformer extends AbstractVertexShapeTransformer<MyAgent>
-        implements Transformer<MyAgent, Shape> {
+public class P2PVertexShapeTransformer extends AbstractVertexShapeTransformer<Agent>
+        implements Transformer<Agent, Shape> {
 
     public static final int PEER_SIZE = 25;
     private VertexShapeType peerShape;
@@ -41,11 +40,11 @@ public class P2PVertexShapeTransformer extends AbstractVertexShapeTransformer<My
         this.peerShape = peerShape;
     }
 
-    public Shape transform(MyAgent v) {
+    public Shape transform(Agent v) {
         return shapeChooser(v, peerShape);
     }
 
-    private Shape shapeChooser(MyAgent v, VertexShapeType chosenShape) {
+    private Shape shapeChooser(Agent v, VertexShapeType chosenShape) {
         switch (chosenShape) {
             case ELLIPSE:
                 return factory.getEllipse(v);

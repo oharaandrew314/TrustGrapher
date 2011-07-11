@@ -1,6 +1,7 @@
 /////////////////////////////////////TrustApplet////////////////////////////////
 package trustGrapher;
 
+import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.*;
@@ -88,8 +89,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     public static final int DEFWIDTH = 1360;
     public static final int DEFHEIGHT = 768;
     private static final long serialVersionUID = 2L;
-    private VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> feedbackViewer = null;
-    private AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> layout = null;
+    private VisualizationViewer<Agent, FeedbackHistoryGraphEdge> feedbackViewer = null;
+    private AbstractLayout<Agent, FeedbackHistoryGraphEdge> layout = null;
     private LinkedList<TrustLogEvent> events;
     //a hidden graph that contains all the nodes that will ever be added in order to calculate the positions of all the nodes
     private FeedbackHistoryGraph hiddenGraph, visibleGraph = null;
@@ -124,8 +125,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     /**
      * @return The Initialized Visualization Viewer
      */
-    private VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> visualizationViewerBuilder(final Layout<MyAgent, FeedbackHistoryGraphEdge> layout, int width, int height, GraphMouse gm) {
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> viewer = new VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge>(layout, new Dimension(width, height));
+    private VisualizationViewer<Agent, FeedbackHistoryGraphEdge> visualizationViewerBuilder(final Layout<Agent, FeedbackHistoryGraphEdge> layout, int width, int height, GraphMouse gm) {
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> viewer = new VisualizationViewer<Agent, FeedbackHistoryGraphEdge>(layout, new Dimension(width, height));
         JRootPane rp = this.getRootPane();
         rp.putClientProperty("defeatSystemEventQueueCheck", Boolean.TRUE);
 
@@ -134,11 +135,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
         //set graph rendering parameters & functions
         viewer.getRenderer().getVertexLabelRenderer().setPosition(Renderer.VertexLabel.Position.CNTR);
-        //the vertex labeler will use the tostring method which is fine, the MyAgent class has an appropriate toString() method implementation
-        viewer.getRenderContext().setVertexLabelTransformer(new ToStringLabeller<MyAgent>());
+        //the vertex labeler will use the tostring method which is fine, the Agent class has an appropriate toString() method implementation
+        viewer.getRenderContext().setVertexLabelTransformer(new ToStringLabeller<Agent>());
         viewer.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller<FeedbackHistoryGraphEdge>());
         viewer.getRenderContext().setVertexFillPaintTransformer(new P2PVertexFillPaintTransformer(viewer.getPickedVertexState()));
-        // MyAgent objects also now have multiple states : we can represent which nodes are documents, picked, querying, queried, etc.
+        // Agent objects also now have multiple states : we can represent which nodes are documents, picked, querying, queried, etc.
 
         viewer.getRenderContext().setVertexStrokeTransformer(new P2PVertexStrokeTransformer());
         viewer.setForeground(Color.white);
@@ -160,7 +161,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         return viewer;
     }
 
-    private void initSpecialTransformers(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> viewer,
+    private void initSpecialTransformers(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> viewer,
             VertexShapeType peerShape, VertexShapeType documentShape, VertexShapeType peerDocumentShape,
             EdgeShapeType P2PEdgeShape, EdgeShapeType P2DocEdgeShape, EdgeShapeType Doc2PDocEdgeShape, EdgeShapeType P2PDocEdgeShape) {
 
@@ -402,7 +403,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         return south;
     }
 
-    private void initializeMouseContext(final DefaultModalGraphMouse<MyAgent, FeedbackHistoryGraphEdge> gm) {
+    private void initializeMouseContext(final DefaultModalGraphMouse<Agent, FeedbackHistoryGraphEdge> gm) {
         mouseContext = new JPopupMenu("Mouse Mode");
         JMenuItem picking = new JMenuItem("Picking");
         picking.addActionListener(new ActionListener() {
@@ -490,14 +491,14 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         tabsPane.removeAll();
 
         //layout = springLayoutBuilder(DEFWIDTH,DEFHEIGHT,hiddenGraph);
-        layout = new FRLayout2<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+        layout = new FRLayout2<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
         layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
 
         for (LoadingListener l : loadingListeners) {
             l.loadingChanged(5, "Building Visualizer");
         }
 
-        DefaultModalGraphMouse<MyAgent, FeedbackHistoryGraphEdge> gm = new DefaultModalGraphMouse<MyAgent, FeedbackHistoryGraphEdge>();
+        DefaultModalGraphMouse<Agent, FeedbackHistoryGraphEdge> gm = new DefaultModalGraphMouse<Agent, FeedbackHistoryGraphEdge>();
         GraphMouseListener graphListener = new GraphMouseListener();
 
         //[start] Feedback Visualization Viewer Init
@@ -812,15 +813,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class FRLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public FRLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public FRLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new FRLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph, vv.getSize());
+            AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new FRLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph, vv.getSize());
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -834,15 +835,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class ISOMLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public ISOMLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public ISOMLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new ISOMLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+            AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new ISOMLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -856,15 +857,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class KKLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public KKLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public KKLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new KKLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+            AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new KKLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -878,15 +879,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class CircleLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public CircleLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public CircleLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new CircleLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+            AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new CircleLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -900,15 +901,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class SpringLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public SpringLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public SpringLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new SpringLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+            AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new SpringLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -922,16 +923,16 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class TreeLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public TreeLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public TreeLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            TreeLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout =
-                    new TreeLayout<MyAgent, FeedbackHistoryGraphEdge>(FeedbackHistoryGraph.makeTreeGraph(hiddenGraph)) {
+            TreeLayout<Agent, FeedbackHistoryGraphEdge> graphLayout =
+                    new TreeLayout<Agent, FeedbackHistoryGraphEdge>(FeedbackHistoryGraph.makeTreeGraph(hiddenGraph)) {
 
                         @Override
                         public void setSize(Dimension size) {
@@ -951,15 +952,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     class BalloonLayoutListener implements ActionListener {
 
-        VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv;
+        VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv;
 
-        public BalloonLayoutListener(VisualizationViewer<MyAgent, FeedbackHistoryGraphEdge> vv) {
+        public BalloonLayoutListener(VisualizationViewer<Agent, FeedbackHistoryGraphEdge> vv) {
             this.vv = vv;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            BalloonLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new BalloonLayout<MyAgent, FeedbackHistoryGraphEdge>(FeedbackHistoryGraph.makeTreeGraph(hiddenGraph));
+            BalloonLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new BalloonLayout<Agent, FeedbackHistoryGraphEdge>(FeedbackHistoryGraph.makeTreeGraph(hiddenGraph));
             graphLayout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
 
             vv.getModel().setGraphLayout(graphLayout);
@@ -999,7 +1000,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
                             fastSpeedSlider.setEnabled(false);
 
                             //When loading a new Graph, if the collapsed document view has a tree layout it crashes because of setsize()
-                            AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new CircleLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+                            AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new CircleLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
 //                            collapsedDocumentViewViewer.getModel().setGraphLayout(graphLayout);
                         }
                         events = loader.getLogList();
@@ -1053,7 +1054,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
                 fastSpeedSlider.setEnabled(false);
 
                 //When loading a new Graph, if the collapsed document view has a tree layout it crashes because of setsize()
-                AbstractLayout<MyAgent, FeedbackHistoryGraphEdge> graphLayout = new CircleLayout<MyAgent, FeedbackHistoryGraphEdge>(hiddenGraph);
+                AbstractLayout<Agent, FeedbackHistoryGraphEdge> graphLayout = new CircleLayout<Agent, FeedbackHistoryGraphEdge>(hiddenGraph);
 //                collapsedDocumentViewViewer.getModel().setGraphLayout(graphLayout);
             }
 
