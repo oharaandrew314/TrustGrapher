@@ -1,7 +1,7 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
 package trustGrapher.visualizer.eventplayer;
 
-import trustGrapher.graph.FeedbackHistoryGraph;
+import trustGrapher.graph.TrustGraph;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,6 +11,7 @@ import java.util.ListIterator;
 
 import javax.swing.JSlider;
 import javax.swing.Timer;
+import trustGrapher.graph.FeedbackHistoryGraph;
 import utilities.ChatterBox;
 
 /**
@@ -30,14 +31,14 @@ public class TrustEventPlayer implements ActionListener {
     private LinkedList<TrustLogEvent> myEventList;
     private List<EventPlayerListener> my_listeners;
     private int current_index;
-    private FeedbackHistoryGraph hiddenGraph;
-    private FeedbackHistoryGraph visibleGraph;
+    private TrustGraph hiddenGraph;
+    private TrustGraph visibleGraph;
     private long myTimeNow;
     JSlider playbackSlider;
     private boolean playable; //for when a graph is loaded without any events
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventPlayer(FeedbackHistoryGraph hiddenGraph, FeedbackHistoryGraph visibleGraph, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
+    public TrustEventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
         this.hiddenGraph = hiddenGraph;
         this.visibleGraph = visibleGraph;
         this.playbackSlider = playbackSlider;
@@ -51,7 +52,7 @@ public class TrustEventPlayer implements ActionListener {
         playable = true;
     }
 
-    public TrustEventPlayer(FeedbackHistoryGraph hiddenGraph, FeedbackHistoryGraph visibleGraph) {
+    public TrustEventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph) {
         this.hiddenGraph = hiddenGraph;
         this.visibleGraph = visibleGraph;
         this.playbackSlider = null;
@@ -270,7 +271,13 @@ public class TrustEventPlayer implements ActionListener {
     private void handleLogEvent(TrustLogEvent evt, boolean forward) {
         if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))){
             //ChatterBox.debug(this, "handleLogEvent()", "TrustLogEvent: " + evt.toString());
-            visibleGraph.graphEvent(evt, forward, hiddenGraph);
+            ((FeedbackHistoryGraph)visibleGraph).graphEvent(evt, forward, hiddenGraph);
+//            if (visibleGraph instanceof FeedbackHistoryGraph){
+//                ((FeedbackHistoryGraph)visibleGraph).graphEvent(evt, forward, hiddenGraph);
+//            }else{
+//                ChatterBox.error(this, "handleLogEvent()", "An event was not handled.");
+//            }
+            
         }
     }
     //[end] Graph Event Handling

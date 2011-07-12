@@ -6,8 +6,11 @@ import java.util.Collection;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
 
+/**
+ * A trust graph that displays individual feedbacks grouped together into edges
+ * @author Andrew O'Hara
+ */
 public class FeedbackHistoryGraph extends TrustGraph{
-    int edgecounter = 0;
 
 ///////////////////////////////////Methods//////////////////////////////////////
 
@@ -25,7 +28,7 @@ public class FeedbackHistoryGraph extends TrustGraph{
         }
         Agent assessor = getVertexInGraph(from);
         Agent assessee = getVertexInGraph(to);
-        FeedbackEdge edge = fineEdge(from, to);
+        FeedbackEdge edge = findEdge(from, to);
         if (edge == null) {//If the edge doesn't  exist, add it
             try {
                 edge = new FeedbackEdge(key, assessor, assessee);
@@ -38,7 +41,7 @@ public class FeedbackHistoryGraph extends TrustGraph{
     }
 
     public void unFeedback(int from, int to, double feedback, int key) {
-        FeedbackEdge edge = fineEdge(from, to);
+        FeedbackEdge edge = findEdge(from, to);
         if (edge != null) {
             if (edge.hasMultipleFeedback()) {
                 edge.removeFeedback(feedback);
@@ -62,11 +65,11 @@ public class FeedbackHistoryGraph extends TrustGraph{
      * @param forward			<code>true</code> if play-back is playing forward.
      * @param referenceGraph	The Graph to get edge numbers from.
      */
-    public void graphEvent(TrustLogEvent gev, boolean forward, FeedbackHistoryGraph referenceGraph) {
+    public void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph) {
         int from = gev.getAssessor();
         int to = gev.getAssessee();
         double feedback = gev.getFeedback();
-        int key = referenceGraph.fineEdge(from, to).getKey();
+        int key = referenceGraph.findEdge(from, to).getKey();
         if (forward) {
             feedback(from, to, feedback, key);
         } else {

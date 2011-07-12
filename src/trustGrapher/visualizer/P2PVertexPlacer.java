@@ -1,7 +1,9 @@
 package trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
-import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
+import cu.repsystestbed.graphs.TestbedEdge;
+import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
+import trustGrapher.graph.TrustGraph;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 
@@ -17,13 +19,18 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
  */
 public class P2PVertexPlacer implements Transformer<Agent, Point2D> {
 
-    private Layout<Agent, FeedbackHistoryGraphEdge> existinglayout;
+    private Layout<Agent, TestbedEdge> existinglayout;
     private RandomLocationTransformer<Agent> rt;
 
-    public P2PVertexPlacer(Layout<Agent, FeedbackHistoryGraphEdge> l, Dimension d) {
+    public P2PVertexPlacer(Layout<Agent, TestbedEdge> l, Dimension d) {
         existinglayout = l;
         rt = new RandomLocationTransformer<Agent>(d);
     }
+
+//    public P2PVertexPlacer(AbstractLayout<Agent, TestbedEdge> l, Dimension d) {
+//        existinglayout = l;
+//        rt = new RandomLocationTransformer<Agent>(d);
+//    }
 
     @Override
     public Point2D transform(Agent v) {

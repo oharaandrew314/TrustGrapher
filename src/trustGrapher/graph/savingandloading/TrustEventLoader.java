@@ -1,6 +1,7 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -20,19 +21,39 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class TrustEventLoader {
-    private FeedbackHistoryGraph hiddenGraph;
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
+    private ArrayList<TrustGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventLoader(FeedbackHistoryGraph hiddenGraph) {
-        loadingListeners = new ArrayList<LoadingListener>();
-        this.hiddenGraph = hiddenGraph;
-    }
-
     public TrustEventLoader() {
-        this(new FeedbackHistoryGraph());
-        ChatterBox.debug(this, "LogEventListBuilder", "A new graph was instanciated.  I have set it to feedback history by default.");
+        loadingListeners = new ArrayList<LoadingListener>();
+        graphs = new ArrayList<TrustGraph[]>();
+        TrustGraph[] graphSet = new TrustGraph[2];
+        try{
+            //Feedback History Graphs
+            graphSet[0] = new FeedbackHistoryGraph(); //visible
+            graphSet[1] = new FeedbackHistoryGraph(); //hidden
+            graphs.add(graphSet.clone());
+            //Eigen Rep graphs
+            graphSet[0] = null; //visible
+            graphSet[1] = null; //hidden
+            graphs.add(graphSet.clone());
+            //RankBased Rep graphs
+            graphSet[0] = null; //visible
+            graphSet[1] = null; //hidden
+            graphs.add(graphSet.clone());
+            //Eigen Trust graphs
+            graphSet[0] = null; //visible
+            graphSet[1] = null; //hidden
+            graphs.add(graphSet.clone());
+            //Rank Based Trust graphs
+            graphSet[0] = null; //visible
+            graphSet[1] = null; //hidden
+            graphs.add(graphSet.clone());
+        }catch(Exception ex){
+            ChatterBox.error(this, "TrustEventLoader()", ex.getMessage());
+        }
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -41,16 +62,14 @@ public class TrustEventLoader {
         loadingListeners.add(loadingListener);
     }
 
-    public FeedbackHistoryGraph getHiddenGraph() {
-        return hiddenGraph;
+    public ArrayList<TrustGraph[]> getGraphs(){
+        return graphs;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
 
     public LinkedList<TrustLogEvent> createList(File logFile){
         logEvents = new LinkedList<TrustLogEvent>();
-        FeedbackHistoryGraph tempGraph = new FeedbackHistoryGraph();
-        ChatterBox.debug(this, "createList()", "A new graph was instanciated.  I have set it to feedback history by default.");
         String line = ""; //will contain each log event as it is read.
         int lineCount = 0;
         int totalLines;
@@ -83,8 +102,11 @@ public class TrustEventLoader {
                 logEvents.add(gev); //add this read log event to the list
 
                 // Update the temporary graph afterwards so it can be used as a reference
-                hiddenGraph.graphConstructionEvent(gev);
-                //tempGraph.graphEvent(gev, true, hiddenGraph);
+                for (int i=0 ; i<4 ; i++){
+                    if (graphs.get(i)[1] != null){
+                        graphs.get(i)[1].graphConstructionEvent(gev);
+                    }
+                }
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the graph 100 ms after
 

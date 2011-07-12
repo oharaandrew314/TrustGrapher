@@ -1,7 +1,7 @@
 package trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
-import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
+import cu.repsystestbed.graphs.TestbedEdge;
 
 import java.awt.Shape;
 
@@ -22,8 +22,8 @@ import edu.uci.ics.jung.visualization.decorators.EdgeShape;
  *
  */
 public class P2PEdgeShapeTransformer implements
-	Transformer<Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge>, Shape> {
-	private final AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> defaultEdgeShape;
+	Transformer<Context<Graph<Agent, TestbedEdge>, TestbedEdge>, Shape> {
+	private final AbstractEdgeShapeTransformer<Agent, TestbedEdge> defaultEdgeShape;
 	
 	/**
 	 * 
@@ -33,15 +33,15 @@ public class P2PEdgeShapeTransformer implements
 	 * @param P2PDocEdgeShape	Peer to PeerDocument Edge Shape.
 	 */
 	public P2PEdgeShapeTransformer(){		
-		defaultEdgeShape = new EdgeShape.QuadCurve<Agent, FeedbackHistoryGraphEdge>();
+		defaultEdgeShape = new EdgeShape.QuadCurve<Agent, TestbedEdge>();
 	}
 	@Override
-	public Shape transform(Context<Graph<Agent, FeedbackHistoryGraphEdge>, FeedbackHistoryGraphEdge> context) {
+	public Shape transform(Context<Graph<Agent, TestbedEdge>, TestbedEdge> context) {
             return defaultEdgeShape.transform(context);
 	}
 	
-	private AbstractEdgeShapeTransformer<Agent, FeedbackHistoryGraphEdge> shapeChooser(EdgeShapeType chosenShape) {
-            return new EdgeShape.QuadCurve<Agent, FeedbackHistoryGraphEdge>();
+	private AbstractEdgeShapeTransformer<Agent, TestbedEdge> shapeChooser(EdgeShapeType chosenShape) {
+            return new EdgeShape.QuadCurve<Agent, TestbedEdge>();
 	}
 
 }

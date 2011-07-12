@@ -4,6 +4,7 @@ import cu.repsystestbed.entities.Agent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,17 +25,16 @@ public class TrustGraphLoader {
 
     public static final File STARTING_DIRECTORY = new File("/home/zalpha314/Documents/Programming/Java/Work/TrustGrapher2/test");
     private LinkedList<TrustLogEvent> logList;
-    private FeedbackHistoryGraph hiddenGraph;
-    private FeedbackHistoryGraph visibleGraph;
+    private TrustGraph hiddenGraph;
+    private TrustGraph visibleGraph;
     private List<LoadingListener> loadingListeners;
+    private ArrayList<TrustGraph[]> graphs;
 
     //[start] Constructor
     public TrustGraphLoader() {
         logList = new LinkedList<TrustLogEvent>();
-        ChatterBox.debug(this, "P2PNetworkGraphLoader()", "A new graph was instanciated.  I have set it to feedback history by default.");
-        hiddenGraph = new FeedbackHistoryGraph();
-        visibleGraph = new FeedbackHistoryGraph();
         loadingListeners = new LinkedList<LoadingListener>();
+
     }
     //[end] Constructor
 
@@ -56,8 +56,9 @@ public class TrustGraphLoader {
                     }
 
                     logList = logBuilder.createList(file);
-
-                    hiddenGraph = logBuilder.getHiddenGraph(); //load hidden graph but keep visible graph empty
+                    graphs = logBuilder.getGraphs();
+                    //hiddenGraph = logBuilder.getHiddenGraph(); //load hidden graph but keep visible graph empty
+                    
                     loadingComplete();
                     return true;
                 } catch (Exception e) {
@@ -116,7 +117,7 @@ public class TrustGraphLoader {
         ChatterBox.error(this, "graphBuilder()", "graphBuilder() method has been called.  I'm pretty sure it doesn't work.");
         if (networkDoc.getRootElement().getName().equals("network")) {
             int edgeCounter = 0;
-            FeedbackHistoryGraph startGraph = new FeedbackHistoryGraph();
+            TrustGraph startGraph = new FeedbackHistoryGraph();
             ChatterBox.debug(this, "P2PNetworkGraphLoader()", "A new graph was instanciated.  I have set it to feedback history by default.");
             Element networkElem = networkDoc.getRootElement();
             int counter = 0;
@@ -270,12 +271,16 @@ public class TrustGraphLoader {
         return logList;
     }
 
-    public FeedbackHistoryGraph getHiddenP2PNetworkGraph() {
+    public TrustGraph getHiddenP2PNetworkGraph() {
         return hiddenGraph;
     }
 
-    public FeedbackHistoryGraph getVisibleP2PNetworkGraph() {
+    public TrustGraph getVisibleP2PNetworkGraph() {
         return visibleGraph;
+    }
+
+    public ArrayList<TrustGraph[]> getGraphs(){
+        return graphs;
     }
     //[end] Getters
 
@@ -315,7 +320,7 @@ public class TrustGraphLoader {
         return loader;
     }
 
-    public static LinkedList<TrustLogEvent> buildLogs(InputStream inStream, FeedbackHistoryGraph hiddenGraph) throws JDOMException, IOException {
+    public static LinkedList<TrustLogEvent> buildLogs(InputStream inStream, TrustGraph hiddenGraph) throws JDOMException, IOException {
 
         SAXBuilder parser = new SAXBuilder();
         Document doc = parser.build(inStream);

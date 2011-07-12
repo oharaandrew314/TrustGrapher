@@ -1,9 +1,9 @@
-////////////////////////////////TrustGraph//////////////////////////////////
+//////////////////////////////////TrustGraph////////////////////////////////////
 package trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
-import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
+import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.JungAdapterGraph;
 
 import edu.uci.ics.jung.graph.DelegateForest;
@@ -11,14 +11,15 @@ import edu.uci.ics.jung.graph.Forest;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
 import java.util.Collection;
+import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
 
 /**
- * Description
+ * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
  * @author Andrew O'Hara
  */
-public class TrustGraph extends JungAdapterGraph<Agent, FeedbackHistoryGraphEdge> {
-    //Fields
+public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+    int edgecounter = 0;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustGraph() {
@@ -26,7 +27,13 @@ public class TrustGraph extends JungAdapterGraph<Agent, FeedbackHistoryGraphEdge
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public FeedbackEdge fineEdge(int from, int to) {
+    /**
+     * Finds an edge that already exists in the graph
+     * @param from
+     * @param to
+     * @return
+     */
+    public FeedbackEdge findEdge(int from, int to) {
         return (FeedbackEdge) super.findEdge(getVertexInGraph(from), getVertexInGraph(to));
     }
 
@@ -60,12 +67,15 @@ public class TrustGraph extends JungAdapterGraph<Agent, FeedbackHistoryGraphEdge
 
     public void removePeer(int peerNum) {
         Agent peer = new Agent(peerNum);
-        Collection<FeedbackHistoryGraphEdge> edgeset = getIncidentEdges(peer);
-        for (FeedbackHistoryGraphEdge e : edgeset) {
+        Collection<TestbedEdge> edgeset = getIncidentEdges(peer);
+        for (TestbedEdge e : edgeset) {
             removeEdge(e);
         }
         removeVertex(peer);
     }
+
+    public abstract void graphConstructionEvent(TrustLogEvent gev);
+    public abstract void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph);
 
 ////////////////////////////////Static Methods//////////////////////////////////
     /**
@@ -73,8 +83,8 @@ public class TrustGraph extends JungAdapterGraph<Agent, FeedbackHistoryGraphEdge
      * @param graph	The source which the tree Graph will be made from
      * @return	The Document Tree Graph
      */
-    public static Forest<Agent, FeedbackHistoryGraphEdge> makeTreeGraph(FeedbackHistoryGraph graph) {
-        Forest<Agent, FeedbackHistoryGraphEdge> tree = new DelegateForest<Agent, FeedbackHistoryGraphEdge>();
+    public static Forest<Agent, TestbedEdge> makeTreeGraph(TrustGraph graph) {
+        Forest<Agent, TestbedEdge> tree = new DelegateForest<Agent, TestbedEdge>();
         for (Agent documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
         }
         return tree;
