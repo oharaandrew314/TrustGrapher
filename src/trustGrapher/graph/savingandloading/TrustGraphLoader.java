@@ -117,7 +117,7 @@ public class TrustGraphLoader {
         ChatterBox.error(this, "graphBuilder()", "graphBuilder() method has been called.  I'm pretty sure it doesn't work.");
         if (networkDoc.getRootElement().getName().equals("network")) {
             int edgeCounter = 0;
-            TrustGraph startGraph = new FeedbackHistoryGraph();
+            TrustGraph startGraph = new MyFeedbackGraph(0);
             ChatterBox.debug(this, "P2PNetworkGraphLoader()", "A new graph was instanciated.  I have set it to feedback history by default.");
             Element networkElem = networkDoc.getRootElement();
             int counter = 0;
@@ -156,8 +156,8 @@ public class TrustGraphLoader {
                         Agent peer1 = hiddenGraph.getVertexInGraph(new Agent(v1Key));
                         Agent peer2 = hiddenGraph.getVertexInGraph(new Agent(v2Key));
                         try{
-                            startGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
-                            hiddenGraph.addEdge(new FeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
+                            startGraph.addEdge(new MyFeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
+                            hiddenGraph.addEdge(new MyFeedbackEdge(edgeCounter, peer1, peer2), peer1, peer2);
                         }catch (Exception ex){
                             ChatterBox.error(this, "graphBuilder()", "Could not create an edge");
                         }
@@ -201,9 +201,9 @@ public class TrustGraphLoader {
                     if (hiddenGraph.getVertexInGraph(evt.getAssessor()) == null) {
                         hiddenGraph.addPeer(evt.getAssessor());
                     }
-                    FeedbackEdge edge = null;
+                    MyFeedbackEdge edge = null;
                     try{
-                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getVertexInGraph(evt.getAssessor()), hiddenGraph.getVertexInGraph(evt.getAssessee()));
+                        edge = new MyFeedbackEdge(edgeCounter, hiddenGraph.getVertexInGraph(evt.getAssessor()), hiddenGraph.getVertexInGraph(evt.getAssessee()));
                     }catch (Exception ex){
                         ChatterBox.error(this, "graphBuilder()", ex.getMessage());
                     }
@@ -251,9 +251,9 @@ public class TrustGraphLoader {
                     if (hiddenGraph.getVertexInGraph(evt.getAssessor()) == null) {
                         hiddenGraph.addPeer(evt.getAssessor());
                     }
-                    FeedbackEdge edge = null;
+                    MyFeedbackEdge edge = null;
                     try{
-                        edge = new FeedbackEdge(edgeCounter, hiddenGraph.getVertexInGraph(evt.getAssessor()), hiddenGraph.getVertexInGraph(evt.getAssessee()));
+                        edge = new MyFeedbackEdge(edgeCounter, hiddenGraph.getVertexInGraph(evt.getAssessor()), hiddenGraph.getVertexInGraph(evt.getAssessee()));
                     }catch (Exception ex){
                         ChatterBox.error(this, "graphBuilder()", ex.getMessage());
                     }

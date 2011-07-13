@@ -1,66 +1,30 @@
 /////////////////////////////////////TrustApplet////////////////////////////////
 package trustGrapher;
 
-import cu.repsystestbed.entities.Agent;
-import cu.repsystestbed.graphs.TestbedEdge;
+
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.*;
 import trustGrapher.graph.savingandloading.*;
 import trustGrapher.visualizer.eventplayer.*;
 import trustGrapher.networking.*;
 
+import cu.repsystestbed.entities.Agent;
+import cu.repsystestbed.graphs.TestbedEdge;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JApplet;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JRootPane;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.*;
 
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.ConstantTransformer;
 import org.jdom.JDOMException;
 
-import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
-import edu.uci.ics.jung.algorithms.layout.BalloonLayout;
-import edu.uci.ics.jung.algorithms.layout.CircleLayout;
-import edu.uci.ics.jung.algorithms.layout.FRLayout;
-import edu.uci.ics.jung.algorithms.layout.FRLayout2;
-import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
-import edu.uci.ics.jung.algorithms.layout.KKLayout;
-import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
-import edu.uci.ics.jung.algorithms.layout.TreeLayout;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.VisualizationViewer.GraphMouse;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
@@ -70,6 +34,8 @@ import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
 import edu.uci.ics.jung.visualization.renderers.BasicEdgeLabelRenderer;
 import java.util.ArrayList;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import utilities.ChatterBox;
 
 /**
@@ -89,8 +55,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     private AbstractLayout<Agent, TestbedEdge> layout = null;
     private LinkedList<TrustLogEvent> events;
     
-    private ArrayList<TrustGraph[]> graphs;//feedback = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
-    //sub array: 0 =  visible, 1 = hidden;    
+    private ArrayList<TrustGraph[]> graphs;//addition = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
+    public static final int VISIBLE = 0, HIDDEN = 1;
     private TrustGraph hiddenGraph, visibleGraph = null;
     
     private List<LoadingListener> loadingListeners;
@@ -460,6 +426,19 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
                 }
             }
         };
+
+        tabsPane.addChangeListener(new ChangeListener(){
+            public void stateChanged(ChangeEvent e){
+                if (tabsPane.getSelectedIndex() != -1 && graphs != null  && eventThread != null){
+                    visibleGraph = graphs.get(tabsPane.getSelectedIndex())[VISIBLE];
+                    hiddenGraph = graphs.get(tabsPane.getSelectedIndex())[HIDDEN];
+                    viewers.get(tabsPane.getSelectedIndex()).repaint();
+                    ChatterBox.debug(this, "stateChanged()", "Graph set to " + visibleGraph.getClass().getName());
+                }
+            }
+        });
+
+
         JPanel initialTab = new JPanel();
         tabsPane.addTab("Welcome", initialTab);
 
@@ -492,13 +471,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         }
         tabsPane.removeAll();
 
-        layout = new FRLayout2<Agent, TestbedEdge>(hiddenGraph);
-        layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
-
-        for (LoadingListener l : loadingListeners) {
-            l.loadingChanged(5, "Building Visualizer");
-        }
-
         //Build all the viewing panes
         buildViewers();   
 
@@ -510,7 +482,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
             playbackSlider.addMouseListener(s);
 
             /// create the event player
-            eventThread = new TrustEventPlayer(hiddenGraph, visibleGraph);
+            eventThread = new TrustEventPlayer(graphs);
             eventThread.addEventPlayerListener(this);
         } else {
             SliderListener s = new SliderListener();
@@ -521,7 +493,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
             playbackSlider.addMouseListener(s);
 
             /// create the event player
-            eventThread = new TrustEventPlayer(hiddenGraph, visibleGraph, events, playbackSlider);
+            eventThread = new TrustEventPlayer(graphs, events, playbackSlider);
             eventThread.addEventPlayerListener(this);
         }
         for (LoadingListener l : loadingListeners) {
@@ -550,19 +522,25 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     }
 
     private void buildViewers(){
+        for (LoadingListener l : loadingListeners) {
+            l.loadingChanged(5, "Building Visualizer");
+        }
+
         DefaultModalGraphMouse<Agent, TestbedEdge> gm = new DefaultModalGraphMouse<Agent, TestbedEdge>();
         GraphMouseListener graphListener = new GraphMouseListener();
         viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();
-        String[] names = {"Feedback History", "Agent Reputation", "Agent EigenTrust", "Agent RankBasedTrust"};
+        String[] names = {"Feedback History", "EigenTrust Reputation", "RankBasedTrust Reputation", "EigenTrust", "RankBasedTrust"};
 
         //Create the Visualization Viewers
         for (int i=0 ; i < names.length ; i++){
+            layout = new FRLayout2<Agent, TestbedEdge>(graphs.get(i)[HIDDEN]);
+            layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
             viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH, DEFHEIGHT, gm));
             viewers.get(i).addMouseListener(graphListener);
             viewers.get(i).setName(names[i]);
             initSpecialTransformers(viewers.get(i), VertexShapeType.ELLIPSE, VertexShapeType.PENTAGON, VertexShapeType.RECTANGLE, EdgeShapeType.QUAD_CURVE, EdgeShapeType.CUBIC_CURVE, EdgeShapeType.LINE, EdgeShapeType.LINE);
-            viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(visibleGraph));
-            viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(visibleGraph));            
+            viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graphs.get(i)[VISIBLE]));
+            viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graphs.get(i)[VISIBLE]));
             tabsPane.addTab(viewers.get(i).getName(), viewers.get(i)); //Add the viewer to the tabs pane
 
             for (LoadingListener l : loadingListeners) {
@@ -671,10 +649,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
     @Override
     public void doRepaint() {
-        //These may not be necessary, and could really slow everything down
-        visibleGraph = graphs.get(tabsPane.getSelectedIndex())[0];
-        hiddenGraph = graphs.get(tabsPane.getSelectedIndex())[1];
-        
+        //tabsPane.getSelectedComponent().repaint();
+//      These may not be necessary, and could really slow everything down
         for (int i=0 ; i < viewers.size() ; i++){
             viewers.get(i).repaint();
         }
@@ -1005,8 +981,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
                         events = loader.getLogList();
                         //load graphs
                         graphs = loader.getGraphs();
-                        visibleGraph = graphs.get(tabsPane.getSelectedIndex())[0];
-                        hiddenGraph = graphs.get(tabsPane.getSelectedIndex())[1];
+                        visibleGraph = graphs.get(tabsPane.getSelectedIndex())[VISIBLE];
+                        hiddenGraph = graphs.get(tabsPane.getSelectedIndex())[HIDDEN];
                         if (visibleGraph == null || hiddenGraph == null){
                             ChatterBox.error(this, "run()", "One of the graphs is null.  " + visibleGraph.toString() + hiddenGraph.toString());
                         }
@@ -1061,8 +1037,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 
             events = loader.getLogList();
             graphs = loader.getGraphs();
-            visibleGraph = graphs.get(tabsPane.getSelectedIndex())[0];
-            hiddenGraph = graphs.get(tabsPane.getSelectedIndex())[1];
+            visibleGraph = graphs.get(tabsPane.getSelectedIndex())[VISIBLE];
+            hiddenGraph = graphs.get(tabsPane.getSelectedIndex())[HIDDEN];
             startGraph();
         } catch (JDOMException e) {
             e.printStackTrace();

@@ -5,13 +5,15 @@ import trustGrapher.graph.TrustGraph;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
 import javax.swing.JSlider;
 import javax.swing.Timer;
-import trustGrapher.graph.FeedbackHistoryGraph;
+import trustGrapher.graph.MyFeedbackGraph;
+import trustGrapher.graph.MyReputationGraph;
 import utilities.ChatterBox;
 
 /**
@@ -31,16 +33,14 @@ public class TrustEventPlayer implements ActionListener {
     private LinkedList<TrustLogEvent> myEventList;
     private List<EventPlayerListener> my_listeners;
     private int current_index;
-    private TrustGraph hiddenGraph;
-    private TrustGraph visibleGraph;
+    private ArrayList<TrustGraph[]> graphs;
     private long myTimeNow;
     JSlider playbackSlider;
     private boolean playable; //for when a graph is loaded without any events
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
-        this.hiddenGraph = hiddenGraph;
-        this.visibleGraph = visibleGraph;
+    public TrustEventPlayer(ArrayList<TrustGraph[]> graphs, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
+        this.graphs = graphs;
         this.playbackSlider = playbackSlider;
         myEventList = eventlist;
         current_index = 0;
@@ -52,9 +52,8 @@ public class TrustEventPlayer implements ActionListener {
         playable = true;
     }
 
-    public TrustEventPlayer(TrustGraph hiddenGraph, TrustGraph visibleGraph) {
-        this.hiddenGraph = hiddenGraph;
-        this.visibleGraph = visibleGraph;
+    public TrustEventPlayer(ArrayList<TrustGraph[]> graphs) {
+        this.graphs = graphs;
         this.playbackSlider = null;
         myEventList = new LinkedList<TrustLogEvent>();
         current_index = 0;
@@ -184,10 +183,6 @@ public class TrustEventPlayer implements ActionListener {
         if (state != PlayState.PAUSE) {
             state = PlayState.PAUSE;
             notify();
-            //schedule.stop();
-                    /*for(EventPlayerListener epl : my_listeners) {
-            epl.doRepaint();
-            }*/
         }
     }
 
@@ -199,13 +194,6 @@ public class TrustEventPlayer implements ActionListener {
         } else {
             state = PlayState.FORWARD;
         }
-
-        /*for( TrustLogEvent evt : getLogEventsUntil(value) ) {
-        handleLogEvent(evt);
-        }*/
-        /*for(EventPlayerListener epl : my_listeners) {
-        epl.doRepaint();
-        }*/
 
         timeCounter.setTime(value);
         state = prevState;
@@ -268,16 +256,12 @@ public class TrustEventPlayer implements ActionListener {
      * Handles the passed TrustLogEvent be it structural or visual.
      * @param evt The Log event to handle.
      */
-    private void handleLogEvent(TrustLogEvent evt, boolean forward) {
-        if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))){
-            //ChatterBox.debug(this, "handleLogEvent()", "TrustLogEvent: " + evt.toString());
-            ((FeedbackHistoryGraph)visibleGraph).graphEvent(evt, forward, hiddenGraph);
-//            if (visibleGraph instanceof FeedbackHistoryGraph){
-//                ((FeedbackHistoryGraph)visibleGraph).graphEvent(evt, forward, hiddenGraph);
-//            }else{
-//                ChatterBox.error(this, "handleLogEvent()", "An event was not handled.");
-//            }
-            
+    private void handleLogEvent(TrustLogEvent evt, boolean forward){
+        try{
+            ((MyFeedbackGraph) graphs.get(0)[0]).graphEvent(evt, forward, graphs.get(0)[1]);
+            ((MyReputationGraph) graphs.get(1)[0]).graphEvent(evt, forward, graphs.get(1)[1]);
+        }catch (Exception ex){
+            ChatterBox.debug(this, "handleLogEvent()", ex.getMessage());
         }
     }
     //[end] Graph Event Handling
@@ -289,21 +273,17 @@ public class TrustEventPlayer implements ActionListener {
                 timeCounter.doIncrement();
             }
             long nextTime = timeCounter.getTime();
-
             boolean isforward = nextTime > myTimeNow;
-
-
             if (atAnEnd()) {
                 pause();
             }
-
             List<TrustLogEvent> events = getLogEventsUntil(nextTime);
-
             for (TrustLogEvent evt : events) {
                 handleLogEvent(evt, isforward);
             }
             myTimeNow = nextTime; //advance time
             playbackSlider.setValue((int) myTimeNow);
+
             if (!events.isEmpty()) {
                 for (EventPlayerListener epl : my_listeners) {
                     epl.doRepaint();
@@ -319,6 +299,7 @@ public class TrustEventPlayer implements ActionListener {
     public List<TrustLogEvent> getSaveEvents() {
         ListIterator<TrustLogEvent> i = myEventList.listIterator(current_index);
         List<TrustLogEvent> events = new LinkedList<TrustLogEvent>();
+
         while (i.hasNext()) {
             events.add(i.next());
         }
@@ -334,6 +315,8 @@ public class TrustEventPlayer implements ActionListener {
 
     public long getCurrentTime() {
         return myTimeNow;
+
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+

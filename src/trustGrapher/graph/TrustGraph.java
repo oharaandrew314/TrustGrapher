@@ -2,7 +2,6 @@
 package trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
-import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.JungAdapterGraph;
 
@@ -19,11 +18,13 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+    public static final int VISIBLE = 0, HIDDEN = 1;
+    protected int type;
     int edgecounter = 0;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustGraph() {
-        super(new SimpleDirectedGraph(new FeedbackHistoryEdgeFactory()));
+    public TrustGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph) {
+        super(graph);
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -33,8 +34,8 @@ public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param to
      * @return
      */
-    public FeedbackEdge findEdge(int from, int to) {
-        return (FeedbackEdge) super.findEdge(getVertexInGraph(from), getVertexInGraph(to));
+    public TestbedEdge findEdge(int from, int to) {
+        return super.findEdge(getVertexInGraph(from), getVertexInGraph(to));
     }
 
     public Agent getVertexInGraph(int peerNum) {
@@ -73,9 +74,8 @@ public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         }
         removeVertex(peer);
     }
-
-    public abstract void graphConstructionEvent(TrustLogEvent gev);
-    public abstract void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph);
+    
+    public abstract void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph) throws Exception;
 
 ////////////////////////////////Static Methods//////////////////////////////////
     /**

@@ -11,12 +11,12 @@ import utilities.ChatterBox;
  * This is an edge that represents a list of transactions going from one peer to the other.
  * @author Andrew O'Hara
  */
-public class FeedbackEdge extends FeedbackHistoryGraphEdge {
+public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
     private int key;
 
 //////////////////////////////////Constructor///////////////////////////////////
 
-    public FeedbackEdge(Integer key, Agent assessor, Agent assessee) throws Exception {
+    public MyFeedbackEdge(int key, Agent assessor, Agent assessee) throws Exception {
         super(assessor, assessee);
         this.key = key;
     }
@@ -32,9 +32,12 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
 
     @Override
     public String toString(){
-        String s = "" + feedbacks.get(0).value;
-        for (int i=1 ; i<feedbacks.size() ; i++){
-            s = s + ", " + feedbacks.get(i).value;
+        String s = "";
+        if (!feedbacks.isEmpty()){
+            s = s + "" + feedbacks.get(0).value;
+            for (int i=1 ; i<feedbacks.size() ; i++){
+                s = s + ", " + feedbacks.get(i).value;
+            }
         }
         return s;
     }
@@ -69,7 +72,7 @@ public class FeedbackEdge extends FeedbackHistoryGraphEdge {
         if (o instanceof FeedbackHistoryGraphEdge == false){
             return false;
         }
-        FeedbackEdge other = (FeedbackEdge) o;
+        MyFeedbackEdge other = (MyFeedbackEdge) o;
         return this.key == other.key;
     }
 
