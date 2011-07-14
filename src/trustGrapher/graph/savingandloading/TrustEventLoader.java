@@ -45,7 +45,7 @@ public class TrustEventLoader {
 
         //Eigen Reputation graphs
         EigenTrust alg = new EigenTrust(2, 0.7);
-        SimpleDirectedGraph feedbackGraph = graphs.get(0)[HIDDEN].getInnerGraph();
+        SimpleDirectedGraph feedbackGraph = graphs.get(0)[VISIBLE].getInnerGraph();
         ((FeedbackHistoryGraph) feedbackGraph).addObserver(alg); //The algorithm will then add the graphs
 
         graphSet[VISIBLE] = new MyReputationGraph(alg);

@@ -4,7 +4,6 @@ package trustGrapher.graph;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
-import cu.repsystestbed.graphs.TestbedEdge;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
@@ -52,12 +51,12 @@ public class MyFeedbackGraph extends TrustGraph{
         hiddenEdge.addFeedback(assessor, assessee, feedback);
 
         //Notify any observing algorithms that they must update
-        SimpleDirectedGraph lol = this.getInnerGraph();
-        try{
-            ((FeedbackHistoryGraph)lol).notifyObservers();
-        }catch (Exception ex){
-            ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
-        }
+//        SimpleDirectedGraph lol = this.getInnerGraph();
+//        try{
+//            ((FeedbackHistoryGraph)lol).notifyObservers();
+//        }catch (Exception ex){
+//            ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
+//        }
     }
 
     public void unfeedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
