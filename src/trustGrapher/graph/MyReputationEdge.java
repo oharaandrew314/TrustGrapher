@@ -55,7 +55,8 @@ public class MyReputationEdge extends ReputationEdge {
 
     @Override
     public String toString(){
-        return "" + super.getReputation();
+        String s = "" + super.getReputation();
+        return "" + s.charAt(0) + s.charAt(1) + s.charAt(2) + s.charAt(3) + s.charAt(4);
     }
 
 }

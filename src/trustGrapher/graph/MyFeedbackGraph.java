@@ -4,6 +4,7 @@ package trustGrapher.graph;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
+import cu.repsystestbed.graphs.TestbedEdge;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
@@ -113,7 +114,7 @@ public class MyFeedbackGraph extends TrustGraph{
     }
 
     @Override
-    public void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph) throws Exception{
+    public void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph){
         int from = gev.getAssessor();
         int to = gev.getAssessee();
         double feedback = gev.getFeedback();

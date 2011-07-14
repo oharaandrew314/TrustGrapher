@@ -25,6 +25,7 @@ import utilities.ChatterBox;
  */
 public class TrustEventPlayer implements ActionListener {
 
+    public static final int VISIBLE = 0, HIDDEN = 1;
     private Timer schedule;
     private TimeCounter timeCounter;
     private static final int speed = 33; // 33 millisec between events while playing regularly
@@ -257,11 +258,9 @@ public class TrustEventPlayer implements ActionListener {
      * @param evt The Log event to handle.
      */
     private void handleLogEvent(TrustLogEvent evt, boolean forward){
-        try{
-            ((MyFeedbackGraph) graphs.get(0)[0]).graphEvent(evt, forward, graphs.get(0)[1]);
-            ((MyReputationGraph) graphs.get(1)[0]).graphEvent(evt, forward, graphs.get(1)[1]);
-        }catch (Exception ex){
-            ChatterBox.debug(this, "handleLogEvent()", ex.getMessage());
+        if (!evt.equals(evt.getStartEvent()) && !evt.equals(evt.getEndEvent(evt))){
+            ((MyFeedbackGraph) graphs.get(0)[VISIBLE]).graphEvent(evt, forward, graphs.get(0)[HIDDEN]);
+            ((MyReputationGraph) graphs.get(1)[VISIBLE]).graphEvent(evt, forward, graphs.get(1)[HIDDEN]);
         }
     }
     //[end] Graph Event Handling

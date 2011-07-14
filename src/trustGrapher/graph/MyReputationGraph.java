@@ -44,7 +44,12 @@ public class MyReputationGraph extends TrustGraph {
 
 ///////////////////////////////////Methods//////////////////////////////////////
 
-    public void addition(int from, int to, double feedback, int key) {
+    public void feedback(MyReputationGraph hiddenGraph, MyReputationEdge refEdge) {
+        int from = refEdge.getAssessor().id;
+        int to = refEdge.getAssessee().id;
+        int key = refEdge.getKey();
+        double trustScore = 0.0;
+
         if (getVertexInGraph(from) == null) {
             addPeer(from);
         }
@@ -56,38 +61,68 @@ public class MyReputationGraph extends TrustGraph {
         MyReputationEdge edge = (MyReputationEdge) findEdge(from, to);
         if (edge == null) {
             edge = new MyReputationEdge(assessor, assessee, key);
-            this.addEdge(edge, assessor, assessee);
+            addEdge(edge, assessor, assessee);
         }
-        edge.setReputation(feedback);
+
+        ChatterBox.print(assessor + " giving feedback to " + assessee);
+        Collection<Agent> agents = hiddenGraph.getVertices();
+        for (Agent src : agents) {
+            for (Agent sink : agents) {
+                if (!src.equals(sink)) {
+                    try{
+                        trustScore = getAlg().calculateTrustScore(src, sink);
+                    }catch(Exception ex){
+                        ChatterBox.debug(this, "feedback()", ex.getMessage());
+                    }
+                    if (trustScore < 0.0 || trustScore > 1.0) {
+                        ChatterBox.error(this, "feedback()", "The trustScore was " + trustScore + ".  It needs to be [0,1]");
+                    }
+                    ChatterBox.print("Trying to set Edge " + src.toString() + " " + sink.toString() + " to " + trustScore);
+                    edge = (MyReputationEdge) hiddenGraph.findEdge(src, sink);
+                    if (edge == null){
+                        //ChatterBox.print("Couldn't find edge.  Creating one...");
+                        edge = createEdge(src, sink);
+                        addEdge(edge, src, sink);
+                        hiddenGraph.addEdge(edge, src, sink);
+                    }
+                    edge.setReputation(trustScore);
+                }
+            }
+        }
     }
 
-    public void subtraction(int from, int to, double feedback, int key) {
+    private MyReputationEdge createEdge(Agent src, Agent sink){
+        if (getVertexInGraph(src.id) == null) {
+            addPeer(src.id);
+        }
+        if (getVertexInGraph(sink.id) == null) {
+            addPeer(sink.id);
+        }
+        src = getVertexInGraph(src.id);
+        sink = getVertexInGraph(sink.id);
+        int key = edgecounter++;
+        MyReputationEdge edge = new MyReputationEdge(src, sink, key);
+        return edge;
+    }
+
+    public void unFeedback(MyReputationGraph hiddenGraph, MyReputationEdge repEdge) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph) throws Exception {
+    public void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph) {
         if (type == HIDDEN){
             ChatterBox.error(this, "graphEvent()", "This graph is not a visible graph.");
             return;
         }
-        try {
-            Collection<Agent> agents = referenceGraph.getVertices();
-            for (Agent src : agents) {
-                for (Agent sink : agents) {
-                    if (!src.equals(sink)) {
-                        //MyReputationEdge hiddenEdge = (MyReputationEdge) hiddenGraph.findEdge(src, sink);
-                        double trustScore = getAlg().calculateTrustScore(src, sink);
-                        if (trustScore < 0.0 || trustScore > 1.0) {
-                            throw new Exception("The trustScore was " + trustScore + ".  It needs to be [0,1]");
-                        }
-                        int key = ((MyFeedbackEdge) referenceGraph.findEdge(src, sink)).getKey();
-                        addition(src.id, sink.id, trustScore, key);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            ChatterBox.debug(this, "graphEvent()", ex.getMessage());
+        MyReputationEdge refEdge = (MyReputationEdge) referenceGraph.findEdge(gev.getAssessor(), gev.getAssessee());
+        if (refEdge == null){
+            ChatterBox.error(this, "graphEvent()", "Could not find the edge in the hidden graph.");
+        }
+        if (forward){
+            feedback((MyReputationGraph)referenceGraph, refEdge);
+        }else{
+            unFeedback((MyReputationGraph) referenceGraph,refEdge);
         }
     }
 

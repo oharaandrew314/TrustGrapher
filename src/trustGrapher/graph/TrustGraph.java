@@ -75,7 +75,7 @@ public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         removeVertex(peer);
     }
     
-    public abstract void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph) throws Exception;
+    public abstract void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph);
 
 ////////////////////////////////Static Methods//////////////////////////////////
     /**

@@ -2,7 +2,9 @@
 package trustGrapher.graph.savingandloading;
 
 import cu.repsystestbed.algorithms.EigenTrust;
+import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
+import cu.repsystestbed.graphs.TestbedEdge;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -13,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import utilities.ChatterBox;
 
@@ -36,32 +39,28 @@ public class TrustEventLoader {
         TrustGraph[] graphSet = new TrustGraph[2];
         
         //Feedback History Graphs
-        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
         graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
+        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);        
         graphs.add(graphSet.clone());
 
         //Eigen Reputation graphs
-        EigenTrust alg = new EigenTrust(10, 0.7);
+        EigenTrust alg = new EigenTrust(2, 0.7);
         SimpleDirectedGraph feedbackGraph = graphs.get(0)[HIDDEN].getInnerGraph();
         ((FeedbackHistoryGraph) feedbackGraph).addObserver(alg); //The algorithm will then add the graphs
 
-        graphSet[HIDDEN] = new MyReputationGraph();
         graphSet[VISIBLE] = new MyReputationGraph(alg);
+        graphSet[HIDDEN] = new MyReputationGraph();
         graphs.add(graphSet.clone());
 
         //RankBased Reputation graphs
-        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
         graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
+        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
         graphs.add(graphSet.clone());
 
         //Eigen Trust graphs
-        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
-        graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
         graphs.add(graphSet.clone());
 
         //RankBased Trust graphs
-        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
-        graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);  
         graphs.add(graphSet.clone());
     }
 
@@ -108,12 +107,17 @@ public class TrustEventLoader {
                 TrustLogEvent gev = new TrustLogEvent(line);//create the log event
                 logEvents.add(gev); //add this read log event to the list
                 ((MyFeedbackGraph)graphs.get(0)[HIDDEN]).graphConstructionEvent(gev); //Add the construction event to the hidden feedbackGraph
+                ((MyReputationGraph)graphs.get(1)[HIDDEN]).graphConstructionEvent(gev);
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
 
         } catch (IOException ex) {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
+
+        //printLog(logEvents);
+        //debugEntities();
+
         return (LinkedList<TrustLogEvent>) logEvents;
     }
 
@@ -148,6 +152,35 @@ public class TrustEventLoader {
                 ChatterBox.error(this, "skipToData()", "Read a null line while trying to skip to data.");
             }
         }
+    }
+
+    private void debugEntities(){
+        ChatterBox.print("Debugging entities...");
+        String found;
+        MyFeedbackGraph graph = (MyFeedbackGraph) graphs.get(0)[HIDDEN];
+        Collection<Agent> agents = graph.getVertices();
+        for (Agent a : agents){
+            ChatterBox.print(a.toString());
+        }
+        Collection<TestbedEdge> edges = graph.getEdges();
+        for (TestbedEdge e : edges){
+            MyFeedbackEdge e2 = (MyFeedbackEdge) e;
+            if (graph.findEdge((Agent) e.src, (Agent) e.sink) == null){
+                found = "not found";
+            }else{
+                found = "found";
+            }
+            ChatterBox.print("Edge " + e.src + " " + e.sink + " " + found);
+        }
+        ChatterBox.print("Done.");
+    }
+
+    private static void printLog(LinkedList<TrustLogEvent> logEvents){
+        ChatterBox.print("Printing log...");
+        for (TrustLogEvent event : logEvents){
+            ChatterBox.print("assessor: " + event.getAssessor() + " assessee: " + event.getAssessee() + " feedback: " + event.getFeedback());
+        }
+        ChatterBox.print("Done.");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

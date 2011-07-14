@@ -50,10 +50,10 @@ public class logGen {
         int rating;
         String feedback;
         for (int i=0 ; i<length ; i++){
-            peer1 = r.nextInt(maxPeers) + 1;
+            peer1 = r.nextInt(maxPeers);
             peer2 = peer1;
             while (peer1 == peer2){
-                peer2 = r.nextInt(maxPeers) + 1;
+                peer2 = r.nextInt(maxPeers);
             }
             rating = r.nextInt(11);
             if (rating == 10){
