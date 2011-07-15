@@ -60,6 +60,7 @@ public class MyFeedbackGraph extends MyGraph{
         }
         MyFeedbackEdge edge = (MyFeedbackEdge) findEdge(from, to);
         if (edge == null) {
+            ChatterBox.alert("Edge " + from + " " + to + " feedback: " + feedback);
             ChatterBox.error(this, "unFeedback()", "Couldn't find an edge to remove!");
             return;
         }

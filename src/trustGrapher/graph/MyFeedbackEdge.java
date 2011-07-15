@@ -63,6 +63,7 @@ public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
         for (int i = 0; i < feedbacks.size(); i++) {
             if (feedbacks.get(i).value == feedback) {
                 feedbacks.remove(i);
+                break;
             }
         }
     }
