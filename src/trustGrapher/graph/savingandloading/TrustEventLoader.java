@@ -1,10 +1,11 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
-import cu.repsystestbed.algorithms.EigenTrust;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.TestbedEdge;
+import cu.repsystestbed.graphs.TrustEdgeFactory;
+import cu.repsystestbed.graphs.TrustGraph;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -17,6 +18,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import trustGrapher.algorithms.MyEigenTrust;
 import utilities.ChatterBox;
 
 /**
@@ -30,13 +32,13 @@ public class TrustEventLoader {
     public static final int VISIBLE = 0, HIDDEN = 1;
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
-    private ArrayList<TrustGraph[]> graphs;
+    private ArrayList<MyGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustEventLoader() {
         loadingListeners = new ArrayList<LoadingListener>();
-        graphs = new ArrayList<TrustGraph[]>();
-        TrustGraph[] graphSet = new TrustGraph[2];
+        graphs = new ArrayList<MyGraph[]>();
+        MyGraph[] graphSet = new MyGraph[2];
         
         //Feedback History Graphs
         graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
@@ -44,23 +46,32 @@ public class TrustEventLoader {
         graphs.add(graphSet.clone());
 
         //Eigen Reputation graphs
-        EigenTrust alg = new EigenTrust(2, 0.7);
-        SimpleDirectedGraph feedbackGraph = graphs.get(0)[VISIBLE].getInnerGraph();
-        ((FeedbackHistoryGraph) feedbackGraph).addObserver(alg); //The algorithm will then add the graphs
+        MyEigenTrust visAlg = new MyEigenTrust(0, 0.7);
+        MyEigenTrust hidAlg = new MyEigenTrust(0, 0.7);
 
-        graphSet[VISIBLE] = new MyReputationGraph(alg);
-        graphSet[HIDDEN] = new MyReputationGraph();
+        SimpleDirectedGraph visFeedbackGraph = graphs.get(0)[VISIBLE].getInnerGraph();
+        SimpleDirectedGraph hidFeedbackGraph = graphs.get(0)[HIDDEN].getInnerGraph();
+
+        ((FeedbackHistoryGraph) visFeedbackGraph).addObserver(visAlg); //The algorithm will then add the graphs
+        ((FeedbackHistoryGraph) hidFeedbackGraph).addObserver(hidAlg);
+
+        graphSet[HIDDEN] = new MyReputationGraph(hidAlg.getReputationGraph()); //This automatically turns the hidden feedbackGraph into the hidden reputationGraph
+        graphSet[VISIBLE] = new MyReputationGraph(visAlg.getReputationGraph(), (MyReputationGraph) graphSet[HIDDEN]);
+
+        visAlg.setMyReputationGraph((MyReputationGraph) graphSet[VISIBLE]);
+        hidAlg.setMyReputationGraph((MyReputationGraph) graphSet[HIDDEN]);
+
         graphs.add(graphSet.clone());
 
-        //RankBased Reputation graphs
+        //These graphs are not yet implemented.  They are set to empty feedback graphs for now
+        //Eigen Trust graphs
         graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
         graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
         graphs.add(graphSet.clone());
 
-        //Eigen Trust graphs
-        graphs.add(graphSet.clone());
-
         //RankBased Trust graphs
+        graphSet[VISIBLE] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), VISIBLE);
+        graphSet[HIDDEN] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), HIDDEN);
         graphs.add(graphSet.clone());
     }
 
@@ -69,7 +80,7 @@ public class TrustEventLoader {
         loadingListeners.add(loadingListener);
     }
 
-    public ArrayList<TrustGraph[]> getGraphs() {
+    public ArrayList<MyGraph[]> getGraphs() {
         return graphs;
     }
 
@@ -107,7 +118,7 @@ public class TrustEventLoader {
                 TrustLogEvent gev = new TrustLogEvent(line);//create the log event
                 logEvents.add(gev); //add this read log event to the list
                 ((MyFeedbackGraph)graphs.get(0)[HIDDEN]).graphConstructionEvent(gev); //Add the construction event to the hidden feedbackGraph
-                ((MyReputationGraph)graphs.get(1)[HIDDEN]).graphConstructionEvent(gev);
+                //((MyReputationGraph)graphs.get(1)[HIDDEN]).graphConstructionEvent(gev);
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
 
@@ -117,6 +128,15 @@ public class TrustEventLoader {
 
         //printLog(logEvents);
         //debugEntities();
+
+        //try{
+//            SimpleDirectedGraph hidFeedbackGraph = graphs.get(0)[HIDDEN].getInnerGraph();
+//            ((FeedbackHistoryGraph)hidFeedbackGraph).notifyObservers();
+        //}catch (Exception ex){
+        //    ChatterBox.print("Error notifying observer.  " + ex.getMessage());
+        //}
+
+        //graphs.get(1)[HIDDEN].printGraph();
 
         return (LinkedList<TrustLogEvent>) logEvents;
     }

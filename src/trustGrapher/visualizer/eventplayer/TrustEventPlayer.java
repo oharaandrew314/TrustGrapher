@@ -1,7 +1,7 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
 package trustGrapher.visualizer.eventplayer;
 
-import trustGrapher.graph.TrustGraph;
+import trustGrapher.graph.MyGraph;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,8 +13,6 @@ import java.util.ListIterator;
 import javax.swing.JSlider;
 import javax.swing.Timer;
 import trustGrapher.graph.MyFeedbackGraph;
-import trustGrapher.graph.MyReputationGraph;
-import utilities.ChatterBox;
 
 /**
  * an internal class extending thread, that can play the sequence of events from the log file in real time
@@ -34,13 +32,13 @@ public class TrustEventPlayer implements ActionListener {
     private LinkedList<TrustLogEvent> myEventList;
     private List<EventPlayerListener> my_listeners;
     private int current_index;
-    private ArrayList<TrustGraph[]> graphs;
+    private ArrayList<MyGraph[]> graphs;
     private long myTimeNow;
     JSlider playbackSlider;
     private boolean playable; //for when a graph is loaded without any events
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventPlayer(ArrayList<TrustGraph[]> graphs, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
+    public TrustEventPlayer(ArrayList<MyGraph[]> graphs, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
         this.graphs = graphs;
         this.playbackSlider = playbackSlider;
         myEventList = eventlist;
@@ -53,7 +51,7 @@ public class TrustEventPlayer implements ActionListener {
         playable = true;
     }
 
-    public TrustEventPlayer(ArrayList<TrustGraph[]> graphs) {
+    public TrustEventPlayer(ArrayList<MyGraph[]> graphs) {
         this.graphs = graphs;
         this.playbackSlider = null;
         myEventList = new LinkedList<TrustLogEvent>();
@@ -258,9 +256,11 @@ public class TrustEventPlayer implements ActionListener {
      * @param evt The Log event to handle.
      */
     private void handleLogEvent(TrustLogEvent evt, boolean forward){
-        if (!evt.equals(evt.getStartEvent()) && !evt.equals(evt.getEndEvent(evt))){
+        if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))){
             ((MyFeedbackGraph) graphs.get(0)[VISIBLE]).graphEvent(evt, forward, graphs.get(0)[HIDDEN]);
-            ((MyReputationGraph) graphs.get(1)[VISIBLE]).graphEvent(evt, forward, graphs.get(1)[HIDDEN]);
+            //((MyReputationGraph) graphs.get(1)[VISIBLE]).graphEvent(evt, forward, graphs.get(1)[HIDDEN]);
+
+            //graphs.get(1)[VISIBLE].printGraph();
         }
     }
     //[end] Graph Event Handling

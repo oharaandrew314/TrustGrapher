@@ -25,11 +25,11 @@ public class TrustGraphSaver {
 
     private long currentTime;
     private List<TrustLogEvent> logList;
-    private TrustGraph graph;
+    private MyGraph graph;
     private List<LoadingListener> progressListeners;
 
     //[start] Constructors
-    public TrustGraphSaver(TrustGraph graph) {
+    public TrustGraphSaver(MyGraph graph) {
         this(graph, null, 0);
     }
 
@@ -37,7 +37,7 @@ public class TrustGraphSaver {
         this(null, events, currentTime);
     }
 
-    public TrustGraphSaver(TrustGraph graph, List<TrustLogEvent> events, long currentTime) {
+    public TrustGraphSaver(MyGraph graph, List<TrustLogEvent> events, long currentTime) {
         this.currentTime = currentTime;
         this.logList = events;
         this.graph = graph;
@@ -64,7 +64,7 @@ public class TrustGraphSaver {
         saverThread.start();
     }
 
-    public static Document getGraphDocument(TrustGraph graph) {
+    public static Document getGraphDocument(MyGraph graph) {
         TrustGraphSaver saver = new TrustGraphSaver(graph);
         Document doc = saver.buildDoc();
 

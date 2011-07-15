@@ -25,10 +25,10 @@ public class TrustGraphLoader {
 
     public static final File STARTING_DIRECTORY = new File("/home/zalpha314/Documents/Programming/Java/Work/TrustGrapher2/test");
     private LinkedList<TrustLogEvent> logList;
-    private TrustGraph hiddenGraph;
-    private TrustGraph visibleGraph;
+    private MyGraph hiddenGraph;
+    private MyGraph visibleGraph;
     private List<LoadingListener> loadingListeners;
-    private ArrayList<TrustGraph[]> graphs;
+    private ArrayList<MyGraph[]> graphs;
 
     //[start] Constructor
     public TrustGraphLoader() {
@@ -117,7 +117,7 @@ public class TrustGraphLoader {
         ChatterBox.error(this, "graphBuilder()", "graphBuilder() method has been called.  I'm pretty sure it doesn't work.");
         if (networkDoc.getRootElement().getName().equals("network")) {
             int edgeCounter = 0;
-            TrustGraph startGraph = new MyFeedbackGraph(0);
+            MyGraph startGraph = new MyFeedbackGraph(0);
             ChatterBox.debug(this, "P2PNetworkGraphLoader()", "A new graph was instanciated.  I have set it to feedback history by default.");
             Element networkElem = networkDoc.getRootElement();
             int counter = 0;
@@ -271,15 +271,15 @@ public class TrustGraphLoader {
         return logList;
     }
 
-    public TrustGraph getHiddenP2PNetworkGraph() {
+    public MyGraph getHiddenP2PNetworkGraph() {
         return hiddenGraph;
     }
 
-    public TrustGraph getVisibleP2PNetworkGraph() {
+    public MyGraph getVisibleP2PNetworkGraph() {
         return visibleGraph;
     }
 
-    public ArrayList<TrustGraph[]> getGraphs(){
+    public ArrayList<MyGraph[]> getGraphs(){
         return graphs;
     }
     //[end] Getters
@@ -320,7 +320,7 @@ public class TrustGraphLoader {
         return loader;
     }
 
-    public static LinkedList<TrustLogEvent> buildLogs(InputStream inStream, TrustGraph hiddenGraph) throws JDOMException, IOException {
+    public static LinkedList<TrustLogEvent> buildLogs(InputStream inStream, MyGraph hiddenGraph) throws JDOMException, IOException {
 
         SAXBuilder parser = new SAXBuilder();
         Document doc = parser.build(inStream);

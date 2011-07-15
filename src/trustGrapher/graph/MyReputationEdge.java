@@ -43,6 +43,7 @@ public class MyReputationEdge extends ReputationEdge {
             return false;
         }
         MyReputationEdge other = (MyReputationEdge) o;
+//        return (this.src == other.src) && (this.sink == other.sink);
         return this.key == other.key;
     }
 

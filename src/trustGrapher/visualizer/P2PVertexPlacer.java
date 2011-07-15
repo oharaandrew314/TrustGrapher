@@ -3,7 +3,7 @@ package trustGrapher.visualizer;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
-import trustGrapher.graph.TrustGraph;
+import trustGrapher.graph.MyGraph;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 

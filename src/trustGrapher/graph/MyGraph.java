@@ -1,4 +1,4 @@
-//////////////////////////////////TrustGraph////////////////////////////////////
+//////////////////////////////////MyGraph////////////////////////////////////
 package trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
@@ -10,24 +10,32 @@ import edu.uci.ics.jung.graph.Forest;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
 import java.util.Collection;
-import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
 
 /**
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
  * @author Andrew O'Hara
  */
-public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     public static final int VISIBLE = 0, HIDDEN = 1;
     protected int type;
     int edgecounter = 0;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph) {
+    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph) {
         super(graph);
     }
 
+    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type){
+        super(graph);
+        this.type = type;
+    }
+
 //////////////////////////////////Accessors/////////////////////////////////////
+    public int getType(){
+        return type;
+    }
+
     /**
      * Finds an edge that already exists in the graph
      * @param from
@@ -74,8 +82,6 @@ public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         }
         removeVertex(peer);
     }
-    
-    public abstract void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph);
 
 ////////////////////////////////Static Methods//////////////////////////////////
     /**
@@ -83,7 +89,7 @@ public abstract class TrustGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param graph	The source which the tree Graph will be made from
      * @return	The Document Tree Graph
      */
-    public static Forest<Agent, TestbedEdge> makeTreeGraph(TrustGraph graph) {
+    public static Forest<Agent, TestbedEdge> makeTreeGraph(MyGraph graph) {
         Forest<Agent, TestbedEdge> tree = new DelegateForest<Agent, TestbedEdge>();
         for (Agent documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
         }

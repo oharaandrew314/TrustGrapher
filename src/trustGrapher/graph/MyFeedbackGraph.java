@@ -4,6 +4,7 @@ package trustGrapher.graph;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
+import cu.repsystestbed.graphs.TestbedEdge;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
@@ -13,7 +14,7 @@ import utilities.ChatterBox;
  * A trust graph that displays individual feedbacks grouped together into edges
  * @author Andrew O'Hara
  */
-public class MyFeedbackGraph extends TrustGraph{
+public class MyFeedbackGraph extends MyGraph{
 
 //////////////////////////////////Constructor///////////////////////////////////
 
@@ -25,6 +26,7 @@ public class MyFeedbackGraph extends TrustGraph{
 ///////////////////////////////////Methods//////////////////////////////////////
 
     public void feedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
+        ChatterBox.print("Agent " + from + " is giving " + feedback + " feedback to Agent " + to);
         if (type == HIDDEN){
             ChatterBox.error(this, "feedback()", "This graph is not a visible graph");
             return;
@@ -49,14 +51,6 @@ public class MyFeedbackGraph extends TrustGraph{
 
         MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge)hiddenGraph.findEdge(assessor, assessee));
         hiddenEdge.addFeedback(assessor, assessee, feedback);
-
-        //Notify any observing algorithms that they must update
-//        SimpleDirectedGraph lol = this.getInnerGraph();
-//        try{
-//            ((FeedbackHistoryGraph)lol).notifyObservers();
-//        }catch (Exception ex){
-//            ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
-//        }
     }
 
     public void unfeedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
@@ -110,10 +104,18 @@ public class MyFeedbackGraph extends TrustGraph{
                 ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
             }
         }
+
+        //Notify any observing algorithms that they must update
+        SimpleDirectedGraph lol = this.getInnerGraph();
+        //try{
+            ((FeedbackHistoryGraph)lol).notifyObservers();
+        //}catch (Exception ex){
+        //    ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
+        //}
+
     }
 
-    @Override
-    public void graphEvent(TrustLogEvent gev, boolean forward, TrustGraph referenceGraph){
+    public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph){
         int from = gev.getAssessor();
         int to = gev.getAssessee();
         double feedback = gev.getFeedback();
@@ -123,6 +125,33 @@ public class MyFeedbackGraph extends TrustGraph{
         } else {
             unfeedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
         }
+
+        //Notify any observing algorithms that they must update
+        SimpleDirectedGraph lol = this.getInnerGraph();
+        //try{
+            ((FeedbackHistoryGraph)lol).notifyObservers();
+        //}catch (Exception ex){
+        //    ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
+        //}
     }
+
+    public void printGraph() {
+        if (type == HIDDEN) {
+            ChatterBox.print("Printing hidden " + this.getClass().getSimpleName() + "...");
+        } else {
+            ChatterBox.print("Printing visible " + this.getClass().getSimpleName() + "...");
+        }
+        Collection<Agent> agents = this.getVertices();
+        for (Agent a : agents) {
+            ChatterBox.print(a.toString());
+        }
+        Collection<TestbedEdge> edges = getEdges();
+        for (TestbedEdge e : edges) {
+            ChatterBox.print("Edge: " + e.src + " to " + e.sink);
+
+        }
+        ChatterBox.print("Done.");
+    }
+
 }
 ////////////////////////////////////////////////////////////////////////////////
