@@ -82,18 +82,5 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         }
         removeVertex(peer);
     }
-
-////////////////////////////////Static Methods//////////////////////////////////
-    /**
-     * Returns a tree graph of documents and the peers which host them.
-     * @param graph	The source which the tree Graph will be made from
-     * @return	The Document Tree Graph
-     */
-    public static Forest<Agent, TestbedEdge> makeTreeGraph(MyGraph graph) {
-        Forest<Agent, TestbedEdge> tree = new DelegateForest<Agent, TestbedEdge>();
-        for (Agent documentVertex : graph.getVertices()) { //iterate over all vertices in the graph
-        }
-        return tree;
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////

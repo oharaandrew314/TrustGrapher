@@ -6,22 +6,18 @@ import trustGrapher.graph.*;
 import trustGrapher.visualizer.*;
 import trustGrapher.graph.savingandloading.*;
 import trustGrapher.visualizer.eventplayer.*;
-import trustGrapher.networking.*;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.*;
 
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.ConstantTransformer;
-import org.jdom.JDOMException;
 
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
@@ -45,7 +41,7 @@ import utilities.ChatterBox;
  * @author Matt
  * @author Andrew O'Hara
  */
-public class TrustApplet extends JApplet implements EventPlayerListener, NetworkListener {
+public class TrustApplet extends JApplet implements EventPlayerListener{
     // for the length of the edges in the graph layout
 
     public static final Transformer<TestbedEdge, Integer> UNITLENGTHFUNCTION = new ConstantTransformer(100);
@@ -59,7 +55,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
     public static final int VISIBLE = 0, HIDDEN = 1;
     
     private List<LoadingListener> loadingListeners;
-    //private HTTPClient networkClient;
     protected JTable logList;
     protected JTabbedPane tabsPane;
     protected JButton fastForwardButton, forwardButton, pauseButton, reverseButton, fastReverseButton;
@@ -70,7 +65,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
 
-        //networkClient = new HTTPClient(this);
         loadingListeners = new LinkedList<LoadingListener>();
         init();
         start();
@@ -906,58 +900,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         }
     }
 
-    class TreeLayoutListener implements ActionListener {
-
-        VisualizationViewer<Agent, TestbedEdge> vv;
-
-        public TreeLayoutListener(VisualizationViewer<Agent, TestbedEdge> vv) {
-            this.vv = vv;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            TreeLayout<Agent, TestbedEdge> graphLayout =
-                    new TreeLayout<Agent, TestbedEdge>(MyGraph.makeTreeGraph(getGraph(HIDDEN))) {
-
-                        @Override
-                        public void setSize(Dimension size) {
-                            // The set size method was being called, and it raised an exception every time
-                        }
-                    };
-            vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
-            for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
-            }
-
-        }
-    }
-
-    class BalloonLayoutListener implements ActionListener {
-
-        VisualizationViewer<Agent, TestbedEdge> vv;
-
-        public BalloonLayoutListener(VisualizationViewer<Agent, TestbedEdge> vv) {
-            this.vv = vv;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            BalloonLayout<Agent, TestbedEdge> graphLayout = new BalloonLayout<Agent, TestbedEdge>(MyGraph.makeTreeGraph(getGraph(HIDDEN)));
-            graphLayout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
-
-            vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
-            for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
-            }
-        }
-    }
-
     class LoadListener implements ActionListener {
 
         public void actionPerformed(ActionEvent arg0) {
@@ -986,7 +928,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
                             fastSpeedSlider.setEnabled(false);
                         }
                         events = loader.getLogList();
-                        //load graphs
                         graphs = loader.getGraphs();
 
                         startGraph();
@@ -997,54 +938,4 @@ public class TrustApplet extends JApplet implements EventPlayerListener, Network
         }
     }
     //[end] Load Listener
-
-    //[end] Swing Event Listeners
-    //[start] Network Listeners
-    @Override
-    public synchronized void incomingLogEvents(InputStream inStream) {
-        try {
-            eventThread.pause();
-            LinkedList<TrustLogEvent> events;
-            synchronized (getGraph(HIDDEN)) {
-                events = TrustGraphLoader.buildLogs(inStream, getGraph(HIDDEN));
-            }
-
-
-            events.addLast(TrustLogEvent.getEndEvent(events.getLast()));
-            eventThread.addEvents(events);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public synchronized void incomingGraph(InputStream inStream) {
-
-        try {
-            TrustGraphLoader loader = TrustGraphLoader.buildGraph(inStream);
-
-            if (events != null) {
-                events.clear();
-                eventThread.stopPlayback();
-                fastReverseButton.setEnabled(false);
-                reverseButton.setEnabled(false);
-                pauseButton.setEnabled(false);
-                forwardButton.setEnabled(false);
-                fastForwardButton.setEnabled(false);
-                playbackSlider.setEnabled(false);
-                playbackSlider.setValue(0);
-                tabsPane.setEnabled(false);
-                fastSpeedSlider.setEnabled(false);
-            }
-
-            events = loader.getLogList();
-            graphs = loader.getGraphs();
-            startGraph();
-        } catch (JDOMException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    //[end] Network Listeners
 }
