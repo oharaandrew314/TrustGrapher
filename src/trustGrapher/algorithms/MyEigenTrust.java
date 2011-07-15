@@ -54,6 +54,10 @@ public class MyEigenTrust extends EigenTrust {
                         System.out.println("Algorithm returned a trust score ("
                                 + trustScore + ")that is not within [0,1]. ");
                     }
+
+                    if (myRepGraph.getType() == VISIBLE){
+                        removeEntities();
+                    }
                     
                     MyReputationEdge repEdge = (MyReputationEdge) myRepGraph.findEdge(src, sink);
                     if (repEdge == null) {
@@ -61,7 +65,7 @@ public class MyEigenTrust extends EigenTrust {
                             repEdge = myRepGraph.createEdge(src, sink);
                             myRepGraph.addEdge(repEdge, src, sink);
                         } else {
-                            int key = ((MyReputationEdge) myRepGraph.getHiddenGraph().findEdge(src, sink)).getKey();
+                            int key = ((MyReputationEdge) myRepGraph.getHiddenGraph().findEdge(src, sink)).getID();
                             repEdge = myRepGraph.createEdge(src, sink, key);
                             myRepGraph.addEdge(repEdge, src, sink);
                         }
@@ -73,6 +77,29 @@ public class MyEigenTrust extends EigenTrust {
         if (myRepGraph.getType() == VISIBLE){
             System.out.println("Done.");
         }
+    }
+
+    public void removeEntities(){
+//        Collection<TestbedEdge> repEdges = myRepGraph.getEdges();
+//        Set<FeedbackHistoryGraphEdge> feedbackEdges = feedbackHistoryGraph.edgeSet();
+//        for (TestbedEdge e : repEdges){
+//            for (FeedbackHistoryGraphEdge e2: feedbackEdges){
+//                if ((e.src == e2.src) && (e.sink == e2.sink)){
+//                    myRepGraph.removeEdge(e);
+//                    break;
+//                }
+//            }
+//        }
+
+//        Collection<Agent> repAgents = myRepGraph.getVertices();
+//        Set<Agent> feedbackAgents = feedbackHistoryGraph.vertexSet();
+//        for (Agent a: repAgents){
+//            if (!feedbackAgents.contains(a)){
+//                System.out.println("Removing " + a);
+//                myRepGraph.removeVertex(a);
+//            }
+//        }
+        
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

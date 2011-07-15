@@ -1,6 +1,7 @@
 ////////////////////////////////MyReputationGraph///////////////////////////////
 package trustGrapher.graph;
 
+import cu.repsystestbed.algorithms.EigenTrust;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdgeFactory;
 import cu.repsystestbed.graphs.ReputationGraph;
@@ -16,6 +17,7 @@ import utilities.ChatterBox;
  */
 public class MyReputationGraph extends MyGraph {
     private MyReputationGraph hiddenGraph = null;
+    public EigenTrust alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
 //    /**
@@ -39,9 +41,10 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param hiddenGraph A reference to the hiddenGraph so that the reputation can be changed
      */
-    public MyReputationGraph(SimpleDirectedGraph baseGraph, MyReputationGraph hiddenGraph) {
+    public MyReputationGraph(SimpleDirectedGraph baseGraph, MyReputationGraph hiddenGraph, EigenTrust alg) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()));
         this.hiddenGraph = hiddenGraph;
+        this.alg = alg;
         type = VISIBLE;
     }
 
@@ -58,7 +61,7 @@ public class MyReputationGraph extends MyGraph {
     public void feedback(MyReputationGraph hiddenGraph, MyReputationEdge refEdge) {
 //        int from = refEdge.getAssessor().id;
 //        int to = refEdge.getAssessee().id;
-//        int key = refEdge.getKey();
+//        int key = refEdge.getID();
 //        double trustScore = 0.0;
 //
 //        if (getVertexInGraph(from) == null) {
@@ -163,7 +166,7 @@ public class MyReputationGraph extends MyGraph {
         if (edge == null) {//If the edge doesn't  exist, add it
             try {
                 edge = new MyReputationEdge(assessor, assessee, edgecounter++);
-                addEdge(edge, edge.getAssessor(), edge.getAssessee());
+                addEdge(edge, (Agent)edge.src, (Agent)edge.sink);
             } catch (Exception ex) {
                 ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
             }

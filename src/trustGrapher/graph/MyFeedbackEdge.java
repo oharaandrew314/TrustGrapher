@@ -12,18 +12,18 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
-    private int key;
+    private int id;
 
 //////////////////////////////////Constructor///////////////////////////////////
 
     public MyFeedbackEdge(int key, Agent assessor, Agent assessee) throws Exception {
         super(assessor, assessee);
-        this.key = key;
+        this.id = key;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public int getKey() {
-        return key;
+    public int getID() {
+        return id;
     }
 
     public boolean hasMultipleFeedback() {
@@ -41,15 +41,6 @@ public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
         }
         return s;
     }
-
-    public Agent getAssessor(){
-        return (Agent) src;
-    }
-
-    public Agent getAssessee(){
-        return (Agent) sink;
-    }
-
 ///////////////////////////////////Methods//////////////////////////////////////
     public void addFeedback(Agent assessor, Agent assessee, double feedback) {
         try {
@@ -74,13 +65,13 @@ public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
             return false;
         }
         MyFeedbackEdge other = (MyFeedbackEdge) o;
-        return this.key == other.key;
+        return this.id == other.id;
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 29 * hash + this.key;
+        hash = 29 * hash + this.id;
         return hash;
     }
 }

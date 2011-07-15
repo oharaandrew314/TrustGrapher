@@ -5,35 +5,27 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdge;
 
 /**
- * A ReputationEdge extension that adds a key field and other useful methods
+ * A ReputationEdge extension that adds a id field and other useful methods
  * @author Andrew O'Hara
  */
 public class MyReputationEdge extends ReputationEdge {
 
-    int key;
+    private int id;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyReputationEdge(Agent from, Agent to, int key) {
+    public MyReputationEdge(Agent from, Agent to, int id) {
         super(from, to);
-        this.key = key;
+        this.id = id;
     }
 
-    public MyReputationEdge(Agent from, Agent to, double feedback, int key) {
+    public MyReputationEdge(Agent from, Agent to, double feedback, int id) {
         super(from, to, feedback);
-        this.key = key;
+        this.id = id;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public int getKey() {
-        return key;
-    }
-
-    public Agent getAssessor(){
-        return (Agent) src;
-    }
-
-    public Agent getAssessee(){
-        return (Agent) sink;
+    public int getID() {
+        return id;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -44,13 +36,13 @@ public class MyReputationEdge extends ReputationEdge {
         }
         MyReputationEdge other = (MyReputationEdge) o;
 //        return (this.src == other.src) && (this.sink == other.sink);
-        return this.key == other.key;
+        return this.id == other.id;
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 29 * hash + this.key;
+        hash = 29 * hash + this.id;
         return hash;
     }
 

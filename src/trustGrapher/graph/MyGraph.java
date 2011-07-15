@@ -5,8 +5,6 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.JungAdapterGraph;
 
-import edu.uci.ics.jung.graph.DelegateForest;
-import edu.uci.ics.jung.graph.Forest;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
 import java.util.Collection;
@@ -20,6 +18,7 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     public static final int VISIBLE = 0, HIDDEN = 1;
     protected int type;
     int edgecounter = 0;
+    protected boolean forward = true;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph) {
@@ -34,6 +33,10 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 //////////////////////////////////Accessors/////////////////////////////////////
     public int getType(){
         return type;
+    }
+
+    public boolean getForward(){
+        return forward;
     }
 
     /**

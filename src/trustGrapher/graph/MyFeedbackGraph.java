@@ -14,20 +14,18 @@ import utilities.ChatterBox;
  * A trust graph that displays individual feedbacks grouped together into edges
  * @author Andrew O'Hara
  */
-public class MyFeedbackGraph extends MyGraph{
+public class MyFeedbackGraph extends MyGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
-
-    public MyFeedbackGraph(int type){
+    public MyFeedbackGraph(int type) {
         super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()));
         this.type = type;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-
     public void feedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
         ChatterBox.print("Agent " + from + " is giving " + feedback + " feedback to Agent " + to);
-        if (type == HIDDEN){
+        if (type == HIDDEN) {
             ChatterBox.error(this, "feedback()", "This graph is not a visible graph");
             return;
         }
@@ -43,18 +41,18 @@ public class MyFeedbackGraph extends MyGraph{
         if (edge == null) {//If the edge doesn't  exist, add it
             try {
                 edge = new MyFeedbackEdge(key, assessor, assessee);
-                addEdge(edge, edge.getAssessor(), edge.getAssessee());
+                addEdge(edge, (Agent) edge.src, (Agent) edge.sink);
             } catch (Exception ex) {
                 ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
             }
         }
 
-        MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge)hiddenGraph.findEdge(assessor, assessee));
+        MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge) hiddenGraph.findEdge(assessor, assessee));
         hiddenEdge.addFeedback(assessor, assessee, feedback);
     }
 
     public void unfeedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
-        if (type == HIDDEN){
+        if (type == HIDDEN) {
             ChatterBox.error(this, "unfeedback()", "This graph is not a visible graph");
             return;
         }
@@ -64,7 +62,7 @@ public class MyFeedbackGraph extends MyGraph{
             ChatterBox.error(this, "unFeedback()", "Couldn't find an edge to remove!");
             return;
         }
-        MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge)hiddenGraph.findEdge(from, to));
+        MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge) hiddenGraph.findEdge(from, to));
         hiddenEdge.removeFeedback(feedback);
         if (hiddenEdge.feedbacks.isEmpty()) {
             Collection<Agent> verts = super.getIncidentVertices(edge);
@@ -82,7 +80,7 @@ public class MyFeedbackGraph extends MyGraph{
      * @param gev	The Log event which needs to be handled.
      */
     public void graphConstructionEvent(TrustLogEvent gev) {
-        if (type == VISIBLE){
+        if (type == VISIBLE) {
             ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a hidden graph.");
             return;
         }
@@ -100,40 +98,32 @@ public class MyFeedbackGraph extends MyGraph{
         if (edge == null) {//If the edge doesn't  exist, add it
             try {
                 edge = new MyFeedbackEdge(edgecounter++, assessor, assessee);
-                addEdge(edge, edge.getAssessor(), edge.getAssessee());
+                addEdge(edge, (Agent)edge.src, (Agent)edge.sink);
             } catch (Exception ex) {
                 ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
             }
         }
-
         //Notify any observing algorithms that they must update
         SimpleDirectedGraph lol = this.getInnerGraph();
-        //try{
-            ((FeedbackHistoryGraph)lol).notifyObservers();
-        //}catch (Exception ex){
-        //    ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
-        //}
-
+        ((FeedbackHistoryGraph) lol).notifyObservers();
     }
 
-    public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph){
+    public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph) {
         int from = gev.getAssessor();
         int to = gev.getAssessee();
         double feedback = gev.getFeedback();
-        int key = ((MyFeedbackEdge)referenceGraph.findEdge(from, to)).getKey();
+        int key = ((MyFeedbackEdge) referenceGraph.findEdge(from, to)).getID();
         if (forward) {
+            this.forward = true;
             feedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
         } else {
+            this.forward = false;
             unfeedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
         }
 
         //Notify any observing algorithms that they must update
-        SimpleDirectedGraph lol = this.getInnerGraph();
-        //try{
-            ((FeedbackHistoryGraph)lol).notifyObservers();
-        //}catch (Exception ex){
-        //    ChatterBox.debug(this, "feedback()", "Error notifying observer.  " + ex.getMessage());
-        //}
+//        SimpleDirectedGraph lol = this.getInnerGraph();
+//        ((FeedbackHistoryGraph) lol).notifyObservers();
     }
 
     public void printGraph() {
@@ -153,6 +143,5 @@ public class MyFeedbackGraph extends MyGraph{
         }
         ChatterBox.print("Done.");
     }
-
 }
 ////////////////////////////////////////////////////////////////////////////////

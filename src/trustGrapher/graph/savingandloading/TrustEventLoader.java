@@ -56,7 +56,7 @@ public class TrustEventLoader {
         ((FeedbackHistoryGraph) hidFeedbackGraph).addObserver(hidAlg);
 
         graphSet[HIDDEN] = new MyReputationGraph(hidAlg.getReputationGraph()); //This automatically turns the hidden feedbackGraph into the hidden reputationGraph
-        graphSet[VISIBLE] = new MyReputationGraph(visAlg.getReputationGraph(), (MyReputationGraph) graphSet[HIDDEN]);
+        graphSet[VISIBLE] = new MyReputationGraph(visAlg.getReputationGraph(), (MyReputationGraph) graphSet[HIDDEN], visAlg);
 
         visAlg.setMyReputationGraph((MyReputationGraph) graphSet[VISIBLE]);
         hidAlg.setMyReputationGraph((MyReputationGraph) graphSet[HIDDEN]);
@@ -117,26 +117,15 @@ public class TrustEventLoader {
                 }
                 TrustLogEvent gev = new TrustLogEvent(line);//create the log event
                 logEvents.add(gev); //add this read log event to the list
+
                 ((MyFeedbackGraph)graphs.get(0)[HIDDEN]).graphConstructionEvent(gev); //Add the construction event to the hidden feedbackGraph
-                //((MyReputationGraph)graphs.get(1)[HIDDEN]).graphConstructionEvent(gev);
+
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
 
         } catch (IOException ex) {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
-
-        //printLog(logEvents);
-        //debugEntities();
-
-        //try{
-//            SimpleDirectedGraph hidFeedbackGraph = graphs.get(0)[HIDDEN].getInnerGraph();
-//            ((FeedbackHistoryGraph)hidFeedbackGraph).notifyObservers();
-        //}catch (Exception ex){
-        //    ChatterBox.print("Error notifying observer.  " + ex.getMessage());
-        //}
-
-        //graphs.get(1)[HIDDEN].printGraph();
 
         return (LinkedList<TrustLogEvent>) logEvents;
     }
