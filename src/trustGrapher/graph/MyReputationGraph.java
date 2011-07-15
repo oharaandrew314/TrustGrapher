@@ -8,6 +8,7 @@ import cu.repsystestbed.graphs.ReputationGraph;
 import cu.repsystestbed.graphs.TestbedEdge;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import trustGrapher.algorithms.MyEigenTrust;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
 
@@ -59,50 +60,17 @@ public class MyReputationGraph extends MyGraph {
 ///////////////////////////////////Methods//////////////////////////////////////
 
     public void feedback(MyReputationGraph hiddenGraph, MyReputationEdge refEdge) {
-//        int from = refEdge.getAssessor().id;
-//        int to = refEdge.getAssessee().id;
-//        int key = refEdge.getID();
-//        double trustScore = 0.0;
-//
-//        if (getVertexInGraph(from) == null) {
-//            addPeer(from);
-//        }
-//        if (getVertexInGraph(to) == null) {
-//            addPeer(to);
-//        }
-//        Agent assessor = getVertexInGraph(from);
-//        Agent assessee = getVertexInGraph(to);
-//        MyReputationEdge edge = (MyReputationEdge) findEdge(from, to);
-//        if (edge == null) {
-//            edge = new MyReputationEdge(assessor, assessee, key);
-//            addEdge(edge, assessor, assessee);
-//        }
-//
-//        ChatterBox.print(assessor + " giving feedback to " + assessee);
-//        Collection<Agent> agents = hiddenGraph.getVertices();
-//        for (Agent src : agents) {
-//            for (Agent sink : agents) {
-//                if (!src.equals(sink)) {
-//                    try{
-//                        trustScore = getAlg().calculateTrustScore(src, sink);
-//                    }catch(Exception ex){
-//                        ChatterBox.debug(this, "feedback()", ex.getMessage());
-//                    }
-//                    if (trustScore < 0.0 || trustScore > 1.0) {
-//                        ChatterBox.error(this, "feedback()", "The trustScore was " + trustScore + ".  It needs to be [0,1]");
-//                    }
-//                    ChatterBox.print("Trying to set Edge " + src.toString() + " " + sink.toString() + " to " + trustScore);
-//                    edge = (MyReputationEdge) hiddenGraph.findEdge(src, sink);
-//                    if (edge == null){
-//                        //ChatterBox.print("Couldn't find edge.  Creating one...");
-//                        edge = createEdge(src, sink);
-//                        addEdge(edge, src, sink);
-//                        hiddenGraph.addEdge(edge, src, sink);
-//                    }
-//                    edge.setReputation(trustScore);
-//                }
-//            }
-//        }
+        Agent src = (Agent)refEdge.src;
+        Agent sink= (Agent)refEdge.sink;
+        int key = refEdge.getID();
+        MyReputationEdge edge = (MyReputationEdge) findEdge(src.id, sink.id);
+        if (edge == null){
+            edge = createEdge((Agent)refEdge.src, (Agent)refEdge.sink, key);
+            addEdge(edge, src, sink);
+        }
+        ((MyEigenTrust)alg).setMatrixFilled(false);
+        edge.setReputation(alg.calculateTrustScore(src, sink));
+
     }
 
     public MyReputationEdge createEdge(Agent src, Agent sink){

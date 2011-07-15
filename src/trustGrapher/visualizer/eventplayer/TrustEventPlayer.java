@@ -263,20 +263,21 @@ public class TrustEventPlayer implements ActionListener {
     private void handleLogEvent(TrustLogEvent evt, boolean forward){
         if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))){
             ((MyFeedbackGraph) graphs.get(0)[VISIBLE]).graphEvent(evt, forward, graphs.get(0)[HIDDEN]);
-
-            MyGraph[] entry = new MyGraph[2];
-            entry[HIDDEN] = graphs.get(1)[HIDDEN];
-            SimpleDirectedGraph lol = graphs.get(0)[VISIBLE].getInnerGraph();
-
-            int iter = new Long(evt.getTime() / 100).intValue();
-            MyEigenTrust alg = new MyEigenTrust(iter, 0.7);
-            ((FeedbackHistoryGraph)lol).addObserver(alg);
-            entry[VISIBLE] = new MyReputationGraph(alg.getReputationGraph(), (MyReputationGraph) entry[HIDDEN], alg);
-
-            alg.setMyReputationGraph((MyReputationGraph)entry[VISIBLE]);
-            ((FeedbackHistoryGraph) lol).notifyObservers();
-
-            graphs.set(1, entry);
+            ((MyReputationGraph)graphs.get(1)[VISIBLE]).graphEvent(evt, forward, graphs.get(1)[HIDDEN]);
+//
+//            MyGraph[] entry = new MyGraph[2];
+//            entry[HIDDEN] = graphs.get(1)[HIDDEN];
+//            SimpleDirectedGraph lol = graphs.get(0)[VISIBLE].getInnerGraph();
+//
+//            int iter = new Long(evt.getTime() / 100).intValue();
+//            MyEigenTrust alg = new MyEigenTrust(iter, 0.7);
+//            ((FeedbackHistoryGraph)lol).addObserver(alg);
+//            entry[VISIBLE] = new MyReputationGraph(alg.getReputationGraph(), (MyReputationGraph) entry[HIDDEN], alg);
+//
+//            alg.setMyReputationGraph((MyReputationGraph)entry[VISIBLE]);
+//            ((FeedbackHistoryGraph) lol).notifyObservers();
+//
+//            graphs.set(1, entry);
             
         }
     }

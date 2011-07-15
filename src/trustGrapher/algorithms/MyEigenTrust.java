@@ -33,6 +33,10 @@ public class MyEigenTrust extends EigenTrust {
         this.myRepGraph = graph;
     }
 
+    public void setMatrixFilled(boolean filled){
+        this.matrixFilled = filled;
+    }
+
     @Override
     public void update() {
         if (myRepGraph.getType() == VISIBLE){
