@@ -294,7 +294,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         JPanel tablePanel = new JPanel(new GridLayout(1, 1));
         tablePanel.add(listScroller);
-        //tablePanel.setBackground(Color.GRAY);
         tablePanel.setBorder(BorderFactory.createTitledBorder("Log Events"));
 
         for (LoadingListener l : loadingListeners) {
