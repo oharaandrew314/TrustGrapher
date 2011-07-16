@@ -151,26 +151,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     private JMenuBar createFileMenu() {
         //[start] File Menu
         JMenu file = new JMenu("File");
-        //[start] Connect Entry
-//        JMenuItem connect = new JMenuItem("Connect to..");
-//        connect.addActionListener(new ActionListener() {
-//
-//            public void actionPerformed(ActionEvent arg0) {
-//                pauseButton.doClick();
-//                String option = JOptionPane.showInputDialog(null, "Enter a URL:", "Connect", JOptionPane.PLAIN_MESSAGE);
-//                if (option != null) {
-//                    if (option.startsWith("http://")) {
-//                        //networkClient.closeNetwork();
-//                        networkClient.startNetwork(option);
-//                        //client.addNetworkListener();
-//                    } else {
-//                        JOptionPane.showMessageDialog(null, "Invalid URL", "Error", JOptionPane.ERROR_MESSAGE);
-//                    }
-//                }
-//                //else cancel option, don't do anything
-//            }
-//        });
-        //[end] Connect Entry
 
         //[start] Save Entry
         JMenuItem save = new JMenuItem("Save");
