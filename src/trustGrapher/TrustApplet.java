@@ -52,7 +52,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     private LinkedList<TrustLogEvent> events;
     
     private ArrayList<MyGraph[]> graphs;//addition = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
-    public static final int VISIBLE = 0, HIDDEN = 1;
+    public static final int DYNAMIC = 0, FULL = 1;
     
     private List<LoadingListener> loadingListeners;
     protected JTable logList;
@@ -81,7 +81,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     }
 
     public MyGraph getGraph(int type){
-        if (type == VISIBLE || type == HIDDEN){
+        if (type == DYNAMIC || type == FULL){
             return graphs.get(tabsPane.getSelectedIndex())[type];
         }
         ChatterBox.error(this, "getGraph()", "Invalid parameter.");
@@ -162,11 +162,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
                         "Save", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                 if (option == JOptionPane.YES_OPTION) {
-                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(VISIBLE), eventThread.getSaveEvents(), eventThread.getCurrentTime());
+                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC), eventThread.getSaveEvents(), eventThread.getCurrentTime());
                     saver.addLoadingListener(new LoadingBar());
                     saver.doSave();
                 } else if (option == JOptionPane.NO_OPTION) {
-                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(VISIBLE));
+                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC));
                     saver.addLoadingListener(new LoadingBar());
                     saver.doSave();
                 }
@@ -190,7 +190,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
                         JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                 if (option == JOptionPane.OK_OPTION) {
-                    //GraphSaverAndLoader.save(getGraph(VISIBLE));
+                    //GraphSaverAndLoader.save(getGraph(DYNAMIC));
                     System.exit(0);
                 } else if (option == JOptionPane.NO_OPTION) {
                     System.exit(0);
@@ -513,14 +513,14 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         //Create the Visualization Viewers
         for (int i=0 ; i < names.length ; i++){
-            layout = new FRLayout2<Agent, TestbedEdge>(graphs.get(i)[HIDDEN]);
+            layout = new FRLayout2<Agent, TestbedEdge>(graphs.get(i)[FULL]);
             layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH, DEFHEIGHT)));
             viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH, DEFHEIGHT, gm));
             viewers.get(i).addMouseListener(graphListener);
             viewers.get(i).setName(names[i]);
             initSpecialTransformers(viewers.get(i), VertexShapeType.ELLIPSE, VertexShapeType.PENTAGON, VertexShapeType.RECTANGLE, EdgeShapeType.QUAD_CURVE, EdgeShapeType.CUBIC_CURVE, EdgeShapeType.LINE, EdgeShapeType.LINE);
-            viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graphs.get(i)[VISIBLE]));
-            viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graphs.get(i)[VISIBLE]));
+            viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graphs.get(i)[DYNAMIC]));
+            viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graphs.get(i)[DYNAMIC]));
             tabsPane.addTab(viewers.get(i).getName(), viewers.get(i)); //Add the viewer to the tabs pane
 
             for (LoadingListener l : loadingListeners) {
@@ -779,7 +779,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<Agent, TestbedEdge> graphLayout = new FRLayout<Agent, TestbedEdge>(getGraph(HIDDEN), vv.getSize());
+            AbstractLayout<Agent, TestbedEdge> graphLayout = new FRLayout<Agent, TestbedEdge>(getGraph(FULL), vv.getSize());
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -801,7 +801,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<Agent, TestbedEdge> graphLayout = new ISOMLayout<Agent, TestbedEdge>(getGraph(HIDDEN));
+            AbstractLayout<Agent, TestbedEdge> graphLayout = new ISOMLayout<Agent, TestbedEdge>(getGraph(FULL));
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -823,7 +823,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<Agent, TestbedEdge> graphLayout = new KKLayout<Agent, TestbedEdge>(getGraph(HIDDEN));
+            AbstractLayout<Agent, TestbedEdge> graphLayout = new KKLayout<Agent, TestbedEdge>(getGraph(FULL));
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -845,7 +845,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<Agent, TestbedEdge> graphLayout = new CircleLayout<Agent, TestbedEdge>(getGraph(HIDDEN));
+            AbstractLayout<Agent, TestbedEdge> graphLayout = new CircleLayout<Agent, TestbedEdge>(getGraph(FULL));
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);
@@ -867,7 +867,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            AbstractLayout<Agent, TestbedEdge> graphLayout = new SpringLayout<Agent, TestbedEdge>(getGraph(HIDDEN));
+            AbstractLayout<Agent, TestbedEdge> graphLayout = new SpringLayout<Agent, TestbedEdge>(getGraph(FULL));
             vv.getModel().setGraphLayout(graphLayout);
             mouseContext.setVisible(false);
             mouseContext.setEnabled(false);

@@ -29,7 +29,7 @@ import utilities.ChatterBox;
  */
 public class TrustEventLoader {
 
-    public static final int VISIBLE = 0, HIDDEN = 1;
+    public static final int DYNAMIC = 0, FULL = 1;
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
     private ArrayList<MyGraph[]> graphs;
@@ -41,37 +41,34 @@ public class TrustEventLoader {
         MyGraph[] graphSet = new MyGraph[2];
         
         //Feedback History Graphs
-        graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
-        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);        
+        graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC);
+        graphSet[FULL] = new MyFeedbackGraph(FULL);
         graphs.add(graphSet.clone());
 
         //Eigen Reputation graphs
-        MyEigenTrust visAlg = new MyEigenTrust(0, 0.7);
-        MyEigenTrust hidAlg = new MyEigenTrust(0, 0.7);
+        MyEigenTrust dynAlg = new MyEigenTrust(0, 0.7);
+        MyEigenTrust fulAlg = new MyEigenTrust(0, 0.7);
 
-        SimpleDirectedGraph visFeedbackGraph = graphs.get(0)[VISIBLE].getInnerGraph();
-        SimpleDirectedGraph hidFeedbackGraph = graphs.get(0)[HIDDEN].getInnerGraph();
+        SimpleDirectedGraph dynFeedbackGraph = graphs.get(0)[DYNAMIC].getInnerGraph();
+        SimpleDirectedGraph fulFeedbackGraph = graphs.get(0)[FULL].getInnerGraph();
 
-        ((FeedbackHistoryGraph) visFeedbackGraph).addObserver(visAlg); //The algorithm will then add the graphs
-        ((FeedbackHistoryGraph) hidFeedbackGraph).addObserver(hidAlg);
+        ((FeedbackHistoryGraph) dynFeedbackGraph).addObserver(dynAlg); //The algorithm will then add the graphs
+        ((FeedbackHistoryGraph) fulFeedbackGraph).addObserver(fulAlg);
 
-        graphSet[HIDDEN] = new MyReputationGraph(hidAlg.getReputationGraph()); //This automatically turns the hidden feedbackGraph into the hidden reputationGraph
-        graphSet[VISIBLE] = new MyReputationGraph(visAlg.getReputationGraph(), (MyReputationGraph) graphSet[HIDDEN], visAlg);
-
-        visAlg.setMyReputationGraph((MyReputationGraph) graphSet[VISIBLE]);
-        hidAlg.setMyReputationGraph((MyReputationGraph) graphSet[HIDDEN]);
+        graphSet[FULL] = new MyReputationGraph(fulAlg.getReputationGraph()); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new MyReputationGraph(dynAlg.getReputationGraph(), (MyReputationGraph) graphSet[FULL], dynAlg);
 
         graphs.add(graphSet.clone());
 
         //These graphs are not yet implemented.  They are set to empty feedback graphs for now
         //Eigen Trust graphs
-        graphSet[VISIBLE] = new MyFeedbackGraph(VISIBLE);
-        graphSet[HIDDEN] = new MyFeedbackGraph(HIDDEN);
+        graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC);
+        graphSet[FULL] = new MyFeedbackGraph(FULL);
         graphs.add(graphSet.clone());
 
         //RankBased Trust graphs
-        graphSet[VISIBLE] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), VISIBLE);
-        graphSet[HIDDEN] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), HIDDEN);
+        graphSet[DYNAMIC] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC);
+        graphSet[FULL] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL);
         graphs.add(graphSet.clone());
     }
 
@@ -118,7 +115,8 @@ public class TrustEventLoader {
                 TrustLogEvent gev = new TrustLogEvent(line);//create the log event
                 logEvents.add(gev); //add this read log event to the list
 
-                ((MyFeedbackGraph)graphs.get(0)[HIDDEN]).graphConstructionEvent(gev); //Add the construction event to the hidden feedbackGraph
+                ((MyFeedbackGraph)graphs.get(0)[FULL]).graphConstructionEvent(gev); //Add the construction event to the hidden feedbackGraph
+                ((MyReputationGraph)graphs.get(1)[FULL]).graphConstructionEvent(gev);
 
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
@@ -127,6 +125,7 @@ public class TrustEventLoader {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
 
+        ((MyReputationGraph)graphs.get(1)[FULL]).removeRep();
         return (LinkedList<TrustLogEvent>) logEvents;
     }
 
@@ -166,7 +165,7 @@ public class TrustEventLoader {
     private void debugEntities(){
         ChatterBox.print("Debugging entities...");
         String found;
-        MyFeedbackGraph graph = (MyFeedbackGraph) graphs.get(0)[HIDDEN];
+        MyFeedbackGraph graph = (MyFeedbackGraph) graphs.get(0)[FULL];
         Collection<Agent> agents = graph.getVertices();
         for (Agent a : agents){
             ChatterBox.print(a.toString());

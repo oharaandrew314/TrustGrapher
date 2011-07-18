@@ -8,22 +8,17 @@ import cu.repsystestbed.graphs.JungAdapterGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
 import java.util.Collection;
-import utilities.ChatterBox;
 
 /**
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
  * @author Andrew O'Hara
  */
 public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
-    public static final int VISIBLE = 0, HIDDEN = 1;
+    public static final int DYNAMIC = 0, FULL = 1;
     protected int type;
     int edgecounter = 0;
-    protected boolean forward = true;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph) {
-        super(graph);
-    }
 
     public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type){
         super(graph);
@@ -33,10 +28,6 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 //////////////////////////////////Accessors/////////////////////////////////////
     public int getType(){
         return type;
-    }
-
-    public boolean getForward(){
-        return forward;
     }
 
     /**
@@ -54,14 +45,14 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     /**
-     * this methods gets a vertex already in the graph that is equal to the input vertex
+     * this methods gets a vertex already in the graph that is equal to the agent vertex
      * to be used when adding edges; the edge should relate two vertices actually in the graph, not copies of these vertices.
-     * @param input a Agent object
-     * @return a Agent v such that v.equals(input) and v is in the graph
+     * @param agent a Agent object
+     * @return a Agent v such that v.equals(agent) and v is in the graph
      */
-    public Agent getVertexInGraph(Agent input) {
+    public Agent getVertexInGraph(Agent agent) {
         for (Agent v : super.getVertices()) {
-            if (v.equals(input)) {
+            if (v.equals(agent)) {
                 return (Agent) v;
             }
         }
@@ -69,11 +60,9 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    public void addPeer(int peernumber) {
-        if (getVertexInGraph(peernumber) == null) {
-            addVertex(new Agent(peernumber));
-        } else {
-            ChatterBox.error(this, "addPeer()", "Tried to add a peer that already exists");
+    public void addPeer(int peerNum) {
+        if (getVertexInGraph(peerNum) == null) {
+            addVertex(new Agent(peerNum));
         }
     }
 

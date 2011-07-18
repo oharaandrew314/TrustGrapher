@@ -18,14 +18,12 @@ public class MyFeedbackGraph extends MyGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
     public MyFeedbackGraph(int type) {
-        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()));
-        this.type = type;
+        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     public void feedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
-        ChatterBox.print("Agent " + from + " is giving " + feedback + " feedback to Agent " + to);
-        if (type == HIDDEN) {
+        if (type == FULL) {
             ChatterBox.error(this, "feedback()", "This graph is not a visible graph");
             return;
         }
@@ -47,12 +45,13 @@ public class MyFeedbackGraph extends MyGraph {
             }
         }
 
-        MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge) hiddenGraph.findEdge(assessor, assessee));
-        hiddenEdge.addFeedback(assessor, assessee, feedback);
+        MyFeedbackEdge fullEdge = ((MyFeedbackEdge) hiddenGraph.findEdge(assessor, assessee));
+        edge.addFeedback(assessor, assessee, feedback);
+        fullEdge.addFeedback(assessor, assessee, feedback);
     }
 
-    public void unfeedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
-        if (type == HIDDEN) {
+    public void unfeedback(MyFeedbackGraph fullGraph, int from, int to, double feedback, int key) {
+        if (type == FULL) {
             ChatterBox.error(this, "unfeedback()", "This graph is not a visible graph");
             return;
         }
@@ -62,9 +61,9 @@ public class MyFeedbackGraph extends MyGraph {
             ChatterBox.error(this, "unFeedback()", "Couldn't find an edge to remove!");
             return;
         }
-        MyFeedbackEdge hiddenEdge = ((MyFeedbackEdge) hiddenGraph.findEdge(from, to));
-        hiddenEdge.removeFeedback(feedback);
-        if (hiddenEdge.feedbacks.isEmpty()) {
+        MyFeedbackEdge fullEdge = ((MyFeedbackEdge) fullGraph.findEdge(from, to));
+        fullEdge.removeFeedback(feedback);
+        if (fullEdge.feedbacks.isEmpty()) {
             Collection<Agent> verts = super.getIncidentVertices(edge);
             super.removeEdge(edge);
             for (Agent v : verts) {
@@ -80,7 +79,7 @@ public class MyFeedbackGraph extends MyGraph {
      * @param gev	The Log event which needs to be handled.
      */
     public void graphConstructionEvent(TrustLogEvent gev) {
-        if (type == VISIBLE) {
+        if (type == DYNAMIC) {
             ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a hidden graph.");
             return;
         }
@@ -103,9 +102,6 @@ public class MyFeedbackGraph extends MyGraph {
                 ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
             }
         }
-        //Notify any observing algorithms that they must update
-        SimpleDirectedGraph lol = this.getInnerGraph();
-        ((FeedbackHistoryGraph) lol).notifyObservers();
     }
 
     public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph) {
@@ -114,20 +110,14 @@ public class MyFeedbackGraph extends MyGraph {
         double feedback = gev.getFeedback();
         int key = ((MyFeedbackEdge) referenceGraph.findEdge(from, to)).getID();
         if (forward) {
-            this.forward = true;
             feedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
         } else {
-            this.forward = false;
             unfeedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
         }
-
-        //Notify any observing algorithms that they must update
-//        SimpleDirectedGraph lol = this.getInnerGraph();
-//        ((FeedbackHistoryGraph) lol).notifyObservers();
     }
 
     public void printGraph() {
-        if (type == HIDDEN) {
+        if (type == FULL) {
             ChatterBox.print("Printing hidden " + this.getClass().getSimpleName() + "...");
         } else {
             ChatterBox.print("Printing visible " + this.getClass().getSimpleName() + "...");

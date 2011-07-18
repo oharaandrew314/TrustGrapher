@@ -14,7 +14,7 @@ import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 public class TrustGraphLoader {
 
-    public static final File STARTING_DIRECTORY = new File("/home/zalpha314/Documents/Programming/Java/Work/TrustGrapher2/test");
+    public static final File STARTING_DIRECTORY = new File("/home/zalpha314/Documents/Programming/Work/TrustGrapher2/test");
     private LinkedList<TrustLogEvent> logList;
     private List<LoadingListener> loadingListeners;
     private ArrayList<MyGraph[]> graphs;
@@ -25,7 +25,7 @@ public class TrustGraphLoader {
         loadingListeners = new LinkedList<LoadingListener>();
 
     }
-    //[end] Constructor
+    //[end] Constructor6
 
     //[start] Loading Method
     /**
