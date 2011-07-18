@@ -77,6 +77,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         frame.getContentPane().add(this);
 
         frame.pack();
+        frame.setTitle("Trust Grapher - Written by Andrew O'Hara");
         frame.setVisible(true);
     }
 
@@ -509,7 +510,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         DefaultModalGraphMouse<Agent, TestbedEdge> gm = new DefaultModalGraphMouse<Agent, TestbedEdge>();
         GraphMouseListener graphListener = new GraphMouseListener();
         viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();
-        String[] names = {"Feedback History", "EigenTrust Reputation", "EigenTrust", "RankBasedTrust"};
+        String[] names = {"Feedback History", "EigenTrust Reputation", "RankBasedTrust"};
 
         //Create the Visualization Viewers
         for (int i=0 ; i < names.length ; i++){

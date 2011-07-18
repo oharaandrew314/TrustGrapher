@@ -1,5 +1,5 @@
 ////////////////////////////////FeedbackHistoryGraphEdge//////////////////////////////////
-package trustGrapher.graph;
+package trustGrapher.graph.edges;
 
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import cu.repsystestbed.data.Feedback;

@@ -1,9 +1,8 @@
 ////////////////////////////////MyReputationEdge//////////////////////////////////
-package trustGrapher.graph;
+package trustGrapher.graph.edges;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdge;
-import utilities.ChatterBox;
 
 /**
  * A ReputationEdge extension that adds a id field and other useful methods

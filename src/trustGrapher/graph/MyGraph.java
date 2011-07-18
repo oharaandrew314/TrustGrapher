@@ -8,12 +8,13 @@ import cu.repsystestbed.graphs.JungAdapterGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
 import java.util.Collection;
+import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 /**
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
  * @author Andrew O'Hara
  */
-public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     public static final int DYNAMIC = 0, FULL = 1;
     protected int type;
     int edgecounter = 0;
@@ -58,6 +59,9 @@ public class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         }
         return null;
     }
+
+    public abstract void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph);
+    public abstract void graphConstructionEvent(TrustLogEvent gev);
 
 ///////////////////////////////////Methods//////////////////////////////////////
     public void addPeer(int peerNum) {

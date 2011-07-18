@@ -1,6 +1,7 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
+import trustGrapher.graph.edges.MyFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.TestbedEdge;
@@ -56,19 +57,13 @@ public class TrustEventLoader {
         ((FeedbackHistoryGraph) fulFeedbackGraph).addObserver(fulAlg);
 
         graphSet[FULL] = new MyReputationGraph(fulAlg.getReputationGraph()); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new MyReputationGraph(dynAlg.getReputationGraph(), (MyReputationGraph) graphSet[FULL], dynAlg);
+        graphSet[DYNAMIC] = new MyReputationGraph((MyReputationGraph) graphSet[FULL], dynAlg);
 
-        graphs.add(graphSet.clone());
-
-        //These graphs are not yet implemented.  They are set to empty feedback graphs for now
-        //Eigen Trust graphs
-        graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC);
-        graphSet[FULL] = new MyFeedbackGraph(FULL);
         graphs.add(graphSet.clone());
 
         //RankBased Trust graphs
-        graphSet[DYNAMIC] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC);
-        graphSet[FULL] = new MyGraph((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL);
+        graphSet[DYNAMIC] = new MyTrustGraph(DYNAMIC);
+        graphSet[FULL] = new MyTrustGraph(FULL);
         graphs.add(graphSet.clone());
     }
 

@@ -1,10 +1,12 @@
 ////////////////////////////////MyReputationGraph///////////////////////////////
 package trustGrapher.graph;
 
+import trustGrapher.graph.edges.MyReputationEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdgeFactory;
 import cu.repsystestbed.graphs.ReputationGraph;
 import cu.repsystestbed.graphs.TestbedEdge;
+import java.util.ArrayList;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.algorithms.MyEigenTrust;
@@ -34,7 +36,7 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param fullGraph A reference to the fullGraph so that reputation can be changed
      */
-    public MyReputationGraph(SimpleDirectedGraph baseGraph, MyReputationGraph fullGraph, MyEigenTrust alg) {
+    public MyReputationGraph(MyReputationGraph fullGraph, MyEigenTrust alg) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC);
         this.fullGraph = fullGraph;
         this.alg = alg;
@@ -79,8 +81,8 @@ public class MyReputationGraph extends MyGraph {
         alg.setIterations(alg.getIterations() + 1);
         this.addPeer(from);
         this.addPeer(to);
-        for (Agent src : getVertices()){
-            for (Agent sink : getVertices()){
+        for (Agent src : alg.getFeedbackGraph().vertexSet()){
+            for (Agent sink : alg.getFeedbackGraph().vertexSet()){
                 if (!src.equals(sink)){
                     double trustScore = alg.calculateTrustScore(src, sink);
                     if (findEdge(src,sink) == null  && trustScore != 0.0){
@@ -128,8 +130,39 @@ public class MyReputationGraph extends MyGraph {
         return new MyReputationEdge(src, sink, id);
     }
 
-    public void unFeedback(MyReputationGraph hiddenGraph, int from, int to) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void unFeedback(MyReputationGraph referenceGraph, int from, int to) {
+        if (type == FULL){
+            ChatterBox.error(this, "unFeedback()", "This graph is not a dynamic graph.  Illegal method call.");
+            return;
+        }
+        alg.setMatrixFilled(false);
+        alg.setIterations(alg.getIterations() - 1);
+        for (Agent src: alg.getFeedbackGraph().vertexSet()){
+            for (Agent sink : alg.getFeedbackGraph().vertexSet()){
+                if (!src.equals(sink)){
+                    double trustScore = alg.calculateTrustScore(src, sink);
+//                    ChatterBox.print("Trustscore is " + trustScore);
+                    if (trustScore == 0.0){
+                        ChatterBox.alert("Edge removed.");
+                        this.removeEdge(findEdge(src, sink));
+                    }else{
+                        ((MyReputationEdge)referenceGraph.findEdge(src, sink)).setReputation(trustScore);
+                    }
+                }
+            }
+        }
+
+        //remove unnecessary vertices
+        ArrayList<Agent> toRemove = new ArrayList<Agent>();
+        for (Agent a : getVertices()){
+            if (!alg.getFeedbackGraph().vertexSet().contains(a)){
+                toRemove.add(a);
+            }
+        }
+        for (Agent a : toRemove){
+            removeVertex(a);
+        }
+
     }
 
     /**

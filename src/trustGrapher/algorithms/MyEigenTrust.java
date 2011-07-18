@@ -2,6 +2,7 @@
 package trustGrapher.algorithms;
 
 import cu.repsystestbed.algorithms.EigenTrust;
+import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.ReputationGraph;
 
 /**
@@ -19,6 +20,10 @@ public class MyEigenTrust extends EigenTrust {
     @Override
     public ReputationGraph getReputationGraph() {
         return this.reputationGraph;
+    }
+
+    public FeedbackHistoryGraph getFeedbackGraph(){
+        return this.feedbackHistoryGraph;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////

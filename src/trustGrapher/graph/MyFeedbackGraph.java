@@ -1,6 +1,7 @@
 ///////////////////////////////MyFeedbackGraph/////////////////////////////
 package trustGrapher.graph;
 
+import trustGrapher.graph.edges.MyFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
