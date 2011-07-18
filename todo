@@ -1,10 +1,12 @@
 --------------
 High Priority:
 --------------
-Implement the reputation and trust alogirithms
+Fix the reputation integration
+Integrate the trust alogirithm
 
 -------------
 Low Priority:
 ------------
 
 Add graphic buttons for the playback bar
+Make a nested tab pane for the graphs
