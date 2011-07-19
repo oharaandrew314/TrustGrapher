@@ -1,7 +1,6 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
 package trustGrapher.visualizer.eventplayer;
 
-import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import trustGrapher.graph.MyGraph;
 
 import java.awt.event.ActionEvent;
@@ -13,11 +12,6 @@ import java.util.ListIterator;
 
 import javax.swing.JSlider;
 import javax.swing.Timer;
-import org.jgrapht.graph.SimpleDirectedGraph;
-import trustGrapher.algorithms.MyEigenTrust;
-import trustGrapher.graph.MyFeedbackGraph;
-import trustGrapher.graph.MyReputationGraph;
-import utilities.ChatterBox;
 
 /**
  * an internal class extending thread, that can play the sequence of events from the log file in real time
@@ -28,7 +22,7 @@ import utilities.ChatterBox;
  */
 public class TrustEventPlayer implements ActionListener {
 
-    public static final int VISIBLE = 0, HIDDEN = 1;
+    public static final int DYNAMIC = 0, FULL = 1;
     private Timer schedule;
     private TimeCounter timeCounter;
     private static final int speed = 33; // 33 millisec between events while playing regularly
@@ -260,28 +254,13 @@ public class TrustEventPlayer implements ActionListener {
      * Handles the passed TrustLogEvent be it structural or visual.
      * @param evt The Log event to handle.
      */
-    private void handleLogEvent(TrustLogEvent evt, boolean forward){
-        if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))){
-            ((MyFeedbackGraph) graphs.get(0)[VISIBLE]).graphEvent(evt, forward, graphs.get(0)[HIDDEN]);
-            ((MyReputationGraph)graphs.get(1)[VISIBLE]).graphEvent(evt, forward, graphs.get(1)[HIDDEN]);
-//
-//            MyGraph[] entry = new MyGraph[2];
-//            entry[HIDDEN] = graphs.get(1)[HIDDEN];
-//            SimpleDirectedGraph lol = graphs.get(0)[VISIBLE].getInnerGraph();
-//
-//            int iter = new Long(evt.getTime() / 100).intValue();
-//            MyEigenTrust alg = new MyEigenTrust(iter, 0.7);
-//            ((FeedbackHistoryGraph)lol).addObserver(alg);
-//            entry[VISIBLE] = new MyReputationGraph(alg.getReputationGraph(), (MyReputationGraph) entry[HIDDEN], alg);
-//
-//            alg.setMyReputationGraph((MyReputationGraph)entry[VISIBLE]);
-//            ((FeedbackHistoryGraph) lol).notifyObservers();
-//
-//            graphs.set(1, entry);
-            
+    private void handleLogEvent(TrustLogEvent evt, boolean forward) {
+        if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))) {
+            for (MyGraph[] graph : graphs){
+                graph[DYNAMIC].graphEvent(evt, forward, graph[FULL]);
+            }
         }
     }
-    //[end] Graph Event Handling
 
     @Override
     public void actionPerformed(ActionEvent arg0) {
@@ -336,4 +315,3 @@ public class TrustEventPlayer implements ActionListener {
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-

@@ -18,17 +18,16 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class MyReputationGraph extends MyGraph {
-    private MyReputationGraph fullGraph = null;
     public MyEigenTrust alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
 
     /**
-     * Creates a full graph.  The components of this graph are actually the ones beign displayed.
+     * Creates a full graph.  The components of this graph are actually the ones being displayed.
      * @param baseGraph The graph that this graph will be based on
      */
-    public MyReputationGraph(ReputationGraph baseGraph){
-        super((SimpleDirectedGraph)baseGraph, FULL);
+    public MyReputationGraph(){
+        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL);
     }
 
     /**
@@ -36,18 +35,9 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param fullGraph A reference to the fullGraph so that reputation can be changed
      */
-    public MyReputationGraph(MyReputationGraph fullGraph, MyEigenTrust alg) {
+    public MyReputationGraph(MyEigenTrust alg) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC);
-        this.fullGraph = fullGraph;
         this.alg = alg;
-    }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-    public MyReputationGraph getFullGraph(){
-        if (type != DYNAMIC){
-            ChatterBox.error(this, "getFullGraph()", "This is not a dynamic graph.  This method cannot be called.");
-        }
-        return fullGraph;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -79,12 +69,15 @@ public class MyReputationGraph extends MyGraph {
         }
         alg.setMatrixFilled(false);
         alg.setIterations(alg.getIterations() + 1);
-        this.addPeer(from);
-        this.addPeer(to);
         for (Agent src : alg.getFeedbackGraph().vertexSet()){
             for (Agent sink : alg.getFeedbackGraph().vertexSet()){
                 if (!src.equals(sink)){
-                    double trustScore = alg.calculateTrustScore(src, sink);
+                    double trustScore = -1.0;
+                    try{
+                        trustScore = alg.calculateTrustScore(src, sink);
+                    }catch(Exception ex){
+                        ChatterBox.debug(this, "unFeedback()", ex.getMessage());
+                    }
                     if (findEdge(src,sink) == null  && trustScore != 0.0){
                         int id = ((MyReputationEdge)fullGraph.findEdge(src, sink)).getID();                     
                         MyReputationEdge edge = createEdge(src, sink, id);
@@ -140,7 +133,12 @@ public class MyReputationGraph extends MyGraph {
         for (Agent src: alg.getFeedbackGraph().vertexSet()){
             for (Agent sink : alg.getFeedbackGraph().vertexSet()){
                 if (!src.equals(sink)){
-                    double trustScore = alg.calculateTrustScore(src, sink);
+                    double trustScore = -1.0;
+                    try{
+                        trustScore = alg.calculateTrustScore(src, sink);
+                    }catch(Exception ex){
+                        ChatterBox.debug(this, "unFeedback()", ex.getMessage());
+                    }
 //                    ChatterBox.print("Trustscore is " + trustScore);
                     if (trustScore == 0.0){
                         ChatterBox.alert("Edge removed.");

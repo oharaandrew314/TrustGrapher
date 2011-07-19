@@ -3,7 +3,6 @@ package trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.repsystestbed.graphs.JungAdapterGraph;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
 
@@ -15,19 +14,19 @@ import trustGrapher.visualizer.eventplayer.TrustLogEvent;
  * @author Andrew O'Hara
  */
 public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+
     public static final int DYNAMIC = 0, FULL = 1;
     protected int type;
-    int edgecounter = 0;
+    protected int edgecounter = 0;
 
 //////////////////////////////////Constructor///////////////////////////////////
-
-    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type){
+    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type) {
         super(graph);
         this.type = type;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public int getType(){
+    public int getType() {
         return type;
     }
 
@@ -61,6 +60,7 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     public abstract void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph);
+
     public abstract void graphConstructionEvent(TrustLogEvent gev);
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -80,3 +80,4 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+

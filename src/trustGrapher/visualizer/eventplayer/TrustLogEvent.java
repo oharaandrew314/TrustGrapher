@@ -106,11 +106,11 @@ public class TrustLogEvent implements Comparable<TrustLogEvent> {
 ////////////////////////////////Static Methods//////////////////////////////////
 
     public static TrustLogEvent getStartEvent() {
-        return new TrustLogEvent("-1:-1:-1:0");
+        return new TrustLogEvent("-1,-1,-1,0");
     }
 
     public static TrustLogEvent getEndEvent(TrustLogEvent lastEventInList) {
-        return new TrustLogEvent((lastEventInList.getTime()+100)+":-1:-1:0");
+        return new TrustLogEvent((lastEventInList.getTime()+100)+",-1,-1,0");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

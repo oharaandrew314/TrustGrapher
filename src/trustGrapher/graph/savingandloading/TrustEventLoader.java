@@ -1,12 +1,12 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.algorithms.RankbasedTrustAlg;
 import trustGrapher.graph.edges.MyFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
+import cu.repsystestbed.graphs.ReputationGraph;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.repsystestbed.graphs.TrustEdgeFactory;
-import cu.repsystestbed.graphs.TrustGraph;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.algorithms.MyEigenTrust;
+import trustGrapher.algorithms.MyRankbasedTrust;
 import utilities.ChatterBox;
 
 /**
@@ -47,23 +48,32 @@ public class TrustEventLoader {
         graphs.add(graphSet.clone());
 
         //Eigen Reputation graphs
-        MyEigenTrust dynAlg = new MyEigenTrust(0, 0.7);
-        MyEigenTrust fulAlg = new MyEigenTrust(0, 0.7);
+        MyEigenTrust dynEigenAlg = new MyEigenTrust(0, 0.7);
+        MyEigenTrust fulEigenAlg = new MyEigenTrust(0, 0.7);
 
         SimpleDirectedGraph dynFeedbackGraph = graphs.get(0)[DYNAMIC].getInnerGraph();
         SimpleDirectedGraph fulFeedbackGraph = graphs.get(0)[FULL].getInnerGraph();
 
-        ((FeedbackHistoryGraph) dynFeedbackGraph).addObserver(dynAlg); //The algorithm will then add the graphs
-        ((FeedbackHistoryGraph) fulFeedbackGraph).addObserver(fulAlg);
+        ((FeedbackHistoryGraph) dynFeedbackGraph).addObserver(dynEigenAlg); //The algorithm will then add the graphs
+        ((FeedbackHistoryGraph) fulFeedbackGraph).addObserver(fulEigenAlg);
 
-        graphSet[FULL] = new MyReputationGraph(fulAlg.getReputationGraph()); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new MyReputationGraph((MyReputationGraph) graphSet[FULL], dynAlg);
+        graphSet[FULL] = new MyReputationGraph(); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new MyReputationGraph(dynEigenAlg);
 
         graphs.add(graphSet.clone());
 
         //RankBased Trust graphs
-        graphSet[DYNAMIC] = new MyTrustGraph(DYNAMIC);
-        graphSet[FULL] = new MyTrustGraph(FULL);
+        MyRankbasedTrust dynRankAlg = new MyRankbasedTrust();
+        MyRankbasedTrust fulRankAlg = new MyRankbasedTrust();
+
+        SimpleDirectedGraph dynRepGraph = graphs.get(1)[DYNAMIC].getInnerGraph();
+        SimpleDirectedGraph fulRepGraph = graphs.get(1)[FULL].getInnerGraph();
+
+        ((ReputationGraph) dynRepGraph).addObserver(dynRankAlg); //The algorithm will then add the graphs
+        ((ReputationGraph) fulRepGraph).addObserver(fulRankAlg);
+
+        graphSet[FULL] = new MyTrustGraph();
+        graphSet[DYNAMIC] = new MyTrustGraph(dynRankAlg);
         graphs.add(graphSet.clone());
     }
 
@@ -110,9 +120,9 @@ public class TrustEventLoader {
                 TrustLogEvent gev = new TrustLogEvent(line);//create the log event
                 logEvents.add(gev); //add this read log event to the list
 
-                ((MyFeedbackGraph)graphs.get(0)[FULL]).graphConstructionEvent(gev); //Add the construction event to the hidden feedbackGraph
-                ((MyReputationGraph)graphs.get(1)[FULL]).graphConstructionEvent(gev);
-
+                for (MyGraph[] graph: graphs){
+                    graph[FULL].graphConstructionEvent(gev); //Add the construction event to the hidden graph
+                }
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
 
@@ -120,6 +130,7 @@ public class TrustEventLoader {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
 
+        this.printLog(logEvents);
         ((MyReputationGraph)graphs.get(1)[FULL]).removeRep();
         return (LinkedList<TrustLogEvent>) logEvents;
     }
@@ -181,7 +192,8 @@ public class TrustEventLoader {
     private static void printLog(LinkedList<TrustLogEvent> logEvents){
         ChatterBox.print("Printing log...");
         for (TrustLogEvent event : logEvents){
-            ChatterBox.print("assessor: " + event.getAssessor() + " assessee: " + event.getAssessee() + " feedback: " + event.getFeedback());
+            ChatterBox.print("time: " + event.getTime() + " assessor: " + event.getAssessor() + " assessee: " + event.getAssessee() + " feedback: " + event.getFeedback());
+
         }
         ChatterBox.print("Done.");
     }
