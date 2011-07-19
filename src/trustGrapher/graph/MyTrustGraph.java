@@ -1,12 +1,12 @@
 ////////////////////////////////MyTrustGraph//////////////////////////////////
 package trustGrapher.graph;
 
+import cu.repsystestbed.algorithms.TrustAlgorithm;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
 import java.util.ArrayList;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import trustGrapher.algorithms.MyRankbasedTrust;
 import trustGrapher.graph.edges.MyTrustEdge;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
@@ -16,14 +16,14 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class MyTrustGraph extends MyGraph {
-    private MyRankbasedTrust alg;
+    private TrustAlgorithm alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public MyTrustGraph() {
         super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL);
     }
 
-    public MyTrustGraph(MyRankbasedTrust alg) {
+    public MyTrustGraph(TrustAlgorithm alg) {
         super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC);
         this.alg = alg;
     }

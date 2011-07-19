@@ -2,10 +2,12 @@
 High Priority:
 --------------
 
+Make a nested tab pane for the graphs
+Make configurations dialog and classloader
+
 -------------
 Low Priority:
 ------------
 
-Add graphic buttons for the playback bar
-Make a nested tab pane for the graphs
 Get the graph to load a second graph properly
+Add graphic buttons for the playback bar

@@ -1,6 +1,9 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.algorithms.RankbasedTrustAlg;
+import cu.repsystestbed.algorithms.ReputationAlgorithm;
+import cu.repsystestbed.algorithms.TrustAlgorithm;
 import trustGrapher.graph.edges.MyFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
@@ -19,7 +22,6 @@ import java.io.FileReader;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.algorithms.MyEigenTrust;
-import trustGrapher.algorithms.MyRankbasedTrust;
 import utilities.ChatterBox;
 
 /**
@@ -47,8 +49,8 @@ public class TrustEventLoader {
         graphs.add(graphSet.clone());
 
         //Eigen Reputation graphs
-        MyEigenTrust dynEigenAlg = new MyEigenTrust(0, 0.7);
-        MyEigenTrust fulEigenAlg = new MyEigenTrust(0, 0.7);
+        ReputationAlgorithm dynEigenAlg = new MyEigenTrust(0, 0.7);
+        ReputationAlgorithm fulEigenAlg = new MyEigenTrust(0, 0.7);
 
         SimpleDirectedGraph dynFeedbackGraph = graphs.get(0)[DYNAMIC].getInnerGraph();
         SimpleDirectedGraph fulFeedbackGraph = graphs.get(0)[FULL].getInnerGraph();
@@ -62,12 +64,12 @@ public class TrustEventLoader {
         graphs.add(graphSet.clone());
 
         //RankBased Trust graphs
-        MyRankbasedTrust dynRankAlg = new MyRankbasedTrust();
+        TrustAlgorithm dynRankAlg = new RankbasedTrustAlg();
 
-        MyRankbasedTrust fulRankAlg = new MyRankbasedTrust();
+        TrustAlgorithm fulRankAlg = new RankbasedTrustAlg();
         try{
-            dynRankAlg.setRatio(0.7);
-            fulRankAlg.setRatio(0.7);
+            ((RankbasedTrustAlg)dynRankAlg).setRatio(0.7);
+            ((RankbasedTrustAlg)dynRankAlg).setRatio(0.7);
         }catch(Exception ex){
             ChatterBox.error(this, "TrustEventLoader()", ex.getMessage());
         }
@@ -137,6 +139,11 @@ public class TrustEventLoader {
         }
 
         ((MyReputationGraph)graphs.get(1)[FULL]).removeRep();
+
+        for (LoadingListener l : loadingListeners) {
+            l.loadingComplete();
+        }
+
         return (LinkedList<TrustLogEvent>) logEvents;
     }
 

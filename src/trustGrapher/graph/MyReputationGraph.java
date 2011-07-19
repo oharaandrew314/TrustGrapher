@@ -1,6 +1,7 @@
 ////////////////////////////////MyReputationGraph///////////////////////////////
 package trustGrapher.graph;
 
+import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import trustGrapher.graph.edges.MyReputationEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdgeFactory;
@@ -18,7 +19,7 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class MyReputationGraph extends MyGraph {
-    private MyEigenTrust alg;
+    private ReputationAlgorithm alg;
     private MyFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
@@ -37,7 +38,7 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param fullGraph A reference to the fullGraph so that reputation can be changed
      */
-    public MyReputationGraph(MyFeedbackGraph feedbackGraph, MyEigenTrust alg) {
+    public MyReputationGraph(MyFeedbackGraph feedbackGraph, ReputationAlgorithm alg) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC);
         this.alg = alg;
         this.feedbackGraph = feedbackGraph;
@@ -70,8 +71,8 @@ public class MyReputationGraph extends MyGraph {
             ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
-        alg.setMatrixFilled(false);
-        alg.setIterations(alg.getIterations() + 1);
+        ((MyEigenTrust)alg).setMatrixFilled(false);
+        ((MyEigenTrust)alg).setIterations(((MyEigenTrust)alg).getIterations() + 1);
         for (Agent src : feedbackGraph.getVertices()){
             for (Agent sink : feedbackGraph.getVertices()){
                 if (!src.equals(sink)){
@@ -131,8 +132,8 @@ public class MyReputationGraph extends MyGraph {
             ChatterBox.error(this, "unFeedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
-        alg.setMatrixFilled(false);
-        alg.setIterations(alg.getIterations() - 1);
+        ((MyEigenTrust)alg).setMatrixFilled(false);
+        ((MyEigenTrust)alg).setIterations(((MyEigenTrust)alg).getIterations() - 1);
         for (Agent src: feedbackGraph.getVertices()){
             for (Agent sink : feedbackGraph.getVertices()){
                 if (!src.equals(sink)){
