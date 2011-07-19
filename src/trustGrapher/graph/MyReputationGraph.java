@@ -18,7 +18,8 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class MyReputationGraph extends MyGraph {
-    public MyEigenTrust alg;
+    private MyEigenTrust alg;
+    private MyFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
 
@@ -26,8 +27,9 @@ public class MyReputationGraph extends MyGraph {
      * Creates a full graph.  The components of this graph are actually the ones being displayed.
      * @param baseGraph The graph that this graph will be based on
      */
-    public MyReputationGraph(){
+    public MyReputationGraph(MyFeedbackGraph feedbackGraph){
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL);
+        this.feedbackGraph = feedbackGraph;
     }
 
     /**
@@ -35,9 +37,10 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param fullGraph A reference to the fullGraph so that reputation can be changed
      */
-    public MyReputationGraph(MyEigenTrust alg) {
+    public MyReputationGraph(MyFeedbackGraph feedbackGraph, MyEigenTrust alg) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC);
         this.alg = alg;
+        this.feedbackGraph = feedbackGraph;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -69,8 +72,8 @@ public class MyReputationGraph extends MyGraph {
         }
         alg.setMatrixFilled(false);
         alg.setIterations(alg.getIterations() + 1);
-        for (Agent src : alg.getFeedbackGraph().vertexSet()){
-            for (Agent sink : alg.getFeedbackGraph().vertexSet()){
+        for (Agent src : feedbackGraph.getVertices()){
+            for (Agent sink : feedbackGraph.getVertices()){
                 if (!src.equals(sink)){
                     double trustScore = -1.0;
                     try{
@@ -130,8 +133,8 @@ public class MyReputationGraph extends MyGraph {
         }
         alg.setMatrixFilled(false);
         alg.setIterations(alg.getIterations() - 1);
-        for (Agent src: alg.getFeedbackGraph().vertexSet()){
-            for (Agent sink : alg.getFeedbackGraph().vertexSet()){
+        for (Agent src: feedbackGraph.getVertices()){
+            for (Agent sink : feedbackGraph.getVertices()){
                 if (!src.equals(sink)){
                     double trustScore = -1.0;
                     try{
@@ -139,7 +142,6 @@ public class MyReputationGraph extends MyGraph {
                     }catch(Exception ex){
                         ChatterBox.debug(this, "unFeedback()", ex.getMessage());
                     }
-//                    ChatterBox.print("Trustscore is " + trustScore);
                     if (trustScore == 0.0){
                         ChatterBox.alert("Edge removed.");
                         this.removeEdge(findEdge(src, sink));
@@ -153,7 +155,7 @@ public class MyReputationGraph extends MyGraph {
         //remove unnecessary vertices
         ArrayList<Agent> toRemove = new ArrayList<Agent>();
         for (Agent a : getVertices()){
-            if (!alg.getFeedbackGraph().vertexSet().contains(a)){
+            if (!feedbackGraph.getVertices().contains(a)){
                 toRemove.add(a);
             }
         }

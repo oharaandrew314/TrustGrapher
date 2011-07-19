@@ -2,7 +2,6 @@
 package trustGrapher.algorithms;
 
 import cu.repsystestbed.algorithms.EigenTrust;
-import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 
 /**
  * An extension of EigenTrust to make it easier to do what I want it to!
@@ -14,17 +13,6 @@ public class MyEigenTrust extends EigenTrust {
     public MyEigenTrust(int iterations, double threshold2Satisfy) {
         super(iterations, threshold2Satisfy);
     }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-//    @Override
-//    public ReputationGraph getReputationGraph() {
-//        return this.reputationGraph;
-//    }
-
-    public FeedbackHistoryGraph getFeedbackGraph(){
-        return this.feedbackHistoryGraph;
-    }
-
 ///////////////////////////////////Methods//////////////////////////////////////
 
     public void setMatrixFilled(boolean filled){

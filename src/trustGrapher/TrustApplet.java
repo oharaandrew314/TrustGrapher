@@ -154,26 +154,26 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         JMenu file = new JMenu("File");
 
         //[start] Save Entry
-        JMenuItem save = new JMenuItem("Save");
-        save.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent arg0) {
-                pauseButton.doClick();
-                int option = JOptionPane.showConfirmDialog(null, "Would you like to save the first 500 log events after this graph snapshot",
-                        "Save", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-
-                if (option == JOptionPane.YES_OPTION) {
-                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC), eventThread.getSaveEvents(), eventThread.getCurrentTime());
-                    saver.addLoadingListener(new LoadingBar());
-                    saver.doSave();
-                } else if (option == JOptionPane.NO_OPTION) {
-                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC));
-                    saver.addLoadingListener(new LoadingBar());
-                    saver.doSave();
-                }
-                //else cancel option, don't do anything
-            }
-        });
+//        JMenuItem save = new JMenuItem("Save");
+//        save.addActionListener(new ActionListener() {
+//
+//            public void actionPerformed(ActionEvent arg0) {
+//                pauseButton.doClick();
+//                int option = JOptionPane.showConfirmDialog(null, "Would you like to save the first 500 log events after this graph snapshot",
+//                        "Save", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+//
+//                if (option == JOptionPane.YES_OPTION) {
+//                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC), eventThread.getSaveEvents(), eventThread.getCurrentTime());
+//                    saver.addLoadingListener(new LoadingBar());
+//                    saver.doSave();
+//                } else if (option == JOptionPane.NO_OPTION) {
+//                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC));
+//                    saver.addLoadingListener(new LoadingBar());
+//                    saver.doSave();
+//                }
+//                //else cancel option, don't do anything
+//            }
+//        });
         //[end] Save Entry
 
         //[start] Load Entry
@@ -205,7 +205,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
 //        file.add(connect);
         file.addSeparator();
-        file.add(save);
+//        file.add(save);
         file.add(load);
         file.addSeparator();
         file.add(exit);

@@ -83,7 +83,7 @@ public class MyTrustGraph extends MyGraph {
     }
 
     private void unFeedback(MyTrustGraph referenceGraph, int assessor, int assessee) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        //throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override

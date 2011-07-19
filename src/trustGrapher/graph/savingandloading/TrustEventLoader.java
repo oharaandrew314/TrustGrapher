@@ -57,8 +57,8 @@ public class TrustEventLoader {
         ((FeedbackHistoryGraph) dynFeedbackGraph).addObserver(dynEigenAlg); //The algorithm will then add the graphs
         ((FeedbackHistoryGraph) fulFeedbackGraph).addObserver(fulEigenAlg);
 
-        graphSet[FULL] = new MyReputationGraph(); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new MyReputationGraph(dynEigenAlg);
+        graphSet[FULL] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[FULL]); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg);
 
         graphs.add(graphSet.clone());
 
