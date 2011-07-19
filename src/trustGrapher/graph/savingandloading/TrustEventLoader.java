@@ -1,7 +1,6 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
-import cu.repsystestbed.algorithms.RankbasedTrustAlg;
 import trustGrapher.graph.edges.MyFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
@@ -64,7 +63,14 @@ public class TrustEventLoader {
 
         //RankBased Trust graphs
         MyRankbasedTrust dynRankAlg = new MyRankbasedTrust();
+
         MyRankbasedTrust fulRankAlg = new MyRankbasedTrust();
+        try{
+            dynRankAlg.setRatio(0.7);
+            fulRankAlg.setRatio(0.7);
+        }catch(Exception ex){
+            ChatterBox.error(this, "TrustEventLoader()", ex.getMessage());
+        }
 
         SimpleDirectedGraph dynRepGraph = graphs.get(1)[DYNAMIC].getInnerGraph();
         SimpleDirectedGraph fulRepGraph = graphs.get(1)[FULL].getInnerGraph();
@@ -130,7 +136,6 @@ public class TrustEventLoader {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
 
-        this.printLog(logEvents);
         ((MyReputationGraph)graphs.get(1)[FULL]).removeRep();
         return (LinkedList<TrustLogEvent>) logEvents;
     }

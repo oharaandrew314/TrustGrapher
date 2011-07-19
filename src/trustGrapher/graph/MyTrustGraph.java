@@ -4,6 +4,7 @@ package trustGrapher.graph;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
+import java.util.ArrayList;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import trustGrapher.algorithms.MyRankbasedTrust;
 import trustGrapher.graph.edges.MyTrustEdge;
@@ -62,7 +63,7 @@ public class MyTrustGraph extends MyGraph {
         return new MyTrustEdge(src, sink, id);
     }
 
-    private void feedback(MyTrustGraph referenceGraph, int from, int to) {
+    private void feedback(MyTrustGraph referenceGraph) {
         if (type == FULL){
             ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
@@ -76,14 +77,37 @@ public class MyTrustGraph extends MyGraph {
                         addEdge(edge, src, sink);
                     }
                 }catch(Exception ex){
-                    ChatterBox.debug(this, "feedback()", ex.getMessage());
+                    ChatterBox.error(this, "feedback()", ex.getMessage());
                 }
             }
         }
     }
 
-    private void unFeedback(MyTrustGraph referenceGraph, int assessor, int assessee) {
-        //throw new UnsupportedOperationException("Not yet implemented");
+    private void unFeedback() {
+        if (type == FULL){
+            ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
+            return;
+        }
+        for (Agent src : getVertices()){
+            for (Agent sink : getVertices()){
+                try{
+                    alg.trusts(src, sink);
+                }catch(Exception ex){
+                    this.removeEdge(findEdge(src, sink));
+                }
+            }
+        }
+
+        //remove unnecessary vertices
+        ArrayList<Agent> toRemove = new ArrayList<Agent>();
+        for (Agent a : getVertices()){
+            if (!alg.getReputationGraph().vertexSet().contains(a)){
+                toRemove.add(a);
+            }
+        }
+        for (Agent a : toRemove){
+            removeVertex(a);
+        }
     }
 
     @Override
@@ -93,9 +117,9 @@ public class MyTrustGraph extends MyGraph {
             return;
         }
         if (forward) {
-            feedback((MyTrustGraph) referenceGraph, gev.getAssessor(), gev.getAssessee());
+            feedback((MyTrustGraph) referenceGraph);
         } else {
-            unFeedback((MyTrustGraph) referenceGraph, gev.getAssessor(), gev.getAssessee());
+            unFeedback();
         }
     }
 
