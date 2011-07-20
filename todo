@@ -2,7 +2,7 @@
 High Priority:
 --------------
 
-Make a nested tab pane for the graphs
+Make the graphsPanel configuarable
 Make configurations dialog and classloader
 
 -------------
@@ -11,3 +11,4 @@ Low Priority:
 
 Get the graph to load a second graph properly
 Add graphic buttons for the playback bar
+Fix Spring layout button
