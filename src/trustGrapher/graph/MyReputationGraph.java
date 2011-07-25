@@ -1,6 +1,7 @@
 ////////////////////////////////MyReputationGraph///////////////////////////////
 package trustGrapher.graph;
 
+import cu.repsystestbed.algorithms.EigenTrust;
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import trustGrapher.graph.edges.MyReputationEdge;
 import cu.repsystestbed.entities.Agent;
@@ -10,7 +11,6 @@ import cu.repsystestbed.graphs.TestbedEdge;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import trustGrapher.algorithms.MyEigenTrust;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
 
@@ -71,8 +71,8 @@ public class MyReputationGraph extends MyGraph {
             ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
-        ((MyEigenTrust)alg).setMatrixFilled(false);
-        ((MyEigenTrust)alg).setIterations(((MyEigenTrust)alg).getIterations() + 1);
+        ((EigenTrust)alg).setMatrixFilled(false);
+        ((EigenTrust)alg).setIterations(((EigenTrust)alg).getIterations() + 1);
         for (Agent src : feedbackGraph.getVertices()){
             for (Agent sink : feedbackGraph.getVertices()){
                 if (!src.equals(sink)){
@@ -132,8 +132,8 @@ public class MyReputationGraph extends MyGraph {
             ChatterBox.error(this, "unFeedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
-        ((MyEigenTrust)alg).setMatrixFilled(false);
-        ((MyEigenTrust)alg).setIterations(((MyEigenTrust)alg).getIterations() - 1);
+        ((EigenTrust)alg).setMatrixFilled(false);
+        ((EigenTrust)alg).setIterations(((EigenTrust)alg).getIterations() - 1);
         for (Agent src: feedbackGraph.getVertices()){
             for (Agent sink : feedbackGraph.getVertices()){
                 if (!src.equals(sink)){

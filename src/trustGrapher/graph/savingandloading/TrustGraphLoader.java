@@ -10,14 +10,16 @@ import javax.swing.JOptionPane;
 
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import utilities.ChatterBox;
 
 
 public class TrustGraphLoader {
 
-    public static final File STARTING_DIRECTORY = new File("/home/zalpha314/Documents/Programming/Work/TrustGrapher2/test");
+    public static final File TEST_PATH = new File("/home/zalpha314/Documents/Programming/Work/TrustGrapher2/test");
     private LinkedList<TrustLogEvent> logList;
     private List<LoadingListener> loadingListeners;
     private ArrayList<MyGraph[]> graphs;
+    public File file;
 
     //[start] Constructor
     public TrustGraphLoader() {
@@ -27,33 +29,39 @@ public class TrustGraphLoader {
     }
     //[end] Constructor6
 
+    public boolean loadFile(File file){
+        this.file = file;
+        try {
+            loadingStarted(1, "Log Files");
+            TrustEventLoader logBuilder = new TrustEventLoader();
+            for (LoadingListener l : loadingListeners) {
+                logBuilder.addLoadingListener(l);
+            }
+
+            logList = logBuilder.createList(file);
+            graphs = logBuilder.getGraphs();
+            //hiddenGraph = logBuilder.getHiddenGraph(); //load hidden graph but keep visible graph empty
+
+            loadingComplete();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Failure in doLoad()", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+
     //[start] Loading Method
     /**
      * @return <code>true</code> if file loaded successfully
      */
-    public boolean doLoad() {
+    public boolean doLoad(File defaultPath) {
         String[] acceptedExtensions = {"xml", "arff", "txt"};
-        File file = chooseLoadFile(".xml , .arff and .txt only", acceptedExtensions);
+        file = chooseLoadFile(".xml , .arff and .txt only", acceptedExtensions, defaultPath);
         if (file != null) {
             if (file.getAbsolutePath().endsWith(".txt") || file.getAbsolutePath().endsWith(".arff")) {
-
-                try {
-                    loadingStarted(1, "Log Files");
-                    TrustEventLoader logBuilder = new TrustEventLoader();
-                    for (LoadingListener l : loadingListeners) {
-                        logBuilder.addLoadingListener(l);
-                    }
-
-                    logList = logBuilder.createList(file);
-                    graphs = logBuilder.getGraphs();
-                    //hiddenGraph = logBuilder.getHiddenGraph(); //load hidden graph but keep visible graph empty
-                    
-                    loadingComplete();
-                    return true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(null, e.getMessage(), "Failure in doLoad()", JOptionPane.ERROR_MESSAGE);
-                }
+                boolean bool = loadFile(file);
+                return bool;
             }
         }
         return false;
@@ -101,8 +109,8 @@ public class TrustGraphLoader {
     //[end] Getters
 
     //[start] Static Methods
-    public static File chooseLoadFile(String filterDescription, String[] acceptedExtensions) {
-        JFileChooser fileNamer = new JFileChooser(STARTING_DIRECTORY);
+    public static File chooseLoadFile(String filterDescription, String[] acceptedExtensions, File defaultPath) {
+        JFileChooser fileNamer = new JFileChooser(defaultPath);
         fileNamer.setFileFilter(new ExtensionFileFilter(filterDescription, acceptedExtensions));
         int returnVal = fileNamer.showOpenDialog(null);
 

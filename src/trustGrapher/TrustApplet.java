@@ -1,7 +1,6 @@
 /////////////////////////////////////TrustApplet////////////////////////////////
 package trustGrapher;
 
-
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.*;
 import trustGrapher.graph.savingandloading.*;
@@ -15,9 +14,6 @@ import java.awt.event.*;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.*;
-
-import org.apache.commons.collections15.Transformer;
-import org.apache.commons.collections15.functors.ConstantTransformer;
 
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
@@ -44,12 +40,12 @@ import utilities.ChatterBox;
 public class TrustApplet extends JApplet implements EventPlayerListener{
     // for the length of the edges in the graph layout
 
-    public static final Transformer<TestbedEdge, Integer> UNITLENGTHFUNCTION = new ConstantTransformer(100);
     //default size for the swing graphic components
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768;
     private ArrayList<VisualizationViewer<Agent, TestbedEdge>> viewers;
     private AbstractLayout<Agent, TestbedEdge> layout = null;
     private LinkedList<TrustLogEvent> events;
+    private ArrayList<String[]> algs;
     
     private ArrayList<MyGraph[]> graphs;//addition = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
     public static final int DYNAMIC = 0, FULL = 1;
@@ -62,7 +58,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     protected TrustEventPlayer eventThread;
     private JPanel graphsPanel;
     private VisualizationViewer currentViewer;
-    public TrustApplet self;
+    public final Configure optionsDialog;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
@@ -73,14 +69,14 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         JFrame frame = new JFrame();
 
         //The default frame state is now maximized
-        frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(this);
 
         frame.pack();
         frame.setTitle("Trust Grapher - Written by Andrew O'Hara");
         frame.setVisible(true);
-        this.self = this;
+        optionsDialog = new Configure(this);
     }
     
     /**
@@ -146,38 +142,12 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         //[start] File Menu
         JMenu file = new JMenu("File");
 
-        //[start] Save Entry
-//        JMenuItem save = new JMenuItem("Save");
-//        save.addActionListener(new ActionListener() {
-//
-//            public void actionPerformed(ActionEvent arg0) {
-//                pauseButton.doClick();
-//                int option = JOptionPane.showConfirmDialog(null, "Would you like to save the first 500 log events after this graph snapshot",
-//                        "Save", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-//
-//                if (option == JOptionPane.YES_OPTION) {
-//                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC), eventThread.getSaveEvents(), eventThread.getCurrentTime());
-//                    saver.addLoadingListener(new LoadingBar());
-//                    saver.doSave();
-//                } else if (option == JOptionPane.NO_OPTION) {
-//                    TrustGraphSaver saver = new TrustGraphSaver(getGraph(DYNAMIC));
-//                    saver.addLoadingListener(new LoadingBar());
-//                    saver.doSave();
-//                }
-//                //else cancel option, don't do anything
-//            }
-//        });
-        //[end] Save Entry
-
-        //[start] Load Entry
-        JMenuItem load = new JMenuItem("Load");
-        load.addActionListener(new LoadListener());
-        //[end] Load Entry
-
-        JMenuItem options = new JMenuItem("Options");
+        JMenuItem options = new JMenuItem("Load Algorithms");
         options.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                JFrame optionsDialog = new OptionsDialog(self);
+                if (!optionsDialog.isVisible()){
+                    optionsDialog.run();
+                }
             }
         });
 
@@ -187,25 +157,15 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
             public void actionPerformed(ActionEvent arg0) {
                 pauseButton.doClick();
-                int option = JOptionPane.showConfirmDialog(null, "Would you like to save before quitting?", "Save",
-                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-
-                if (option == JOptionPane.OK_OPTION) {
-                    //GraphSaverAndLoader.save(getGraph(DYNAMIC));
-                    System.exit(0);
-                } else if (option == JOptionPane.NO_OPTION) {
+                if (ChatterBox.yesNoDialog("Are you sure you want to exit?")){
                     System.exit(0);
                 }
             }
         });
         //[end] Exit Entry
-
-//        file.add(connect);
-        file.addSeparator();
-//        file.add(save);
-        file.add(load);
-        file.addSeparator();
+    
         file.add(options);
+        file.addSeparator();
         file.add(exit);
         //[end] File Menu
 
@@ -477,22 +437,28 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         GraphMouseListener graphListener = new GraphMouseListener();
         graphsPanel.removeAll();
         viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();
-        String[] names = {"Feedback History", "EigenTrust Reputation", "RankBased Trust"};
+
+        //Find the names of the graphs to displays
+        ArrayList<String> names = new ArrayList<String>();
+        for (String[] entry : algs){
+            if (entry[Configure.DISPLAY].equals(Configure.TRUE)){
+                names.add(entry[Configure.NAME]);
+            }
+        }
 
         //Create the Visualization Viewers
-        for (int i=0 ; i < names.length ; i++){
+        for (int i=0 ; i < names.size() ; i++){
             layout = new FRLayout2<Agent, TestbedEdge>(graphs.get(i)[FULL]);
             layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH/3, DEFHEIGHT/2)));
             viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH/3, DEFHEIGHT/2, gm));
             viewers.get(i).addMouseListener(graphListener);
-            viewers.get(i).setName(names[i]);
+            viewers.get(i).setName(names.get(i));
             initSpecialTransformers(viewers.get(i), VertexShapeType.ELLIPSE, VertexShapeType.PENTAGON, VertexShapeType.RECTANGLE, EdgeShapeType.QUAD_CURVE, EdgeShapeType.CUBIC_CURVE, EdgeShapeType.LINE, EdgeShapeType.LINE);
             viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graphs.get(i)[DYNAMIC]));
             viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graphs.get(i)[DYNAMIC]));
-            viewers.get(i).setBorder(BorderFactory.createTitledBorder(names[i]));
+            viewers.get(i).setBorder(BorderFactory.createTitledBorder(names.get(i)));
 
             this.graphsPanel.add(viewers.get(i), i);
-
             for (LoadingListener l : loadingListeners) {
                 l.loadingProgress(i +1);
             }
@@ -612,7 +578,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (System.getProperty("os.name").toLowerCase().equals("linux") == false) {
+            if (System.getProperty("os.name").toLowerCase().equals("windows")) {
                 doPop(e);
             }
         }
@@ -842,41 +808,24 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         }
     }
 
-    class LoadListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent arg0) {
-
-            pauseButton.doClick();
-            Thread loadingThread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-
-                    TrustGraphLoader loader = new TrustGraphLoader();
-                    loader.addLoadingListener(new LoadingBar());
-                    
-                    if (loader.doLoad()) {
-                        if (events != null) {
-                            events.clear();
-                            eventThread.stopPlayback();
-                            fastReverseButton.setEnabled(false);
-                            reverseButton.setEnabled(false);
-                            pauseButton.setEnabled(false);
-                            forwardButton.setEnabled(false);
-                            fastForwardButton.setEnabled(false);
-                            playbackSlider.setEnabled(false);
-                            playbackSlider.setValue(0);
-                            fastSpeedSlider.setEnabled(false);
-                        }
-                        events = loader.getLogList();
-                        graphs = loader.getGraphs();
-
-                        startGraph();
-                    }
-                }
-            });
-            loadingThread.start();
+    public void loadOptions(){
+        TrustGraphLoader loader = new TrustGraphLoader();
+        loader.addLoadingListener(new LoadingBar());
+        if (events != null) {
+            events.clear();
+            eventThread.stopPlayback();
+            fastReverseButton.setEnabled(false);
+            reverseButton.setEnabled(false);
+            pauseButton.setEnabled(false);
+            forwardButton.setEnabled(false);
+            fastForwardButton.setEnabled(false);
+            playbackSlider.setEnabled(false);
+            playbackSlider.setValue(0);
+            fastSpeedSlider.setEnabled(false);
         }
+        graphs = optionsDialog.getGraphs();
+        events = optionsDialog.getEvents();
+        algs = optionsDialog.getAlgs();
+        startGraph();
     }
-    //[end] Load Listener
 }

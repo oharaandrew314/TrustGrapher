@@ -2,13 +2,15 @@
 High Priority:
 --------------
 
+Make the OptionsDialog pass its algs to TrustApplet on close
 Make the graphsPanel configuarable
-Make configurations dialog and classloader
 
 -------------
 Low Priority:
 ------------
 
+Remove time and start and end events on log window
 Get the graph to load a second graph properly
 Add graphic buttons for the playback bar
 Fix Spring layout button
+Integrate libraries into jar

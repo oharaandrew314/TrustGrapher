@@ -1,6 +1,7 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
+import cu.repsystestbed.algorithms.EigenTrust;
 import cu.repsystestbed.algorithms.RankbasedTrustAlg;
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
@@ -21,7 +22,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import trustGrapher.algorithms.MyEigenTrust;
 import utilities.ChatterBox;
 
 /**
@@ -49,8 +49,8 @@ public class TrustEventLoader {
         graphs.add(graphSet.clone());
 
         //Eigen Reputation graphs
-        ReputationAlgorithm dynEigenAlg = new MyEigenTrust(0, 0.7);
-        ReputationAlgorithm fulEigenAlg = new MyEigenTrust(0, 0.7);
+        ReputationAlgorithm dynEigenAlg = new EigenTrust();
+        ReputationAlgorithm fulEigenAlg = new EigenTrust();
 
         SimpleDirectedGraph dynFeedbackGraph = graphs.get(0)[DYNAMIC].getInnerGraph();
         SimpleDirectedGraph fulFeedbackGraph = graphs.get(0)[FULL].getInnerGraph();
