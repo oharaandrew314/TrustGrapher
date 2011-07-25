@@ -20,3 +20,8 @@ TrustApplet will not yet load external class files
     Build 30
 Added file filters for configuration window
 Integrated TrustGraphLoader with Configure and BitStylus
+
+    Build 31
+Fixed a bug where the base was not being saved properly on the options window
+The graphs specified by the options window are now loaded
+Now loads external algorithms

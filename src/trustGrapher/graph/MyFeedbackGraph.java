@@ -18,8 +18,8 @@ import utilities.ChatterBox;
 public class MyFeedbackGraph extends MyGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyFeedbackGraph(int type) {
-        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, 0);
+    public MyFeedbackGraph(int type, boolean display) {
+        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, 0, display);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////

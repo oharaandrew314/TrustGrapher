@@ -21,22 +21,20 @@ public class TrustLogEvent implements Comparable<TrustLogEvent> {
     public TrustLogEvent(String str) {
         // possible lines :
         //timemillisec:assessor:assessee:feedback
-        str.trim();
-        String [] words;
-        if (str.contains(":")){
-            words = str.split(":");
-        }else{
-            words = str.split(",");
-        }
-
-
-        time = Long.parseLong(words[0]);
-        assessor = Integer.parseInt(words[1]);
-        assessee = Integer.parseInt(words[2]);
-        feedback = (double) Double.parseDouble(words[3]);
-        if (feedback < 0.0 || feedback > 1.0) {
-            ChatterBox.error("trustGrapher.visualizer.eventPlayer.LogEvent", "LogEvent()", "The feedback (" + feedback + ") was not in the specified range of [0,1].  I am setting the feedback to 0.5");
-            feedback = 0.5;
+        try{
+            str.trim();
+            String [] words = str.split(",");
+            time = Long.parseLong(words[0]);
+            assessor = Integer.parseInt(words[1]);
+            assessee = Integer.parseInt(words[2]);
+            feedback = (double) Double.parseDouble(words[3]);
+            if (feedback < 0.0 || feedback > 1.0) {
+                ChatterBox.error("trustGrapher.visualizer.eventPlayer.LogEvent", "LogEvent()", "The feedback (" + feedback + ") was not in the specified range of [0,1].  I am setting the feedback to 0.5");
+                feedback = 0.5;
+            }
+        }catch (Exception ex){
+            ChatterBox.error("TrustLogEvent", "TrustLogEvent()", "The log format is incorrect.");
+            ex.printStackTrace();
         }
     }
 
@@ -101,6 +99,16 @@ public class TrustLogEvent implements Comparable<TrustLogEvent> {
             }
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 13 * hash + (int) (this.time ^ (this.time >>> 32));
+        hash = 13 * hash + this.assessor;
+        hash = 13 * hash + this.assessee;
+        hash = 13 * hash + (int) (Double.doubleToLongBits(this.feedback) ^ (Double.doubleToLongBits(this.feedback) >>> 32));
+        return hash;
     }
 
 ////////////////////////////////Static Methods//////////////////////////////////

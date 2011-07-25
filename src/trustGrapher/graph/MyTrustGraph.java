@@ -19,12 +19,12 @@ public class MyTrustGraph extends MyGraph {
     private TrustAlgorithm alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyTrustGraph(int id) {
-        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL, id);
+    public MyTrustGraph(int id, boolean display) {
+        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL, id, display);
     }
 
-    public MyTrustGraph(TrustAlgorithm alg, int id) {
-        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC, id);
+    public MyTrustGraph(TrustAlgorithm alg, int id, boolean display) {
+        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC, id, display);
         this.alg = alg;
     }
 

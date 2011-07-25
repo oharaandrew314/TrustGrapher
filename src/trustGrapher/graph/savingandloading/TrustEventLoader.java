@@ -1,15 +1,10 @@
 //////////////////////////////////TrustEventLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
-import cu.repsystestbed.algorithms.EigenTrust;
-import cu.repsystestbed.algorithms.RankbasedTrustAlg;
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
-import trustGrapher.graph.edges.MyFeedbackEdge;
-import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.ReputationGraph;
-import cu.repsystestbed.graphs.TestbedEdge;
 import trustGrapher.graph.*;
 import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -20,14 +15,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import trustGrapher.Configure;
+import utilities.BitStylus;
 import utilities.ChatterBox;
 
 /**
- * Reads a .txt or .arff and parses it into a collection of TrustLogEvents
- * It also adds every event to a hidden feedbackGraph so that the event player knows where to add each object
+ * Reads an .arff file and parses it into a collection of TrustLogEvents
+ * It also adds every event to a full graph so that the event player knows where to add each object
  * @author Matthew Smith (I think)
  * @author Andrew O'Hara
  */
@@ -37,40 +31,41 @@ public class TrustEventLoader {
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
     private ArrayList<MyGraph[]> graphs;
-    private ArrayList<String[]> algs;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustEventLoader(ArrayList<String[]> algs) {
-        loadingListeners = new ArrayList<LoadingListener>();
         graphs = new ArrayList<MyGraph[]>();
-        this.algs = algs;
 
         //Build the graphs
-        for (LoadingListener l : loadingListeners){
-            l.loadingStarted(algs.size(), "Graphs");
-        }
-        int i=0;
-        for (String[] entry : algs){
-            for (LoadingListener l : loadingListeners){
-                l.loadingProgress(i++);
+        ArrayList<String[]> trustAlgs = new ArrayList<String[]>();
+        int i;
+        for (i=0 ; i<algs.size() ; i++){
+            String[] entry = algs.get(i);
+            boolean display = false;
+            if (entry[Configure.DISPLAY].equals(Configure.TRUE)){
+                display = true;
             }
             if (entry[Configure.TYPE].equals(Configure.FB)){
-                addFeedbackGraph();
+                addFeedbackGraph(display);
             }else if (entry[Configure.TYPE].equals(Configure.REP)){
-                addReputationGraph(entry);
+                addReputationGraph(entry, display);
             }else if (entry[Configure.TYPE].equals(Configure.TRUST)){
-                addTrustGraph(entry);
+                trustAlgs.add(entry);
+            }else{
+                ChatterBox.error("TrustEventLoader", "TrustEventLoader()", "Uncaught graph type.");
             }
         }
-        for (LoadingListener l : loadingListeners){
-            l.loadingComplete();
+        for (String[] entry : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
+            boolean display = false;
+            if (entry[Configure.DISPLAY].equals(Configure.TRUE)){
+                display = true;
+            }
+            addTrustGraph(entry, display);
+            i++;
         }
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public void addLoadingListener(LoadingListener loadingListener) {
-        loadingListeners.add(loadingListener);
-    }
 
     public ArrayList<MyGraph[]> getGraphs() {
         return graphs;
@@ -78,63 +73,70 @@ public class TrustEventLoader {
 
 ///////////////////////////////////Methods//////////////////////////////////////
 
-    private void addFeedbackGraph(){
+    public void addLoadingListener(LoadingListener loadingListener) {
+        loadingListeners.add(loadingListener);
+    }
+
+    private void addFeedbackGraph(boolean display){
         MyGraph[] graphSet = new MyGraph[2];
-        graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC);
-        graphSet[FULL] = new MyFeedbackGraph(FULL);
+        graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC, display);
+        graphSet[FULL] = new MyFeedbackGraph(FULL, display);
         graphs.add(graphSet.clone());
     }
 
-    private void addReputationGraph(String[] entry){
+    private void addReputationGraph(String[] entry, boolean display){
         MyGraph[] graphSet = new MyGraph[2];
         int id = Integer.parseInt(entry[Configure.ID]);
         
-        ReputationAlgorithm dynEigenAlg = new EigenTrust();
-        ReputationAlgorithm fulEigenAlg = new EigenTrust();
+        ReputationAlgorithm dynEigenAlg = (ReputationAlgorithm) newAlgorithm(entry[Configure.PATH]);
+        ReputationAlgorithm fulEigenAlg = (ReputationAlgorithm) newAlgorithm(entry[Configure.PATH]);
 
         ((FeedbackHistoryGraph)getBase(DYNAMIC, entry[Configure.BASE])).addObserver(dynEigenAlg); //The algorithm will then add the graphs
         ((FeedbackHistoryGraph)getBase(FULL, entry[Configure.BASE])).addObserver(fulEigenAlg);
 
-        graphSet[FULL] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[FULL], id); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, id);
+        graphSet[FULL] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[FULL], id, display); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, id, display);
 
         graphs.add(graphSet.clone());
     }
 
-    private void addTrustGraph(String[] entry){
+    private void addTrustGraph(String[] entry, boolean display){
         MyGraph[] graphSet = new MyGraph[2];
         int id = Integer.parseInt(entry[Configure.ID]);
 
-        TrustAlgorithm dynRankAlg = new RankbasedTrustAlg();
-        TrustAlgorithm fulRankAlg = new RankbasedTrustAlg();
-        
-        try{
-            ((RankbasedTrustAlg)dynRankAlg).setRatio(0.7);
-            ((RankbasedTrustAlg)dynRankAlg).setRatio(0.7);
-        }catch(Exception ex){
-            ChatterBox.error(this, "TrustEventLoader()", ex.getMessage());
-        }
+        TrustAlgorithm dynRankAlg = (TrustAlgorithm) newAlgorithm(entry[Configure.PATH]);
+        TrustAlgorithm fulRankAlg = (TrustAlgorithm) newAlgorithm(entry[Configure.PATH]);
 
-        SimpleDirectedGraph dynRepGraph = graphs.get(1)[DYNAMIC].getInnerGraph();
-        SimpleDirectedGraph fulRepGraph = graphs.get(1)[FULL].getInnerGraph();
+        ((ReputationGraph) getBase(DYNAMIC, entry[Configure.BASE])).addObserver(dynRankAlg); //The algorithm will then add the graphs
+        ((ReputationGraph) getBase(FULL, entry[Configure.BASE])).addObserver(fulRankAlg);
 
-        ((ReputationGraph) dynRepGraph).addObserver(dynRankAlg); //The algorithm will then add the graphs
-        ((ReputationGraph) fulRepGraph).addObserver(fulRankAlg);
-
-        graphSet[FULL] = new MyTrustGraph(id);
-        graphSet[DYNAMIC] = new MyTrustGraph(dynRankAlg, id);
+        graphSet[FULL] = new MyTrustGraph(id, display);
+        graphSet[DYNAMIC] = new MyTrustGraph(dynRankAlg, id, display);
         graphs.add(graphSet.clone());
     }
 
-    private SimpleDirectedGraph getBase(int type, String baseKey){
-        for (MyGraph[] graph : graphs){
-            if (graph[type].getID() == Integer.parseInt(baseKey)){
-                return (SimpleDirectedGraph) graph[type].getInnerGraph();
+    private SimpleDirectedGraph getBase(int type, String baseID){
+        try{
+            for (MyGraph[] graph : graphs){
+                if (graph != null){
+                    if (graph[type].getID() == Integer.parseInt(baseID)){
+                        return graph[type].getInnerGraph();
+                    }
+                }
             }
+        }catch(NullPointerException ex){
+            ChatterBox.error(this, "getBase()", "Tried to pass a base id that is not an integer.");
+            ex.printStackTrace();
         }
+        ChatterBox.debug(this, "getBase()", "Could not find a graph with id " + baseID);
         return null;
     }
 
+    private Object newAlgorithm(String path){
+        File file = new File(path);
+        return BitStylus.classInstance(BitStylus.loadClass(file));
+    }
+    
     public LinkedList<TrustLogEvent> createList(File logFile) {
         logEvents = new LinkedList<TrustLogEvent>();
         String line = ""; //will contain each log event as it is read.
@@ -144,12 +146,8 @@ public class TrustEventLoader {
         try {
             BufferedReader logReader = new BufferedReader(new FileReader(logFile));
 
-            if (logFile.getAbsolutePath().endsWith(".arff")) {
-                totalLines = findTotalLines(logFile);
-                skipToData(logReader);
-            } else {
-                totalLines = Integer.parseInt(logReader.readLine()); //the total number of lines so the loading bar can size itself properly
-            }
+            totalLines = findTotalLines(logFile);
+            skipToData(logReader);
 
             for (LoadingListener l : loadingListeners) { //notify the listeners that the log events have begun loading
                 l.loadingChanged(totalLines, "LogEvents");
@@ -162,14 +160,12 @@ public class TrustEventLoader {
                 for (LoadingListener l : loadingListeners) { //Notify loading bar that another line has been read
                     l.loadingProgress(lineCount);
                 }
-                if (logFile.getAbsolutePath().endsWith(".arff")) {
-                    line = (lineCount * 100) + "," + line;
-                }
-                TrustLogEvent gev = new TrustLogEvent(line);//create the log event
-                logEvents.add(gev); //add this read log event to the list
+                line = (lineCount * 100) + "," + line; //Add the timestamp to the line
+                TrustLogEvent event = new TrustLogEvent(line);//create the log event
+                logEvents.add(event); //add this read log event to the list
 
                 for (MyGraph[] graph: graphs){
-                    graph[FULL].graphConstructionEvent(gev); //Add the construction event to the hidden graph
+                    graph[FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
                 }
             }
             logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
@@ -205,13 +201,11 @@ public class TrustEventLoader {
     }
 
     private void skipToData(BufferedReader log) {
-        boolean dataReached = false;
         String line;
         while (true) { //reading lines log file
             try {
                 line = log.readLine();
                 if (line.equals("@data") || line.equals("@data\n")) { //Wait until the data filed has started
-                    dataReached = true;
                     return;
                 }
             } catch (IOException ex) {
@@ -219,36 +213,5 @@ public class TrustEventLoader {
             }
         }
     }
-
-    private void debugEntities(){
-        ChatterBox.print("Debugging entities...");
-        String found;
-        MyFeedbackGraph graph = (MyFeedbackGraph) graphs.get(0)[FULL];
-        Collection<Agent> agents = graph.getVertices();
-        for (Agent a : agents){
-            ChatterBox.print(a.toString());
-        }
-        Collection<TestbedEdge> edges = graph.getEdges();
-        for (TestbedEdge e : edges){
-            MyFeedbackEdge e2 = (MyFeedbackEdge) e;
-            if (graph.findEdge((Agent) e.src, (Agent) e.sink) == null){
-                found = "not found";
-            }else{
-                found = "found";
-            }
-            ChatterBox.print("Edge " + e.src + " " + e.sink + " " + found);
-        }
-        ChatterBox.print("Done.");
-    }
-
-    private static void printLog(LinkedList<TrustLogEvent> logEvents){
-        ChatterBox.print("Printing log...");
-        for (TrustLogEvent event : logEvents){
-            ChatterBox.print("time: " + event.getTime() + " assessor: " + event.getAssessor() + " assessee: " + event.getAssessee() + " feedback: " + event.getFeedback());
-
-        }
-        ChatterBox.print("Done.");
-    }
-
 }
 ////////////////////////////////////////////////////////////////////////////////

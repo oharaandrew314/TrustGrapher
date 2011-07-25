@@ -1,11 +1,12 @@
 ////////////////////////////////Configure//////////////////////////////////
-package trustGrapher;
+package trustGrapher.graph.savingandloading;
 
 import java.io.File;
 import java.util.ArrayList;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
+import trustGrapher.TrustApplet;
 
 import utilities.BitStylus;
 import utilities.ChatterBox;
@@ -17,12 +18,11 @@ import utilities.PropertyManager;
  */
 public class Configure extends javax.swing.JFrame {
 
-    private PropertyManager config;
-    private ArrayList<String[]> algs;
     public static final int NAME = 0, ID = 1, TYPE = 2, DISPLAY = 3, BASE = 4, PATH = 5, MAX_ALGS = 12, MAX_GRAPHS = 6;
-    public static final int MAX_VISIBLE_GRAPHS = 6;
     public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm", TRUE = "true";
     public static final String FALSE = "false", NO_BASE = "none", LOG_PATH = "logPath", ALG_PATH = "algPath";
+    private PropertyManager config;
+    private ArrayList<String[]> algs;
     private int visibleGraphs;
     private TrustApplet applet;
     private File logFile;
@@ -68,7 +68,7 @@ public class Configure extends javax.swing.JFrame {
     }
 
     public ArrayList<String[]> getAlgs() {
-        return algs;
+        return (ArrayList<String[]>) algs.clone();
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -109,6 +109,7 @@ public class Configure extends javax.swing.JFrame {
                     baseField.setSelectedItem(name);
                 }
             }
+            saveBaseField();
         }
     }
 
@@ -142,7 +143,19 @@ public class Configure extends javax.swing.JFrame {
                 pathField.setText(logFile.getPath());
             }
         }
+
         setVisible(true);
+    }
+
+    private void saveBaseField() {
+        String[] entry = algs.get(algList.getSelectedIndex());
+        String baseName = (String) baseField.getSelectedItem();
+        if (baseName.equals(NO_BASE)) {
+            entry[BASE] = NO_BASE;
+        } else { //Set the entry's base to the key of the selected algorithm
+            entry[BASE] = baseName.split("-")[0];
+        }
+        saveEntry(entry);
     }
 
 /////////////////////////////////GUI Components/////////////////////////////////
@@ -409,7 +422,6 @@ public class Configure extends javax.swing.JFrame {
         }
         config.setProperty(ALG_PATH, classFile.getParent());
         Object o = BitStylus.classInstance(BitStylus.loadClass(classFile));
-        ChatterBox.print(o.getClass().getSimpleName());
         if (o != null) {
             config.setProperty(ALG_PATH, classFile.getParentFile().getPath());
         } else {
@@ -445,7 +457,6 @@ public class Configure extends javax.swing.JFrame {
         config.setProperty("" + newKey, string);
         algList.setListData(algNames());
         algList.setSelectedIndex(algList.getLastVisibleIndex());
-
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
@@ -487,9 +498,9 @@ public class Configure extends javax.swing.JFrame {
         if (algList.getSelectedIndex() != -1 && isVisible()) {
             String[] entry = algs.get(algList.getSelectedIndex());
             if (displayField.isSelected()) {
-                if (visibleGraphs == MAX_VISIBLE_GRAPHS) {
+                if (visibleGraphs == MAX_GRAPHS) {
                     displayField.setSelected(false);
-                    ChatterBox.alert("You cannot have more than " + MAX_VISIBLE_GRAPHS + " visible graphs at one time.");
+                    ChatterBox.alert("You cannot have more than " + MAX_GRAPHS + " visible graphs at one time.");
                 } else {
                     entry[DISPLAY] = TRUE;
                     visibleGraphs++;
@@ -504,14 +515,7 @@ public class Configure extends javax.swing.JFrame {
 
     private void baseFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_baseFieldActionPerformed
         if (baseField.isEnabled() && algList.getSelectedIndex() != -1 && baseField.getSelectedIndex() != -1 && isVisible()) {
-            String[] entry = algs.get(algList.getSelectedIndex());
-            String baseName = (String) baseField.getSelectedItem();
-            if (baseName.equals(NO_BASE)) {
-                entry[BASE] = NO_BASE;
-            } else { //Set the entry's base to the key of the selected algorithm
-                entry[BASE] = baseName.split("-")[0];
-            }
-            saveEntry(entry);
+            saveBaseField();
         }
     }//GEN-LAST:event_baseFieldActionPerformed
 
@@ -521,7 +525,7 @@ public class Configure extends javax.swing.JFrame {
             lastPath = new File(config.getProperty(LOG_PATH)).getParentFile();
         }
 
-        logFile = BitStylus.chooseFile("Choose a log file to load", lastPath, ".arff and .txt files only", new String[]{"arff", "txt"});
+        logFile = BitStylus.chooseFile("Choose a log file to load", lastPath, ".arff files only", new String[]{"arff"});
         if (logFile != null) {
             pathField.setText(logFile.getPath());
             config.setProperty(LOG_PATH, logFile.getPath());
@@ -554,3 +558,4 @@ public class Configure extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 }
 ////////////////////////////////////////////////////////////////////////////////
+

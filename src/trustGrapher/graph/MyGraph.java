@@ -19,20 +19,33 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     protected int type;
     protected int edgecounter = 0;
     protected int id;
+    protected boolean display;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id) {
+    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id, boolean display) {
         super(graph);
         this.type = type;
+        this.id = id;
+        this.display = display;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+
+    @Override
+    public String toString(){
+        return this.getClass().getSimpleName() + " " + id;
+    }
+
     public int getType() {
         return type;
     }
 
     public int getID(){
         return id;
+    }
+
+    public boolean isDisplayed(){
+        return display;
     }
 
     /**

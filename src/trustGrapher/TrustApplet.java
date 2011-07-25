@@ -11,9 +11,10 @@ import cu.repsystestbed.graphs.TestbedEdge;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.LinkedList;
-import java.util.List;
+
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
@@ -24,10 +25,11 @@ import edu.uci.ics.jung.visualization.control.ModalGraphMouse.Mode;
 import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
-import edu.uci.ics.jung.visualization.renderers.BasicEdgeLabelRenderer;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ArrayList;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+
 import utilities.ChatterBox;
 
 /**
@@ -38,8 +40,6 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class TrustApplet extends JApplet implements EventPlayerListener{
-    // for the length of the edges in the graph layout
-
     //default size for the swing graphic components
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768;
     private ArrayList<VisualizationViewer<Agent, TestbedEdge>> viewers;
@@ -58,7 +58,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     protected TrustEventPlayer eventThread;
     private JPanel graphsPanel;
     private VisualizationViewer currentViewer;
-    public final Configure optionsDialog;
+    public final Configure options;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
@@ -76,7 +76,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         frame.pack();
         frame.setTitle("Trust Grapher - Written by Andrew O'Hara");
         frame.setVisible(true);
-        optionsDialog = new Configure(this);
+        options = new Configure(this);
     }
     
     /**
@@ -140,11 +140,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         //[start] File Menu
         JMenu file = new JMenu("File");
 
-        JMenuItem options = new JMenuItem("Load Algorithms");
-        options.addActionListener(new ActionListener(){
+        JMenuItem optionsButton = new JMenuItem("Load Algorithms");
+        optionsButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                if (!optionsDialog.isVisible()){
-                    optionsDialog.run();
+                if (!options.isVisible()){
+                    options.run();
                 }
             }
         });
@@ -162,7 +162,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         });
         //[end] Exit Entry
     
-        file.add(options);
+        file.add(optionsButton);
         file.addSeparator();
         file.add(exit);
 
@@ -435,47 +435,32 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         graphsPanel.removeAll();
         viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();
 
-        //Find the names of the graphs to displays
-        ArrayList<String> names = new ArrayList<String>();
-        for (String[] entry : algs){
-            if (entry[Configure.DISPLAY].equals(Configure.TRUE)){
-                names.add(entry[Configure.NAME]);
-            }
-        }
-
         //Create the Visualization Viewers
-        for (int i=0 ; i < names.size() ; i++){
-            layout = new FRLayout2<Agent, TestbedEdge>(graphs.get(i)[FULL]);
-            layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH/3, DEFHEIGHT/2)));
-            viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH/3, DEFHEIGHT/2, gm));
-            viewers.get(i).addMouseListener(graphListener);
-            viewers.get(i).setName(names.get(i));
-            initSpecialTransformers(viewers.get(i), VertexShapeType.ELLIPSE, VertexShapeType.PENTAGON, VertexShapeType.RECTANGLE, EdgeShapeType.QUAD_CURVE, EdgeShapeType.CUBIC_CURVE, EdgeShapeType.LINE, EdgeShapeType.LINE);
-            viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graphs.get(i)[DYNAMIC]));
-            viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graphs.get(i)[DYNAMIC]));
-            viewers.get(i).setBorder(BorderFactory.createTitledBorder(names.get(i)));
-
-            this.graphsPanel.add(viewers.get(i), i);
-            for (LoadingListener l : loadingListeners) {
-                l.loadingProgress(i +1);
+        int i = 0;
+        for (MyGraph[] graph : graphs){
+            if (graph[FULL].isDisplayed()){
+                layout = new FRLayout2<Agent, TestbedEdge>(graph[FULL]);
+                layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH/3, DEFHEIGHT/2)));
+                viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH/3, DEFHEIGHT/2, gm));
+                viewers.get(i).addMouseListener(graphListener);
+                initSpecialTransformers(viewers.get(i), VertexShapeType.ELLIPSE, VertexShapeType.PENTAGON, VertexShapeType.RECTANGLE, EdgeShapeType.QUAD_CURVE, EdgeShapeType.CUBIC_CURVE, EdgeShapeType.LINE, EdgeShapeType.LINE);
+                viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graph[DYNAMIC]));
+                viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graph[DYNAMIC]));
+                viewers.get(i).setBorder(BorderFactory.createTitledBorder(graph[FULL].toString()));
+                graphsPanel.add(viewers.get(i), i);
+                for (LoadingListener l : loadingListeners) {
+                    l.loadingProgress(i +1);
+                }
+                i++;
             }
         }
-
         for (LoadingListener l : loadingListeners) {
             l.loadingProgress(1);
         }
-
         initializeMouseContext(gm);
         graphsPanel.revalidate();
     }
     //[end] Initialization
-    
-    /**
-     * to run this applet as a java application
-     */
-    public static void main(String[] args) {
-        TrustApplet myapp = new TrustApplet();
-    }
 
     public List<JMenuItem> getLayoutItems() {
         List<JMenuItem> menuItems = new LinkedList<JMenuItem>();
@@ -818,11 +803,19 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
             playbackSlider.setValue(0);
             fastSpeedSlider.setEnabled(false);
         }
-        algs = optionsDialog.getAlgs();
-        TrustEventLoader logBuilder = new TrustEventLoader(algs);        
-        graphs = logBuilder.getGraphs();
-        events = logBuilder.createList(optionsDialog.getLogFile());
+        if (options.getLogFile() != null){
+            algs = options.getAlgs();
+            TrustEventLoader logBuilder = new TrustEventLoader(algs);
+            graphs = logBuilder.getGraphs();
+            events = logBuilder.createList(options.getLogFile());
+            startGraph();
+        }        
+    }
 
-        startGraph();
+    /**
+     * to run this applet as a java application
+     */
+    public static void main(String[] args) {
+        TrustApplet myapp = new TrustApplet();
     }
 }
