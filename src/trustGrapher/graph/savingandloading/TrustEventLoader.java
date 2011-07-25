@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import trustGrapher.Configure;
 import utilities.ChatterBox;
 
 /**
@@ -36,37 +37,77 @@ public class TrustEventLoader {
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
     private ArrayList<MyGraph[]> graphs;
+    private ArrayList<String[]> algs;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventLoader() {
+    public TrustEventLoader(ArrayList<String[]> algs) {
         loadingListeners = new ArrayList<LoadingListener>();
         graphs = new ArrayList<MyGraph[]>();
+        this.algs = algs;
+
+        //Build the graphs
+        for (LoadingListener l : loadingListeners){
+            l.loadingStarted(algs.size(), "Graphs");
+        }
+        int i=0;
+        for (String[] entry : algs){
+            for (LoadingListener l : loadingListeners){
+                l.loadingProgress(i++);
+            }
+            if (entry[Configure.TYPE].equals(Configure.FB)){
+                addFeedbackGraph();
+            }else if (entry[Configure.TYPE].equals(Configure.REP)){
+                addReputationGraph(entry);
+            }else if (entry[Configure.TYPE].equals(Configure.TRUST)){
+                addTrustGraph(entry);
+            }
+        }
+        for (LoadingListener l : loadingListeners){
+            l.loadingComplete();
+        }
+    }
+
+//////////////////////////////////Accessors/////////////////////////////////////
+    public void addLoadingListener(LoadingListener loadingListener) {
+        loadingListeners.add(loadingListener);
+    }
+
+    public ArrayList<MyGraph[]> getGraphs() {
+        return graphs;
+    }
+
+///////////////////////////////////Methods//////////////////////////////////////
+
+    private void addFeedbackGraph(){
         MyGraph[] graphSet = new MyGraph[2];
-        
-        //Feedback History Graphs
         graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC);
         graphSet[FULL] = new MyFeedbackGraph(FULL);
         graphs.add(graphSet.clone());
+    }
 
-        //Eigen Reputation graphs
+    private void addReputationGraph(String[] entry){
+        MyGraph[] graphSet = new MyGraph[2];
+        int id = Integer.parseInt(entry[Configure.ID]);
+        
         ReputationAlgorithm dynEigenAlg = new EigenTrust();
         ReputationAlgorithm fulEigenAlg = new EigenTrust();
 
-        SimpleDirectedGraph dynFeedbackGraph = graphs.get(0)[DYNAMIC].getInnerGraph();
-        SimpleDirectedGraph fulFeedbackGraph = graphs.get(0)[FULL].getInnerGraph();
+        ((FeedbackHistoryGraph)getBase(DYNAMIC, entry[Configure.BASE])).addObserver(dynEigenAlg); //The algorithm will then add the graphs
+        ((FeedbackHistoryGraph)getBase(FULL, entry[Configure.BASE])).addObserver(fulEigenAlg);
 
-        ((FeedbackHistoryGraph) dynFeedbackGraph).addObserver(dynEigenAlg); //The algorithm will then add the graphs
-        ((FeedbackHistoryGraph) fulFeedbackGraph).addObserver(fulEigenAlg);
-
-        graphSet[FULL] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[FULL]); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg);
+        graphSet[FULL] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[FULL], id); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, id);
 
         graphs.add(graphSet.clone());
+    }
 
-        //RankBased Trust graphs
+    private void addTrustGraph(String[] entry){
+        MyGraph[] graphSet = new MyGraph[2];
+        int id = Integer.parseInt(entry[Configure.ID]);
+
         TrustAlgorithm dynRankAlg = new RankbasedTrustAlg();
-
         TrustAlgorithm fulRankAlg = new RankbasedTrustAlg();
+        
         try{
             ((RankbasedTrustAlg)dynRankAlg).setRatio(0.7);
             ((RankbasedTrustAlg)dynRankAlg).setRatio(0.7);
@@ -80,21 +121,20 @@ public class TrustEventLoader {
         ((ReputationGraph) dynRepGraph).addObserver(dynRankAlg); //The algorithm will then add the graphs
         ((ReputationGraph) fulRepGraph).addObserver(fulRankAlg);
 
-        graphSet[FULL] = new MyTrustGraph();
-        graphSet[DYNAMIC] = new MyTrustGraph(dynRankAlg);
+        graphSet[FULL] = new MyTrustGraph(id);
+        graphSet[DYNAMIC] = new MyTrustGraph(dynRankAlg, id);
         graphs.add(graphSet.clone());
     }
 
-//////////////////////////////////Accessors/////////////////////////////////////
-    public void addLoadingListener(LoadingListener loadingListener) {
-        loadingListeners.add(loadingListener);
+    private SimpleDirectedGraph getBase(int type, String baseKey){
+        for (MyGraph[] graph : graphs){
+            if (graph[type].getID() == Integer.parseInt(baseKey)){
+                return (SimpleDirectedGraph) graph[type].getInnerGraph();
+            }
+        }
+        return null;
     }
 
-    public ArrayList<MyGraph[]> getGraphs() {
-        return graphs;
-    }
-
-///////////////////////////////////Methods//////////////////////////////////////
     public LinkedList<TrustLogEvent> createList(File logFile) {
         logEvents = new LinkedList<TrustLogEvent>();
         String line = ""; //will contain each log event as it is read.

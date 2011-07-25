@@ -18,9 +18,10 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     public static final int DYNAMIC = 0, FULL = 1;
     protected int type;
     protected int edgecounter = 0;
+    protected int id;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type) {
+    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id) {
         super(graph);
         this.type = type;
     }
@@ -28,6 +29,10 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 //////////////////////////////////Accessors/////////////////////////////////////
     public int getType() {
         return type;
+    }
+
+    public int getID(){
+        return id;
     }
 
     /**

@@ -132,10 +132,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         //make the p2p edges different from the peer to doc edges
         viewer.getRenderContext().setEdgeStrokeTransformer(new P2PEdgeStrokeTransformer()); //stroke width
         viewer.getRenderContext().setEdgeShapeTransformer(new P2PEdgeShapeTransformer()); //stroke width
-        BasicEdgeLabelRenderer labeller = new BasicEdgeLabelRenderer();
 
     }
-    //[end] Create the visualization viewer
 
     //[start] Create Components
     private JMenuBar createFileMenu() {
@@ -167,7 +165,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         file.add(options);
         file.addSeparator();
         file.add(exit);
-        //[end] File Menu
 
         //[start] Window Menu
         JMenu window = new JMenu("Window");
@@ -809,8 +806,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     }
 
     public void loadOptions(){
-        TrustGraphLoader loader = new TrustGraphLoader();
-        loader.addLoadingListener(new LoadingBar());
         if (events != null) {
             events.clear();
             eventThread.stopPlayback();
@@ -823,9 +818,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
             playbackSlider.setValue(0);
             fastSpeedSlider.setEnabled(false);
         }
-        graphs = optionsDialog.getGraphs();
-        events = optionsDialog.getEvents();
         algs = optionsDialog.getAlgs();
+        TrustEventLoader logBuilder = new TrustEventLoader(algs);        
+        graphs = logBuilder.getGraphs();
+        events = logBuilder.createList(optionsDialog.getLogFile());
+
         startGraph();
     }
 }

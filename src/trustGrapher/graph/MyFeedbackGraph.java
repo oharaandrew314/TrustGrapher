@@ -19,7 +19,7 @@ public class MyFeedbackGraph extends MyGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
     public MyFeedbackGraph(int type) {
-        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type);
+        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, 0);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////

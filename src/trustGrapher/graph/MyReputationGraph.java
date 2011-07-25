@@ -28,8 +28,8 @@ public class MyReputationGraph extends MyGraph {
      * Creates a full graph.  The components of this graph are actually the ones being displayed.
      * @param baseGraph The graph that this graph will be based on
      */
-    public MyReputationGraph(MyFeedbackGraph feedbackGraph){
-        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL);
+    public MyReputationGraph(MyFeedbackGraph feedbackGraph, int id){
+        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL, id);
         this.feedbackGraph = feedbackGraph;
     }
 
@@ -38,8 +38,8 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param fullGraph A reference to the fullGraph so that reputation can be changed
      */
-    public MyReputationGraph(MyFeedbackGraph feedbackGraph, ReputationAlgorithm alg) {
-        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC);
+    public MyReputationGraph(MyFeedbackGraph feedbackGraph, ReputationAlgorithm alg, int id) {
+        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC, id);
         this.alg = alg;
         this.feedbackGraph = feedbackGraph;
     }

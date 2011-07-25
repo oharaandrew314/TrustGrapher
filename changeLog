@@ -1,4 +1,6 @@
+----------------------
 TrustGrapher ChangeLog
+----------------------
 
     Build 26
 Trust graph works
@@ -14,3 +16,7 @@ Added possible fix for mac right-clicking.  Needs to be tested
 Finished Algorithm Configuration GUI.  Not yet fully integrated with TrustApplet
 TrustApplet will load the visible algorithms specified by the configuration window.
 TrustApplet will not yet load external class files
+
+    Build 30
+Added file filters for configuration window
+Integrated TrustGraphLoader with Configure and BitStylus

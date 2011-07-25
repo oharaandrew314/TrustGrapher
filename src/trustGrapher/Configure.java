@@ -3,15 +3,9 @@ package trustGrapher;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
-
-import trustGrapher.graph.MyGraph;
-import trustGrapher.graph.savingandloading.LoadingBar;
-import trustGrapher.graph.savingandloading.TrustGraphLoader;
-import trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 import utilities.BitStylus;
 import utilities.ChatterBox;
@@ -25,21 +19,19 @@ public class Configure extends javax.swing.JFrame {
 
     private PropertyManager config;
     private ArrayList<String[]> algs;
-    public static final int NAME = 0, KEY = 1, TYPE = 2, DISPLAY = 3, BASE = 4, PATH = 5, MAX_ALGS = 12, MAX_GRAPHS = 6;
+    public static final int NAME = 0, ID = 1, TYPE = 2, DISPLAY = 3, BASE = 4, PATH = 5, MAX_ALGS = 12, MAX_GRAPHS = 6;
     public static final int MAX_VISIBLE_GRAPHS = 6;
     public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm", TRUE = "true";
     public static final String FALSE = "false", NO_BASE = "none", LOG_PATH = "logPath", ALG_PATH = "algPath";
     private int visibleGraphs;
     private TrustApplet applet;
-    TrustGraphLoader loader;
+    private File logFile;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public Configure(TrustApplet applet) {
         algs = new ArrayList<String[]>();
         visibleGraphs = 0;
         this.applet = applet;
-        loader = new TrustGraphLoader();
-        loader.addLoadingListener(new LoadingBar());
 
         initComponents();
     }
@@ -71,12 +63,8 @@ public class Configure extends javax.swing.JFrame {
         return algNames;
     }
 
-    public ArrayList<MyGraph[]> getGraphs() {
-        return loader.getGraphs();
-    }
-
-    public LinkedList<TrustLogEvent> getEvents() {
-        return loader.getLogList();
+    public File getLogFile() {
+        return logFile;
     }
 
     public ArrayList<String[]> getAlgs() {
@@ -84,7 +72,6 @@ public class Configure extends javax.swing.JFrame {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-
     private void saveEntry(String[] entry) {
         String s = "";
         for (int i = 0; i < entry.length - 1; i++) {
@@ -92,7 +79,7 @@ public class Configure extends javax.swing.JFrame {
         }
         s = s + entry[entry.length - 1]; //Add the last element without putting a comma at the end
         //Split to get rid of the key in the name.  That has no use in the properties file
-        config.setProperty(entry[KEY], s.split("-")[1]);
+        config.setProperty(entry[ID], s.split("-")[1]);
     }
 
     private void updateFields(int index) {
@@ -117,8 +104,8 @@ public class Configure extends javax.swing.JFrame {
                 baseField.addItem(name);
             }
             baseField.setEnabled(true);
-            for (String name : bases){
-                if (name.split("-")[0].equals(entry[BASE])){
+            for (String name : bases) {
+                if (name.split("-")[0].equals(entry[BASE])) {
                     baseField.setSelectedItem(name);
                 }
             }
@@ -148,9 +135,11 @@ public class Configure extends javax.swing.JFrame {
         updateFields(algList.getSelectedIndex());
 
         //Set the last log to the path field
-        if (config.getProperty(LOG_PATH) != null){
-            if (loader.loadFile(new File(config.getProperty(LOG_PATH)))){
-                pathField.setText(loader.file.getPath());
+        String logPath = config.getProperty(LOG_PATH);
+        if (logPath != null) {
+            logFile = new File(logPath);
+            if (logFile != null) {
+                pathField.setText(logFile.getPath());
             }
         }
         setVisible(true);
@@ -411,25 +400,25 @@ public class Configure extends javax.swing.JFrame {
         //Load the object
         String path = config.getProperty(ALG_PATH);
         File directory = null;
-        if (path != null){
+        if (path != null) {
             directory = new File(path);
         }
-        File classFile = BitStylus.chooseFile("Choose an algorithm to load", directory);
-        if (classFile == null){
+        File classFile = BitStylus.chooseFile("Choose an algorithm to load", directory, ".class files only", new String[]{"class"});
+        if (classFile == null) {
             return;
         }
         config.setProperty(ALG_PATH, classFile.getParent());
         Object o = BitStylus.classInstance(BitStylus.loadClass(classFile));
         ChatterBox.print(o.getClass().getSimpleName());
-        if (o != null){
+        if (o != null) {
             config.setProperty(ALG_PATH, classFile.getParentFile().getPath());
-        }else{
+        } else {
             return;
         }
         String type = null;
         if (o instanceof ReputationAlgorithm) {
             type = REP;
-        } else if (o instanceof TrustAlgorithm) {            
+        } else if (o instanceof TrustAlgorithm) {
             //Find out if there are any existing Reputation Algorithms
             //If there aren't any, then you can't add this Trust Algorithm
             boolean none = true;
@@ -472,7 +461,7 @@ public class Configure extends javax.swing.JFrame {
                 }
             }
             algs.remove(index);
-            if (!config.removeProperty("" + index)){
+            if (!config.removeProperty("" + index)) {
                 ChatterBox.debug(this, "removeButtonActionPerformed()", "The property was not removed");
             }
             algList.setListData(algNames());
@@ -528,13 +517,14 @@ public class Configure extends javax.swing.JFrame {
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
         File lastPath = null;
-        if (config.getProperty(LOG_PATH) != null){
-            lastPath = new File (config.getProperty(LOG_PATH)).getParentFile();
+        if (config.getProperty(LOG_PATH) != null) {
+            lastPath = new File(config.getProperty(LOG_PATH)).getParentFile();
         }
-        if (loader.doLoad(lastPath)) {
-            pathField.setText(loader.file.getPath());
-            config.setProperty(LOG_PATH, loader.file.getPath());
-            ChatterBox.debug(this, "loadButtonActionPerformed()", loader.file.getPath());
+
+        logFile = BitStylus.chooseFile("Choose a log file to load", lastPath, ".arff and .txt files only", new String[]{"arff", "txt"});
+        if (logFile != null) {
+            pathField.setText(logFile.getPath());
+            config.setProperty(LOG_PATH, logFile.getPath());
         }
     }//GEN-LAST:event_loadButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -564,4 +554,3 @@ public class Configure extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 }
 ////////////////////////////////////////////////////////////////////////////////
-

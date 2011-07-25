@@ -2,15 +2,16 @@
 High Priority:
 --------------
 
-Make the OptionsDialog pass its algs to TrustApplet on close
-Make the graphsPanel configuarable
+Load external classes
+Add idiot-proofing for configurations panel to stop from loading no log
+Make algorithm loader also find algorithms in the current jar
 
 -------------
 Low Priority:
 ------------
 
 Remove time and start and end events on log window
-Get the graph to load a second graph properly
+Get the graph to load a second graph properly (Works much better now, but not perfect)
 Add graphic buttons for the playback bar
 Fix Spring layout button
-Integrate libraries into jar
+Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
