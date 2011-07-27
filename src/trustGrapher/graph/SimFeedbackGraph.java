@@ -1,4 +1,4 @@
-///////////////////////////////MyFeedbackGraph/////////////////////////////
+///////////////////////////////SimFeedbackGraph/////////////////////////////
 package trustGrapher.graph;
 
 import trustGrapher.graph.edges.MyFeedbackEdge;
@@ -15,15 +15,15 @@ import utilities.ChatterBox;
  * A trust graph that displays individual feedbacks grouped together into edges
  * @author Andrew O'Hara
  */
-public class MyFeedbackGraph extends MyGraph {
+public class SimFeedbackGraph extends SimGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyFeedbackGraph(int type, boolean display) {
+    public SimFeedbackGraph(int type, boolean display) {
         super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, 0, display);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    public void feedback(MyFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
+    public void feedback(SimFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
         if (type == FULL) {
             ChatterBox.error(this, "feedback()", "This graph is not a visible graph");
             return;
@@ -51,7 +51,7 @@ public class MyFeedbackGraph extends MyGraph {
         fullEdge.addFeedback(assessor, assessee, feedback);
     }
 
-    public void unfeedback(MyFeedbackGraph fullGraph, int from, int to, double feedback, int key) {
+    public void unfeedback(SimFeedbackGraph fullGraph, int from, int to, double feedback, int key) {
         if (type == FULL) {
             ChatterBox.error(this, "unfeedback()", "This graph is not a visible graph");
             return;
@@ -105,15 +105,15 @@ public class MyFeedbackGraph extends MyGraph {
         }
     }
 
-    public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph) {
+    public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph referenceGraph) {
         int from = gev.getAssessor();
         int to = gev.getAssessee();
         double feedback = gev.getFeedback();
         int key = ((MyFeedbackEdge) referenceGraph.findEdge(from, to)).getID();
         if (forward) {
-            feedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
+            feedback((SimFeedbackGraph) referenceGraph, from, to, feedback, key);
         } else {
-            unfeedback((MyFeedbackGraph) referenceGraph, from, to, feedback, key);
+            unfeedback((SimFeedbackGraph) referenceGraph, from, to, feedback, key);
         }
     }
 

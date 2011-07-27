@@ -25,11 +25,11 @@
 //
 //    private long currentTime;
 //    private List<TrustLogEvent> logList;
-//    private MyGraph graph;
+//    private SimGraph graph;
 //    private List<LoadingListener> progressListeners;
 //
 //    //[start] Constructors
-//    public TrustGraphSaver(MyGraph graph) {
+//    public TrustGraphSaver(SimGraph graph) {
 //        this(graph, null, 0);
 //    }
 //
@@ -37,7 +37,7 @@
 //        this(null, events, currentTime);
 //    }
 //
-//    public TrustGraphSaver(MyGraph graph, List<TrustLogEvent> events, long currentTime) {
+//    public TrustGraphSaver(SimGraph graph, List<TrustLogEvent> events, long currentTime) {
 //        this.currentTime = currentTime;
 //        this.logList = events;
 //        this.graph = graph;
@@ -64,7 +64,7 @@
 //        saverThread.start();
 //    }
 //
-//    public static Document getGraphDocument(MyGraph graph) {
+//    public static Document getGraphDocument(SimGraph graph) {
 //        TrustGraphSaver saver = new TrustGraphSaver(graph);
 //        Document doc = saver.buildDoc();
 //

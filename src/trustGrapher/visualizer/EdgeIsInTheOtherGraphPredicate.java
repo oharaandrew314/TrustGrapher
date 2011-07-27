@@ -4,11 +4,11 @@ import cu.repsystestbed.entities.Agent;
 import org.apache.commons.collections15.Predicate;
 
 import cu.repsystestbed.graphs.TestbedEdge;
-import trustGrapher.graph.MyGraph;
+import trustGrapher.graph.SimGraph;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
-import trustGrapher.graph.MyReputationGraph;
+import trustGrapher.graph.SimReputationGraph;
 
 /**
  * This class is a predicate, and as such the logical predicate implemented is the following :
@@ -28,7 +28,7 @@ public class EdgeIsInTheOtherGraphPredicate implements Predicate<Context<Graph<A
 
     }
 
-    public EdgeIsInTheOtherGraphPredicate(MyGraph visibleGraph) {
+    public EdgeIsInTheOtherGraphPredicate(SimGraph visibleGraph) {
 
         othergraph = visibleGraph;
     }

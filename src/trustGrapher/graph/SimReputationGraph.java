@@ -1,4 +1,4 @@
-////////////////////////////////MyReputationGraph///////////////////////////////
+////////////////////////////////SimReputationGraph///////////////////////////////
 package trustGrapher.graph;
 
 import cu.repsystestbed.algorithms.EigenTrust;
@@ -18,9 +18,9 @@ import utilities.ChatterBox;
  * A  graph that displays each agent's trust towards other agents that it's had transactions with.
  * @author Andrew O'Hara
  */
-public class MyReputationGraph extends MyGraph {
+public class SimReputationGraph extends SimGraph {
     private ReputationAlgorithm alg;
-    private MyFeedbackGraph feedbackGraph;
+    private SimFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
 
@@ -28,7 +28,7 @@ public class MyReputationGraph extends MyGraph {
      * Creates a full graph.  The components of this graph are actually the ones being displayed.
      * @param baseGraph The graph that this graph will be based on
      */
-    public MyReputationGraph(MyFeedbackGraph feedbackGraph, int id, boolean display){
+    public SimReputationGraph(SimFeedbackGraph feedbackGraph, int id, boolean display){
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL, id, display);
         this.feedbackGraph = feedbackGraph;
     }
@@ -38,7 +38,7 @@ public class MyReputationGraph extends MyGraph {
      * @param baseGraph The graph that this graph will be based on
      * @param fullGraph A reference to the fullGraph so that reputation can be changed
      */
-    public MyReputationGraph(MyFeedbackGraph feedbackGraph, ReputationAlgorithm alg, int id, boolean display) {
+    public SimReputationGraph(SimFeedbackGraph feedbackGraph, ReputationAlgorithm alg, int id, boolean display) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC, id, display);
         this.alg = alg;
         this.feedbackGraph = feedbackGraph;
@@ -66,7 +66,7 @@ public class MyReputationGraph extends MyGraph {
      * @param from      The id of the peer that just gave feedback
      * @param to        The id of the peer that just recieved feedback
      */
-    public void feedback(MyReputationGraph fullGraph, int from, int to) {
+    public void feedback(SimReputationGraph fullGraph, int from, int to) {
         if (type == FULL){
             ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
@@ -127,7 +127,7 @@ public class MyReputationGraph extends MyGraph {
         return new MyReputationEdge(src, sink, id);
     }
 
-    public void unFeedback(MyReputationGraph referenceGraph, int from, int to) {
+    public void unFeedback(SimReputationGraph referenceGraph, int from, int to) {
         if (type == FULL){
             ChatterBox.error(this, "unFeedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
@@ -172,15 +172,15 @@ public class MyReputationGraph extends MyGraph {
      * @param forward
      * @param referenceGraph
      */
-    public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph) {
+    public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph referenceGraph) {
         if (type == FULL){
             ChatterBox.error(this, "graphEvent()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
         if (forward){
-            feedback((MyReputationGraph)referenceGraph, gev.getAssessor(), gev.getAssessee());
+            feedback((SimReputationGraph)referenceGraph, gev.getAssessor(), gev.getAssessee());
         }else{
-            unFeedback((MyReputationGraph) referenceGraph, gev.getAssessor(), gev.getAssessee());
+            unFeedback((SimReputationGraph) referenceGraph, gev.getAssessor(), gev.getAssessee());
         }
     }
 

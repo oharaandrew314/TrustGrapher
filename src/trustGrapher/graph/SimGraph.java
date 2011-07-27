@@ -1,4 +1,4 @@
-//////////////////////////////////MyGraph////////////////////////////////////
+//////////////////////////////////SimGraph////////////////////////////////////
 package trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
@@ -13,7 +13,7 @@ import trustGrapher.visualizer.eventplayer.TrustLogEvent;
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
  * @author Andrew O'Hara
  */
-public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
     public static final int DYNAMIC = 0, FULL = 1;
     protected int type;
@@ -22,7 +22,7 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     protected boolean display;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id, boolean display) {
+    public SimGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id, boolean display) {
         super(graph);
         this.type = type;
         this.id = id;
@@ -77,7 +77,7 @@ public abstract class MyGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         return null;
     }
 
-    public abstract void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph);
+    public abstract void graphEvent(TrustLogEvent gev, boolean forward, SimGraph referenceGraph);
 
     public abstract void graphConstructionEvent(TrustLogEvent gev);
 

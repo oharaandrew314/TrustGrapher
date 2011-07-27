@@ -1,7 +1,7 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
 package trustGrapher.visualizer.eventplayer;
 
-import trustGrapher.graph.MyGraph;
+import trustGrapher.graph.SimGraph;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,13 +31,13 @@ public class TrustEventPlayer implements ActionListener {
     private LinkedList<TrustLogEvent> myEventList;
     private List<EventPlayerListener> my_listeners;
     private int current_index;
-    private ArrayList<MyGraph[]> graphs;
+    private ArrayList<SimGraph[]> graphs;
     private long myTimeNow;
     JSlider playbackSlider;
     private boolean playable; //for when a graph is loaded without any events
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventPlayer(ArrayList<MyGraph[]> graphs, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
+    public TrustEventPlayer(ArrayList<SimGraph[]> graphs, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
         this.graphs = graphs;
         this.playbackSlider = playbackSlider;
         myEventList = eventlist;
@@ -50,7 +50,7 @@ public class TrustEventPlayer implements ActionListener {
         playable = true;
     }
 
-    public TrustEventPlayer(ArrayList<MyGraph[]> graphs) {
+    public TrustEventPlayer(ArrayList<SimGraph[]> graphs) {
         this.graphs = graphs;
         this.playbackSlider = null;
         myEventList = new LinkedList<TrustLogEvent>();
@@ -256,7 +256,7 @@ public class TrustEventPlayer implements ActionListener {
      */
     private void handleLogEvent(TrustLogEvent evt, boolean forward) {
         if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))) {
-            for (MyGraph[] graph : graphs){
+            for (SimGraph[] graph : graphs){
                 graph[DYNAMIC].graphEvent(evt, forward, graph[FULL]);
             }
         }

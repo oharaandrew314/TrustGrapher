@@ -1,4 +1,4 @@
-//////////////////////////////////TrustEventLoader//////////////////////////////
+//////////////////////////////////TrustGraphLoader//////////////////////////////
 package trustGrapher.graph.savingandloading;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
@@ -16,41 +16,36 @@ import java.util.List;
 import java.io.File;
 import java.io.FileReader;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import utilities.BitStylus;
 import utilities.ChatterBox;
 
 /**
  * Reads an .arff file and parses it into a collection of TrustLogEvents
- * It also adds every event to a full graph so that the event player knows where to add each object
+ * Also creates the necessary graphs and adds every event to a full graph so
+ * that the event player knows where to add each object
  * @author Matthew Smith (I think)
  * @author Andrew O'Hara
  */
-public class TrustEventLoader {
+public class TrustGraphLoader {
 
     public static final int DYNAMIC = 0, FULL = 1;
     private List<LoadingListener> loadingListeners;
     private LinkedList<TrustLogEvent> logEvents;
-    private ArrayList<MyGraph[]> graphs;
+    private ArrayList<SimGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventLoader(ArrayList<String[]> algs) {
-        graphs = new ArrayList<MyGraph[]>();
+    public TrustGraphLoader(ArrayList<String[]> algs) {
+        graphs = new ArrayList<SimGraph[]>();
         loadingListeners = new ArrayList<LoadingListener>();
 
         //Build the graphs
         ArrayList<String[]> trustAlgs = new ArrayList<String[]>();
-        int i;
-        for (i=0 ; i<algs.size() ; i++){
-            String[] entry = algs.get(i);
-            boolean display = false;
-            if (entry[Configure.DISPLAY].equals(Configure.TRUE)){
-                display = true;
-            }
-            if (entry[Configure.TYPE].equals(Configure.FB)){
+        for (String[] entry : algs){
+            boolean display = (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)) ? true : false;
+            if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.FB)){
                 addFeedbackGraph(display);
-            }else if (entry[Configure.TYPE].equals(Configure.REP)){
+            }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.REP)){
                 addReputationGraph(entry, display);
-            }else if (entry[Configure.TYPE].equals(Configure.TRUST)){
+            }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.TRUST)){
                 trustAlgs.add(entry);
             }else{
                 ChatterBox.error("TrustEventLoader", "TrustEventLoader()", "Uncaught graph type.");
@@ -58,17 +53,16 @@ public class TrustEventLoader {
         }
         for (String[] entry : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
             boolean display = false;
-            if (entry[Configure.DISPLAY].equals(Configure.TRUE)){
+            if (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)){
                 display = true;
             }
             addTrustGraph(entry, display);
-            i++;
         }
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
 
-    public ArrayList<MyGraph[]> getGraphs() {
+    public ArrayList<SimGraph[]> getGraphs() {
         return graphs;
     }
 
@@ -79,68 +73,52 @@ public class TrustEventLoader {
     }
 
     private void addFeedbackGraph(boolean display){
-        MyGraph[] graphSet = new MyGraph[2];
-        graphSet[DYNAMIC] = new MyFeedbackGraph(DYNAMIC, display);
-        graphSet[FULL] = new MyFeedbackGraph(FULL, display);
+        SimGraph[] graphSet = new SimGraph[2];
+        graphSet[DYNAMIC] = new SimFeedbackGraph(DYNAMIC, display);
+        graphSet[FULL] = new SimFeedbackGraph(FULL, display);
         graphs.add(graphSet.clone());
     }
 
     private void addReputationGraph(String[] entry, boolean display){
-        MyGraph[] graphSet = new MyGraph[2];
-        int id = Integer.parseInt(entry[Configure.ID].replace("alg", ""));
+        SimGraph[] graphSet = new SimGraph[2];
+        int id = Integer.parseInt(entry[AlgorithmLoader.ID].replace("alg", ""));
         
-        ReputationAlgorithm dynEigenAlg = (ReputationAlgorithm) newAlgorithm(entry[Configure.PATH]);
-        ReputationAlgorithm fulEigenAlg = (ReputationAlgorithm) newAlgorithm(entry[Configure.PATH]);
+        ReputationAlgorithm dynEigenAlg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
+        ReputationAlgorithm fulEigenAlg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
 
-        ((FeedbackHistoryGraph)getBase(DYNAMIC, entry[Configure.BASE])).addObserver(dynEigenAlg); //The algorithm will then add the graphs
-        ((FeedbackHistoryGraph)getBase(FULL, entry[Configure.BASE])).addObserver(fulEigenAlg);
+        ((FeedbackHistoryGraph)getBase(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(dynEigenAlg); //The algorithm will then add the graphs
+        ((FeedbackHistoryGraph)getBase(FULL, entry[AlgorithmLoader.BASE])).addObserver(fulEigenAlg);
 
-        graphSet[FULL] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[FULL], id, display); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new MyReputationGraph((MyFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, id, display);
-
+        graphSet[FULL] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[FULL], id, display); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, id, display);
         graphs.add(graphSet.clone());
     }
 
     private void addTrustGraph(String[] entry, boolean display){
-        MyGraph[] graphSet = new MyGraph[2];
-        int id = Integer.parseInt(entry[Configure.ID].replace("alg", ""));
+        SimGraph[] graphSet = new SimGraph[2];
+        int id = Integer.parseInt(entry[AlgorithmLoader.ID].replace("alg", ""));
 
-        TrustAlgorithm dynRankAlg = (TrustAlgorithm) newAlgorithm(entry[Configure.PATH]);
-        TrustAlgorithm fulRankAlg = (TrustAlgorithm) newAlgorithm(entry[Configure.PATH]);
+        TrustAlgorithm dynRankAlg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
+        TrustAlgorithm fulRankAlg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
 
-        ((ReputationGraph) getBase(DYNAMIC, entry[Configure.BASE])).addObserver(dynRankAlg); //The algorithm will then add the graphs
-        ((ReputationGraph) getBase(FULL, entry[Configure.BASE])).addObserver(fulRankAlg);
+        ((ReputationGraph) getBase(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(dynRankAlg); //The algorithm will then add the graphs
+        ((ReputationGraph) getBase(FULL, entry[AlgorithmLoader.BASE])).addObserver(fulRankAlg);
 
-        graphSet[FULL] = new MyTrustGraph(id, display);
-        graphSet[DYNAMIC] = new MyTrustGraph(dynRankAlg, id, display);
+        graphSet[FULL] = new SimTrustGraph(id, display);
+        graphSet[DYNAMIC] = new SimTrustGraph(dynRankAlg, id, display);
         graphs.add(graphSet.clone());
     }
 
     private SimpleDirectedGraph getBase(int type, String baseID){
-        try{
-            for (MyGraph[] graph : graphs){
-                if (graph != null){
-                    if (graph[type].getID() == Integer.parseInt(baseID)){
-                        return graph[type].getInnerGraph();
-                    }
+        for (SimGraph[] graph : graphs){
+            if (graph != null){
+                if (graph[type].getID() == Integer.parseInt(baseID.replace("alg", ""))){
+                    return graph[type].getInnerGraph();
                 }
             }
-        }catch(NullPointerException ex){
-            ChatterBox.error(this, "getBase()", "Tried to pass a base id that is not an integer.");
-            ex.printStackTrace();
         }
         ChatterBox.debug(this, "getBase()", "Could not find a graph with id " + baseID);
         return null;
-    }
-
-    private Object newAlgorithm(String path){
-        if (path.contains("!")){ //If it is a jar
-            File file = new File(path.split("!")[0]);
-            String name = path.split("!")[1];
-            return BitStylus.classInstance( (Class) BitStylus.loadJarClass(file, name)[0]);
-        }else{//Otherwise, it must be a class
-            return BitStylus.classInstance(BitStylus.loadClass(new File(path)));
-        }      
     }
     
     public LinkedList<TrustLogEvent> createList(File logFile) {
@@ -170,7 +148,7 @@ public class TrustEventLoader {
                 TrustLogEvent event = new TrustLogEvent(line);//create the log event
                 logEvents.add(event); //add this read log event to the list
 
-                for (MyGraph[] graph: graphs){
+                for (SimGraph[] graph: graphs){
                     graph[FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
                 }
             }
@@ -179,8 +157,6 @@ public class TrustEventLoader {
         } catch (IOException ex) {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
-
-        ((MyReputationGraph)graphs.get(1)[FULL]).removeRep();
 
         for (LoadingListener l : loadingListeners) {
             l.loadingComplete();
@@ -194,11 +170,8 @@ public class TrustEventLoader {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
             int totalLines = 0;
             while (true) {
-                if (reader.readLine() != null) {
-                    totalLines++;
-                } else {
-                    return totalLines;
-                }
+                if (reader.readLine() != null) totalLines++;
+                else return totalLines;
             }
         } catch (IOException ex) {
             ChatterBox.error(this, "findTotalLines()", "Problem reading log");

@@ -1,0 +1,56 @@
+----------------------
+TrustGrapher ChangeLog
+----------------------
+
+    Build 26
+Trust graph works
+
+    Build 27
+Minor revisions before I add multiple view support
+
+    Build 28
+Now supports multiple views on screen
+
+    Build 29
+Added possible fix for mac right-clicking.  Needs to be tested
+Finished Algorithm Configuration GUI.  Not yet fully integrated with TrustApplet
+TrustApplet will load the visible algorithms specified by the configuration window.
+TrustApplet will not yet load external class files
+
+    Build 30
+Added file filters for configuration window
+Integrated TrustGraphLoader with Configure and BitStylus
+
+    Build 31
+Fixed a bug where the base was not being saved properly on the options window
+The graphs specified by the options window are now loaded
+Now loads external algorithms
+
+    Build 32
+Now supports switching between tabbed and grid views
+Now loads external jars.  This will require a lot of fine-tuning.  The implementation is very sloppy
+
+    Build 33
+Added some idiot-proofing for the algorithm loader
+Fixed remove algorithm button for algorithm loader
+Refactoring and code optimization
+An algorithm can now have a property file attached to it.  This is not yet implemented in the simulation however
+The Property buttons and base field now disable when feedback history is selected
+Remove class now works
+Fixed a bug that did not allow you to load the maximum amount of algorithms at startup
+
+
+-----
+To Do
+-----
+
+    High Priority
+
+    Low Priority
+Change the base property to a key rather than index
+Investigate possible layout mode bug
+Fix jerky graph when switching to tabbed view
+Remove time and start and end events on log window
+Add graphic buttons for the playback bar
+Fix Spring layout button
+Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)

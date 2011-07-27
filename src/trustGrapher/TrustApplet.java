@@ -40,20 +40,18 @@ import utilities.PropertyManager;
  * @author Matt
  * @author Andrew O'Hara
  */
-public class TrustApplet extends JApplet implements EventPlayerListener{
+public class TrustApplet extends JApplet implements EventPlayerListener {
     //default size for the swing graphic components
+
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768;
     private ArrayList<VisualizationViewer<Agent, TestbedEdge>> viewers;
     private AbstractLayout<Agent, TestbedEdge> layout = null;
     private LinkedList<TrustLogEvent> events;
     private ArrayList<String[]> algs;
-    
-    private ArrayList<MyGraph[]> graphs;//addition = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
+    private ArrayList<SimGraph[]> graphs;//addition = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
     public static final int DYNAMIC = 0, FULL = 1;
-
     private Integer viewType; //The way that the graphs are displayed
     public static final Integer TABBED = 0, GRID = 1, DEFAULT_VIEW = TABBED;
-
     private PropertyManager config;
     private List<LoadingListener> loadingListeners;
     protected JTable logList;
@@ -63,14 +61,14 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     protected TrustEventPlayer eventThread;
     private Container graphsPanel;
     private VisualizationViewer currentViewer;
-    public final Configure options;
+    public final AlgorithmLoader options;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
 
         loadingListeners = new LinkedList<LoadingListener>();
         config = new PropertyManager("TrustApplet.properties");
-        options = new Configure(this, config);
+        options = new AlgorithmLoader(this, config);
         initFrameComponents();
         start();
         JFrame frame = new JFrame();
@@ -82,9 +80,9 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         frame.pack();
         frame.setTitle("Trust Grapher - Written by Andrew O'Hara");
-        frame.setVisible(true);        
+        frame.setVisible(true);
     }
-    
+
     /**
      * @return The Initialized Visualization Viewer
      */
@@ -120,7 +118,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
                 //viewer.getGraphLayout().setSize(arg0.getComponent().getSize());
             }
         });
-        if (viewer == null){
+        if (viewer == null) {
             ChatterBox.criticalError(null, this, "visualizationViewerBuilder()", "The viewer is null.");
         }
 
@@ -144,56 +142,59 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
     //[start] Create Components
     private JMenuBar createFileMenu() {
         //[start] File Menu
-        JMenu file = new JMenu("File");  
+        JMenu file = new JMenu("File");
 
         JRadioButtonMenuItem tabbedView = new JRadioButtonMenuItem("Tabbed View");
-        tabbedView.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e){
+        tabbedView.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
                 config.setProperty("viewType", "" + TABBED);
                 config.save();
                 //If there are graphs running, and the view was changed from something else, reset the graph
-                if (graphsPanel != null && viewType != TABBED){
+                if (graphsPanel != null && viewType != TABBED) {
                     viewType = TABBED;
-                    loadOptions();
-                }else{
+                    loadAlgorithms();
+                } else {
                     viewType = TABBED;
                 }
             }
         });
 
         JRadioButtonMenuItem gridView = new JRadioButtonMenuItem("Grid View");
-        gridView.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e){
+        gridView.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
                 config.setProperty("viewType", "" + GRID);
                 config.save();
                 //If there are graphs running, and the view was changed from something else, reset the graph
-                if (graphsPanel != null && viewType != GRID){
+                if (graphsPanel != null && viewType != GRID) {
                     viewType = GRID;
-                    loadOptions();
-                }else{
+                    loadAlgorithms();
+                } else {
                     viewType = GRID;
                 }
             }
         });
 
         //Set view type from value in config
-        try{
+        try {
             viewType = Integer.parseInt(config.getProperty("viewType"));
-        }catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             viewType = TrustApplet.DEFAULT_VIEW;
         }
 
         //Update the radio buttons to show the view type
-        if (viewType == GRID){
+        if (viewType == GRID) {
             gridView.setSelected(true);
-        }else{
+        } else {
             tabbedView.setSelected(true);
         }
 
         JMenuItem optionsButton = new JMenuItem("Load Algorithms");
-        optionsButton.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e){
-                if (!options.isVisible()){
+        optionsButton.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                if (!options.isVisible()) {
                     options.run();
                 }
             }
@@ -205,7 +206,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
             public void actionPerformed(ActionEvent arg0) {
                 pauseButton.doClick();
-                if (ChatterBox.yesNoDialog("Are you sure you want to exit?")){
+                if (ChatterBox.yesNoDialog("Are you sure you want to exit?")) {
                     System.exit(0);
                 }
             }
@@ -418,17 +419,17 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         //try set the size
         getContentPane().setBounds(0, 0, DEFWIDTH, DEFHEIGHT);
         setJMenuBar(createFileMenu());
-        
+
         setPreferredSize(new Dimension(DEFWIDTH, DEFHEIGHT));
 
         loadingListeners.add(new LoadingBar());
     }
 
-    private void initGraphComponents(){
+    private void initGraphComponents() {
         JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        if (viewType == GRID){
+        if (viewType == GRID) {
             graphsPanel = new JPanel(new GridLayout(2, 3));
-        }else{
+        } else {
             graphsPanel = new JTabbedPane(JTabbedPane.TOP);
         }
         graphsPanel.setBackground(Color.LIGHT_GRAY);
@@ -495,7 +496,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         eventThread.run();
     }
 
-    private void buildViewers(){
+    private void buildViewers() {
         for (LoadingListener l : loadingListeners) {
             l.loadingChanged(5, "Building Visualizer");
         }
@@ -507,18 +508,18 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
         //Create the Visualization Viewers
         int i = 0;
-        for (MyGraph[] graph : graphs){
-            if (graph[FULL].isDisplayed()){
+        for (SimGraph[] graph : graphs) {
+            if (graph[FULL].isDisplayed()) {
                 layout = new FRLayout2<Agent, TestbedEdge>(graph[FULL]);
-                layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH/3, DEFHEIGHT/2)));
-                viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH/3, DEFHEIGHT/2, gm));
+                layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH / 3, DEFHEIGHT / 2)));
+                viewers.add((VisualizationViewer) visualizationViewerBuilder(layout, DEFWIDTH / 3, DEFHEIGHT / 2, gm));
                 viewers.get(i).addMouseListener(graphListener);
                 initSpecialTransformers(viewers.get(i), VertexShapeType.ELLIPSE, VertexShapeType.PENTAGON, VertexShapeType.RECTANGLE, EdgeShapeType.QUAD_CURVE, EdgeShapeType.CUBIC_CURVE, EdgeShapeType.LINE, EdgeShapeType.LINE);
                 viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graph[DYNAMIC]));
                 viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graph[DYNAMIC]));
                 addViewer(viewers.get(i), graph[FULL].toString());
                 for (LoadingListener l : loadingListeners) {
-                    l.loadingProgress(i +1);
+                    l.loadingProgress(i + 1);
                 }
                 i++;
             }
@@ -530,18 +531,17 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         graphsPanel.validate();
     }
 
-    private void addViewer(VisualizationViewer<Agent, TestbedEdge> viewer, String name){
-        if (viewType == TABBED){
-            ((JTabbedPane)graphsPanel).addTab(name, viewer);
-        }else if(viewType == GRID){
+    private void addViewer(VisualizationViewer<Agent, TestbedEdge> viewer, String name) {
+        if (viewType == TABBED) {
+            ((JTabbedPane) graphsPanel).addTab(name, viewer);
+        } else if (viewType == GRID) {
             viewer.setBorder(BorderFactory.createTitledBorder(name));
-            ((JPanel)graphsPanel).add(viewer);
+            ((JPanel) graphsPanel).add(viewer);
         }
-        
+
     }
 
     //[end] Initialization
-
     public List<JMenuItem> getLayoutItems() {
         List<JMenuItem> menuItems = new LinkedList<JMenuItem>();
         JMenuItem kkLayout = new JMenuItem("KK Layout");
@@ -621,7 +621,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
 
     @Override
     public void doRepaint() {
-        for (int i=0 ; i < viewers.size() ; i++){
+        for (int i = 0; i < viewers.size(); i++) {
             viewers.get(i).repaint();
         }
     }
@@ -870,7 +870,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
         }
     }
 
-    public void loadOptions(){
+    public void loadAlgorithms() {
         if (events != null) {
             events.clear();
             eventThread.stopPlayback();
@@ -883,16 +883,16 @@ public class TrustApplet extends JApplet implements EventPlayerListener{
             playbackSlider.setValue(0);
             fastSpeedSlider.setEnabled(false);
         }
-        if (options.getLogFile() != null){
+        if (options.getLogFile() != null) {
             initGraphComponents();
             algs = options.getAlgs();
-            TrustEventLoader logBuilder = new TrustEventLoader(algs);
-            logBuilder.addLoadingListener(new LoadingBar());
-            graphs = logBuilder.getGraphs();
-            events = logBuilder.createList(options.getLogFile());
-            
+            TrustGraphLoader loader = new TrustGraphLoader(algs);
+            loader.addLoadingListener(new LoadingBar());
+            graphs = loader.getGraphs();
+            events = loader.createList(options.getLogFile());
+
             startGraph();
-        }        
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-////////////////////////////////MyTrustGraph//////////////////////////////////
+////////////////////////////////SimTrustGraph//////////////////////////////////
 package trustGrapher.graph;
 
 import cu.repsystestbed.algorithms.TrustAlgorithm;
@@ -15,15 +15,15 @@ import utilities.ChatterBox;
  * Description
  * @author Andrew O'Hara
  */
-public class MyTrustGraph extends MyGraph {
+public class SimTrustGraph extends SimGraph {
     private TrustAlgorithm alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public MyTrustGraph(int id, boolean display) {
+    public SimTrustGraph(int id, boolean display) {
         super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL, id, display);
     }
 
-    public MyTrustGraph(TrustAlgorithm alg, int id, boolean display) {
+    public SimTrustGraph(TrustAlgorithm alg, int id, boolean display) {
         super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC, id, display);
         this.alg = alg;
     }
@@ -63,7 +63,7 @@ public class MyTrustGraph extends MyGraph {
         return new MyTrustEdge(src, sink, id);
     }
 
-    private void feedback(MyTrustGraph referenceGraph) {
+    private void feedback(SimTrustGraph referenceGraph) {
         if (type == FULL){
             ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
@@ -111,13 +111,13 @@ public class MyTrustGraph extends MyGraph {
     }
 
     @Override
-    public void graphEvent(TrustLogEvent gev, boolean forward, MyGraph referenceGraph) {
+    public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph referenceGraph) {
         if (type == FULL) {
             ChatterBox.error(this, "graphEvent()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
         if (forward) {
-            feedback((MyTrustGraph) referenceGraph);
+            feedback((SimTrustGraph) referenceGraph);
         } else {
             unFeedback();
         }
