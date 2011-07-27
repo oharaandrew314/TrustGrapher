@@ -20,16 +20,19 @@ public class Configure extends javax.swing.JFrame {
 
     public static final int NAME = 0, ID = 1, TYPE = 2, DISPLAY = 3, BASE = 4, PATH = 5, MAX_ALGS = 12, MAX_GRAPHS = 6;
     public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm", TRUE = "true";
-    public static final String FALSE = "false", NO_BASE = "none", LOG_PATH = "logPath", ALG_PATH = "algPath";
+    public static final String FALSE = "false", NO_BASE = "none", LOG_PATH = "logPath", CLASS_PATH = "classPath";
     private PropertyManager config;
     private ArrayList<String[]> algs;
+    private ArrayList<String> classes;
     private int visibleGraphs;
     private TrustApplet applet;
     private File logFile;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public Configure(TrustApplet applet) {
+    public Configure(TrustApplet applet, PropertyManager config) {
+        this.config = config;
         algs = new ArrayList<String[]>();
+        classes = new ArrayList<String>();
         visibleGraphs = 0;
         this.applet = applet;
 
@@ -63,6 +66,24 @@ public class Configure extends javax.swing.JFrame {
         return algNames;
     }
 
+    public String getNewKey(String type){
+        for (int i = 0; i < config.getKeys().length + 1; i++) {
+            if (!config.hasKey(type + i)) {
+                return type + i;
+            }
+        }
+        return null;
+    }
+
+    public String formatClassName(String path){
+        if (path.contains("!")){ //Replace the long jar path with "<algName> from <jarName>"
+            path = path.substring(path.lastIndexOf('.') +1, path.length()) + " from " + path.substring(path.lastIndexOf('/') + 1, path.indexOf('!'));
+        }else{
+            path = path.substring(path.lastIndexOf('/') + 1).replace(".class", "");
+        }
+        return path;
+    }
+
     public File getLogFile() {
         return logFile;
     }
@@ -82,7 +103,8 @@ public class Configure extends javax.swing.JFrame {
         config.setProperty(entry[ID], s.split("-")[1]);
     }
 
-    private void updateFields(int index) {
+    private void updateFields() {
+        int index = algList.getSelectedIndex();        
         if (index != -1) { //If an algorithm is selected
             String[] entry = algs.get(index);
 
@@ -110,20 +132,25 @@ public class Configure extends javax.swing.JFrame {
                 }
             }
             saveBaseField();
+
+            //Set the class list
+            classList.removeAllItems();
+            for (String path : classes){
+                classList.addItem(formatClassName(path));
+            }
         }
     }
 
     public void run() {
-        config = new PropertyManager("TrustApplet.properties"); //Open the property manager
-        if (config.getProperty("0") == null) { //If the feedbackHistory graph does not exist, add it
-            config.setProperty("0", FB + ",0," + FB + ",true," + NO_BASE);
+        if (config.getProperty("alg0") == null) { //If the feedbackHistory graph does not exist, add it
+            config.setProperty("alg0", FB + ",alg0," + FB + ",true," + NO_BASE);
         }
 
         //Load the algorithm properties from the properties file
         algs.clear();
         for (int i = 0; i < MAX_ALGS; i++) {
-            if (config.getProperty("" + i) != null) { //Algorithms have keys of integers
-                String[] entry = config.getProperty("" + i).split(","); //Split the property into an entry array
+            if (config.getProperty("alg" + i) != null) { //Algorithms have keys of integers
+                String[] entry = config.getProperty("alg" + i).split(","); //Split the property into an entry array
                 entry[NAME] = i + "-" + entry[NAME]; //Add the key to the name for easy identification
                 algs.add(entry);
                 if (entry[DISPLAY].equals(TRUE)) {
@@ -132,10 +159,16 @@ public class Configure extends javax.swing.JFrame {
             }
         }
         algList.setListData(algNames());
-        algList.setSelectedIndex(0);
-        updateFields(algList.getSelectedIndex());
 
-        //Set the last log to the path field
+        //Load the class properties
+        classes.clear();
+        for (String key : config.getKeys()){
+            if (key.startsWith("class") && !key.contains("Path")){
+                classes.add(config.getProperty(key));
+            }
+        }
+
+        //Set the path field to the last log
         String logPath = config.getProperty(LOG_PATH);
         if (logPath != null) {
             logFile = new File(logPath);
@@ -144,6 +177,8 @@ public class Configure extends javax.swing.JFrame {
             }
         }
 
+        algList.setSelectedIndex(0);
+        updateFields();
         setVisible(true);
     }
 
@@ -191,8 +226,11 @@ public class Configure extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         pathField = new javax.swing.JTextField();
         loadButton = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        classList = new javax.swing.JComboBox();
+        addClassButton = new javax.swing.JButton();
+        removeClassButton = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Algorithm Configuration");
 
         okButton.setText("OK");
@@ -280,6 +318,24 @@ public class Configure extends javax.swing.JFrame {
             }
         });
 
+        jLabel7.setText("Classes:");
+
+        classList.setMaximumSize(new java.awt.Dimension(41, 28));
+
+        addClassButton.setText("Add");
+        addClassButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addClassButtonActionPerformed(evt);
+            }
+        });
+
+        removeClassButton.setText("Remove");
+        removeClassButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeClassButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -289,37 +345,37 @@ public class Configure extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 530, Short.MAX_VALUE)
+                            .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 524, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(addButton)
                                         .addGap(18, 18, 18)
                                         .addComponent(removeButton)))
-                                .addGap(12, 12, 12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(12, 12, 12)
+                                        .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(displayField)
                                             .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel2)
                                                 .addGap(18, 18, 18)
-                                                .addComponent(baseField, 0, 238, Short.MAX_VALUE))
+                                                .addComponent(baseField, 0, 230, Short.MAX_VALUE))
                                             .addComponent(jLabel3)
                                             .addComponent(jLabel5)
                                             .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel4)
                                                 .addGap(38, 38, 38)
-                                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
+                                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 219, Short.MAX_VALUE)
                                                 .addGap(11, 11, 11))))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(61, 61, 61)
-                                        .addComponent(typeField))))))
+                                        .addGap(88, 88, 88)
+                                        .addComponent(typeField))))
+                            .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 524, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(191, 191, 191)
                         .addComponent(applyButton)
@@ -328,15 +384,24 @@ public class Configure extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(cancelButton))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jSeparator3, javax.swing.GroupLayout.DEFAULT_SIZE, 530, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(15, 15, 15)
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pathField, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(classList, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGap(15, 15, 15)
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(pathField, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(loadButton)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(addClassButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(removeClassButton))
+                            .addComponent(loadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -344,26 +409,23 @@ public class Configure extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(loadButton)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel6)
-                        .addComponent(pathField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pathField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(loadButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(classList, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(addClassButton)
+                    .addComponent(removeClassButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(addButton)
-                            .addComponent(removeButton)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(typeField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(displayField)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -376,7 +438,16 @@ public class Configure extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel5)))
+                        .addComponent(jLabel5))
+                    .addComponent(jSeparator1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(addButton)
+                            .addComponent(removeButton))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -392,69 +463,51 @@ public class Configure extends javax.swing.JFrame {
 
     private void algListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_algListValueChanged
         if (algList.getSelectedIndex() != -1) {
-            updateFields(algList.getSelectedIndex());
+            updateFields();
         }
     }//GEN-LAST:event_algListValueChanged
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        //Find a new key for the algorithm
-        int newKey = -1;
-        for (int i = 1; i < MAX_ALGS + 1; i++) {
-            if (!config.hasKey("" + i)) {
-                newKey = i;
+        String[] options = new String[classes.size()];
+        for (int i=0 ; i<classes.size() ; i++){
+            options[i] = formatClassName(classes.get(i));
+        }
+        String path = null;
+        String temp = ChatterBox.selectionPane("Question", "Which class would you like to load?", options);
+        for (int i=0 ; i<options.length ; i++){
+            if (options[i].equals(temp)){
+                path = classes.get(i);
                 break;
             }
         }
-        if (newKey == -1) {
-            ChatterBox.alert("You cannot have more than " + MAX_ALGS + " algorithms at one time.");
+        if (path == null){
             return;
+        }
+        Object o = null;
+        if (path.contains("!")){ //If it is a jar
+            File file = new File(path.split("!")[0]);
+            String name = path.split("!")[1];
+            o = BitStylus.classInstance( (Class) BitStylus.loadJarClass(file, name)[0]);
+        }else{//Otherwise, it must be a class
+            o = BitStylus.classInstance(BitStylus.loadClass(new File(path)));
         }
 
-        //Load the object
-        String path = config.getProperty(ALG_PATH);
-        File directory = null;
-        if (path != null) {
-            directory = new File(path);
-        }
-        File classFile = BitStylus.chooseFile("Choose an algorithm to load", directory, ".class files only", new String[]{"class"});
-        if (classFile == null) {
-            return;
-        }
-        config.setProperty(ALG_PATH, classFile.getParent());
-        Object o = BitStylus.classInstance(BitStylus.loadClass(classFile));
-        if (o != null) {
-            config.setProperty(ALG_PATH, classFile.getParentFile().getPath());
-        } else {
-            return;
-        }
         String type = null;
-        if (o instanceof ReputationAlgorithm) {
+        if (o instanceof ReputationAlgorithm){
             type = REP;
-        } else if (o instanceof TrustAlgorithm) {
-            //Find out if there are any existing Reputation Algorithms
-            //If there aren't any, then you can't add this Trust Algorithm
-            boolean none = true;
-            for (String[] entry : algs) {
-                if (entry[TYPE].equals(REP)) {
-                    none = false;
-                    break;
-                }
-            }
-            if (none) {
-                ChatterBox.alert("You must have an existing Reputation\nAlgorithm to add a Trust Algorithm.");
-                return;
-            }
+        }else if (o instanceof TrustAlgorithm){
             type = TRUST;
-        } else {
-            ChatterBox.debug(this, "addButtonActionperformed()", "The file was not a recognized algorithm.");
+        }else{
+            ChatterBox.debug(this, "addButtonActionperformed()", "The class was not a supported algorithm");
             return;
         }
 
-        String string = o.getClass().getSimpleName() + "," + newKey + "," + type + "," + FALSE + "," + NO_BASE + "," + classFile.getPath();
+        String newKey = getNewKey("alg");
+        String string = o.getClass().getSimpleName() + "," + newKey + "," + type + "," + FALSE + "," + NO_BASE + "," + path;
         String[] entry = string.split(",");
         entry[NAME] = newKey + "-" + entry[NAME];
         algs.add(entry);
-        config.setProperty("" + newKey, string);
+        config.setProperty(newKey, string);
         algList.setListData(algNames());
         algList.setSelectedIndex(algList.getLastVisibleIndex());
     }//GEN-LAST:event_addButtonActionPerformed
@@ -531,12 +584,66 @@ public class Configure extends javax.swing.JFrame {
             config.setProperty(LOG_PATH, logFile.getPath());
         }
     }//GEN-LAST:event_loadButtonActionPerformed
+
+    private void addClassButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addClassButtonActionPerformed
+       //Find the class or jar file
+        String path = config.getProperty(CLASS_PATH);
+        File directory = null;
+        if (path != null) {
+            directory = new File(path);
+        }
+        File file = BitStylus.chooseFile("Choose an algorithm to load", directory, ".class and .jar files only", new String[]{"class", "jar"});
+        if (file == null) {
+            return;
+        }
+        config.setProperty(CLASS_PATH, file.getParent());
+
+        //Load the object
+        Object o = null;
+        try{
+            if (file.getPath().endsWith(".class")){  //If it's a class file
+                o = BitStylus.classInstance(BitStylus.loadClass(file));
+                config.setProperty(getNewKey("class"), file.getPath());
+                classes.add(file.getPath());
+            }
+            else{ //Otherwise, it's a jar file.  This is ensured by the file filter
+                Object[] temp = BitStylus.loadJarClass(file);
+                o = BitStylus.classInstance((Class) temp[0]);
+                String name = (String) temp[1];
+                config.setProperty(getNewKey("class"), file.getPath() + "!" + name);
+                classes.add(file.getPath() + "!" + name);
+            }
+        }catch(NullPointerException ex){
+            ex.printStackTrace();
+        }
+        
+        if (!(o instanceof ReputationAlgorithm) && !(o instanceof TrustAlgorithm)){
+            ChatterBox.debug(this, "addClassButtonActionperformed()", "The file was not a recognized algorithm.");
+        }
+
+        updateFields();
+        classList.setSelectedIndex(classList.getItemCount() - 1);
+    }//GEN-LAST:event_addClassButtonActionPerformed
+
+    private void removeClassButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeClassButtonActionPerformed
+        if (ChatterBox.yesNoDialog("Are you sure you want to remove this class?")){
+            int index = classList.getSelectedIndex();
+            classes.remove(index);
+            config.removeProperty("class" + index);
+            classList.removeItemAt(index);
+            
+            //TODO remove algorithms that depend on this
+        }
+    }//GEN-LAST:event_removeClassButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
+    private javax.swing.JButton addClassButton;
     private javax.swing.JList algList;
     private javax.swing.JButton applyButton;
     private javax.swing.JComboBox baseField;
     private javax.swing.JButton cancelButton;
+    private javax.swing.JComboBox classList;
     private javax.swing.JCheckBox displayField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -544,6 +651,7 @@ public class Configure extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
@@ -553,6 +661,7 @@ public class Configure extends javax.swing.JFrame {
     private javax.swing.JButton okButton;
     private javax.swing.JTextField pathField;
     private javax.swing.JButton removeButton;
+    private javax.swing.JButton removeClassButton;
     private javax.swing.JLabel typeField;
     private javax.swing.JTextPane userField;
     // End of variables declaration//GEN-END:variables

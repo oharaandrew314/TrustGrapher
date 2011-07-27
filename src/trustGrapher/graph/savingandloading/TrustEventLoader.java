@@ -35,6 +35,7 @@ public class TrustEventLoader {
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustEventLoader(ArrayList<String[]> algs) {
         graphs = new ArrayList<MyGraph[]>();
+        loadingListeners = new ArrayList<LoadingListener>();
 
         //Build the graphs
         ArrayList<String[]> trustAlgs = new ArrayList<String[]>();
@@ -86,7 +87,7 @@ public class TrustEventLoader {
 
     private void addReputationGraph(String[] entry, boolean display){
         MyGraph[] graphSet = new MyGraph[2];
-        int id = Integer.parseInt(entry[Configure.ID]);
+        int id = Integer.parseInt(entry[Configure.ID].replace("alg", ""));
         
         ReputationAlgorithm dynEigenAlg = (ReputationAlgorithm) newAlgorithm(entry[Configure.PATH]);
         ReputationAlgorithm fulEigenAlg = (ReputationAlgorithm) newAlgorithm(entry[Configure.PATH]);
@@ -102,7 +103,7 @@ public class TrustEventLoader {
 
     private void addTrustGraph(String[] entry, boolean display){
         MyGraph[] graphSet = new MyGraph[2];
-        int id = Integer.parseInt(entry[Configure.ID]);
+        int id = Integer.parseInt(entry[Configure.ID].replace("alg", ""));
 
         TrustAlgorithm dynRankAlg = (TrustAlgorithm) newAlgorithm(entry[Configure.PATH]);
         TrustAlgorithm fulRankAlg = (TrustAlgorithm) newAlgorithm(entry[Configure.PATH]);
@@ -133,8 +134,13 @@ public class TrustEventLoader {
     }
 
     private Object newAlgorithm(String path){
-        File file = new File(path);
-        return BitStylus.classInstance(BitStylus.loadClass(file));
+        if (path.contains("!")){ //If it is a jar
+            File file = new File(path.split("!")[0]);
+            String name = path.split("!")[1];
+            return BitStylus.classInstance( (Class) BitStylus.loadJarClass(file, name)[0]);
+        }else{//Otherwise, it must be a class
+            return BitStylus.classInstance(BitStylus.loadClass(new File(path)));
+        }      
     }
     
     public LinkedList<TrustLogEvent> createList(File logFile) {

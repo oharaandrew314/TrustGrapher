@@ -2,12 +2,14 @@
 High Priority:
 --------------
 
-Make algorithm loader also find algorithms in the current jar
+Fine-tune external jar loading
+Properties file for each algorithm
 
 -------------
 Low Priority:
 ------------
 
+Property loader class?
 Remove time and start and end events on log window
 Add graphic buttons for the playback bar
 Fix Spring layout button
