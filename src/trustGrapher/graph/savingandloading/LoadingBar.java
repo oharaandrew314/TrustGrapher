@@ -1,28 +1,15 @@
 package trustGrapher.graph.savingandloading;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.GridLayout;
 
 import javax.swing.JDialog;
 import javax.swing.JProgressBar;
-import utilities.ChatterBox;
 
-public class LoadingBar extends JDialog implements LoadingListener {
+public class LoadingBar extends JDialog {
 
-    private static final long serialVersionUID = 1L;
     JProgressBar progressBar;
-
-    public LoadingBar(Component parent) {
-        setTitle("Loading...");
-
-        setBounds(parent.getWidth() / 2 - 125, parent.getHeight() / 2 - 50, 250, 100);
-        setResizable(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        setBackground(Color.BLACK);
-    }
 
     public LoadingBar() {
         setTitle("Loading...");
@@ -38,45 +25,30 @@ public class LoadingBar extends JDialog implements LoadingListener {
         add(progressBar);
     }
 
-    @Override
     public void loadingStarted(int numberLines, String whatIsLoading) {
+        setTitle("Loading " + whatIsLoading + "...");
         progressBar.setMinimum(0);
         progressBar.setMaximum(numberLines);
         progressBar.setName(whatIsLoading);
         progressBar.setValue(0);
         progressBar.setString(whatIsLoading + ": 0%");
         progressBar.setStringPainted(true);
-
-        //add(progressBar);
         setVisible(true);
 
     }
 
-    @Override
     public void loadingProgress(int lineNumber) {
         progressBar.setValue(lineNumber);
         progressBar.setString((String.format(progressBar.getName() + ": %.3g%n", progressBar.getPercentComplete() * 100)) + "%");
     }
 
-    public void loadingProgress(){
+    public void loadingProgress() {
         loadingProgress(progressBar.getValue() + 1);
     }
 
-    @Override
     public void loadingComplete() {
         setVisible(false);
 
-    }
-
-    @Override
-    @Deprecated
-    public void loadingChanged(int numberLines, String whatIsLoading) {
-        ChatterBox.alert("loadingChanged was called.");
-//        setTitle("Loading " + whatIsLoading + "...");
-//        progressBar.setMaximum(numberLines);
-//        progressBar.setValue(0);
-//        progressBar.setName(whatIsLoading);
-//        progressBar.setString(whatIsLoading + ": 0%");
     }
 
     public static void main(String[] args) {
@@ -87,7 +59,7 @@ public class LoadingBar extends JDialog implements LoadingListener {
         for (int i = 0; i < size; i++) {
             test.loadingProgress(i);
         }
-        test.loadingChanged(size * 5, "Test 2");
+        test.loadingStarted(size * 5, "Test 2");
         for (int i = 0; i < size * 5; i++) {
             test.loadingProgress(i);
         }

@@ -30,52 +30,61 @@ import java.util.List;
 import java.util.ArrayList;
 
 import utilities.ChatterBox;
-import utilities.PropertyManager;
 
 /**
  *
- * an applet that will display a graph using a spring layout, and as the graph changes the layout is updated.
+ * An applet that will display Trust Graphs generated from a series of feedback events.
+ * Multiple graphs can be viewed in different layouts and viewing modes
+ * The events can be "played" forward and backward, and the graph will change to display its state at every event
  * @author Alan
  * @author Matt
  * @author Andrew O'Hara
  */
 public class TrustApplet extends JApplet implements EventPlayerListener {
-    //default size for the swing graphic components
 
-    public static final int DEFWIDTH = 1360, DEFHEIGHT = 768;
+    public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
+    //Each of the viewers in this pane is a component which displays a graph
     private ArrayList<VisualizationViewer<Agent, TestbedEdge>> viewers;
     private AbstractLayout<Agent, TestbedEdge> layout = null;
     private LinkedList<TrustLogEvent> events;
-    private ArrayList<String[]> algs;
-    private ArrayList<SimGraph[]> graphs;//addition = 0, eigen rep = 1, rankbased rep = 2, eigen trust = 3, rank based trust = 4;
-    public static final int DYNAMIC = 0, FULL = 1;
-    private Integer viewType; //The way that the graphs are displayed
+    private ArrayList<SimGraph[]> graphs;  //Each element is an array containing a hidden and dynamic graph
+    //The dynamic graph is not shown, but components in the full graph will only be displayed if they exist in the dynamic graph.
+    //As events occur, they are added to the dynamic graphs through the graphEvent() method.
+    public static final int DYNAMIC = 0;
+    //The full graph is the one that is shown, but all vertices and edges that are ever shown must be on the graph before the events start playing
+    //The graphConstructionEvent() method is used as the events are parsed to add all components to the graph
+    public static final int FULL = 1;
+    private Integer viewType; //Keeps track of which graph view to use
     public static final Integer TABBED = 0, GRID = 1, DEFAULT_VIEW = TABBED;
-    private PropertyManager config;
+    //This PropertyManager keeps track of all class paths, all algorithms, what viewType to use, etc.
+    private TrustPropertyManager config;
     private LoadingBar loadingBar;
     protected JTable logList;
     protected JButton fastForwardButton, forwardButton, pauseButton, reverseButton, fastReverseButton;
     protected JSlider fastSpeedSlider, playbackSlider;
-    protected JPopupMenu mouseContext;
+    protected JPopupMenu rightClickMenu;
     protected TrustEventPlayer eventThread;
+    //This container holds all of the viewers
     private Container graphsPanel;
+    //When a right-click is done, the viewer that it was done in will be held here.  Useful to know which graph to change the layout for
     private VisualizationViewer currentViewer;
+    //This JFrame is used to configure which algorithms to load, what graphs are using what algorithms, and what graphs to display.
+    //It saves all of the configurations to TrustPropertyManager config
     public final AlgorithmLoader options;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
-
         loadingBar = new LoadingBar();
-        config = new PropertyManager("TrustApplet.properties");
+        config = new TrustPropertyManager("TrustApplet.properties");
         options = new AlgorithmLoader(this, config);
 
-        //Initializes basic frame components.  The rest are started when a graph is loader
+        //Initializes basic frame components.  The rest are started when a graph is loaded
         getContentPane().setFont(new Font("Arial", Font.PLAIN, 12));
         getContentPane().setBounds(0, 0, DEFWIDTH, DEFHEIGHT);
         setPreferredSize(new Dimension(DEFWIDTH, DEFHEIGHT));
         setJMenuBar(createFileMenu());
 
-        //start();
+        //start();  //Dunno if this is needed or not?
         JFrame frame = new JFrame("Trust Grapher - Written by Andrew O'Hara");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -206,7 +215,10 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         exit.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
-                pauseButton.doClick();
+                try {
+                    pauseButton.doClick();
+                } catch (NullPointerException ex) {
+                }
                 if (ChatterBox.yesNoDialog("Are you sure you want to exit?")) {
                     System.exit(0);
                 }
@@ -273,7 +285,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
             if (evt.getAssessor() != -1) { //If the event isn't a start or end event
                 table[i] = evt.toArray();
                 loadingBar.loadingProgress(i++);
-                ChatterBox.alert("lol");
             }
         }
         Object[] titles = {"Assessor", "Assessee", "Feedback"};
@@ -374,18 +385,18 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
     }
 
     private void initializeMouseContext(final DefaultModalGraphMouse<Agent, TestbedEdge> gm) {
-        mouseContext = new JPopupMenu("Mouse Mode");
+        rightClickMenu = new JPopupMenu("Mouse Mode");
         JMenuItem picking = new JMenuItem("Picking");
         picking.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
                 gm.setMode(Mode.PICKING);
-                int size = mouseContext.getComponentCount();
+                int size = rightClickMenu.getComponentCount();
                 for (int i = size - 1; i > 4; i--) {
-                    mouseContext.remove(i);
+                    rightClickMenu.remove(i);
                 }
-                mouseContext.setVisible(false);
-                mouseContext.setEnabled(false);
+                rightClickMenu.setVisible(false);
+                rightClickMenu.setEnabled(false);
             }
         });
 
@@ -394,19 +405,19 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
 
             public void actionPerformed(ActionEvent e) {
                 gm.setMode(Mode.TRANSFORMING);
-                int size = mouseContext.getComponentCount();
+                int size = rightClickMenu.getComponentCount();
                 for (int i = size - 1; i > 4; i--) {
-                    mouseContext.remove(i);
+                    rightClickMenu.remove(i);
                 }
-                mouseContext.setVisible(false);
-                mouseContext.setEnabled(false);
+                rightClickMenu.setVisible(false);
+                rightClickMenu.setEnabled(false);
             }
         });
-        mouseContext.add("Mouse Mode:").setEnabled(false);
-        mouseContext.add(picking);
-        mouseContext.add(transforming);
-        mouseContext.addSeparator();
-        mouseContext.add("Set Layout:").setEnabled(false);
+        rightClickMenu.add("Mouse Mode:").setEnabled(false);
+        rightClickMenu.add(picking);
+        rightClickMenu.add(transforming);
+        rightClickMenu.addSeparator();
+        rightClickMenu.add("Set Layout:").setEnabled(false);
     }
     //[end] Create Components
 
@@ -431,6 +442,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
      * Once a graph has been loaded, build the viewing panes and start the graph
      */
     public void startGraph() {
+        pauseButton.doClick();
         loadingBar.loadingStarted(graphs.size(), "Building Visualizer");
 
         //Build all the viewing panes
@@ -438,7 +450,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         GraphMouseListener graphListener = new GraphMouseListener();
         initializeMouseContext(gm);
         graphsPanel.removeAll();
-        viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();        
+        viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();
 
         //Create the Visualization Viewers
         int i = 0;
@@ -454,7 +466,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
                 addViewer(viewers.get(i), graph[FULL].toString());
                 loadingBar.loadingProgress(i++);
             }
-        }        
+        }
         graphsPanel.validate();
 
         if (events.isEmpty()) {
@@ -608,17 +620,17 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
             currentViewer = (VisualizationViewer) e.getComponent();
             if (e.isPopupTrigger()) {
                 for (JMenuItem item : getLayoutItems()) {
-                    mouseContext.add(item);
+                    rightClickMenu.add(item);
                 }
-                mouseContext.setEnabled(true);
-                mouseContext.show(null, e.getXOnScreen(), e.getYOnScreen());
-            } else if (mouseContext.isVisible()) {
-                int size = mouseContext.getComponentCount();
+                rightClickMenu.setEnabled(true);
+                rightClickMenu.show(null, e.getXOnScreen(), e.getYOnScreen());
+            } else if (rightClickMenu.isVisible()) {
+                int size = rightClickMenu.getComponentCount();
                 for (int i = size - 1; i > 4; i--) {
-                    mouseContext.remove(i);
+                    rightClickMenu.remove(i);
                 }
-                mouseContext.setVisible(false);
-                mouseContext.setEnabled(false);
+                rightClickMenu.setVisible(false);
+                rightClickMenu.setEnabled(false);
             }
         }
     }
@@ -730,11 +742,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         public void actionPerformed(ActionEvent e) {
             AbstractLayout<Agent, TestbedEdge> graphLayout = new FRLayout<Agent, TestbedEdge>(graphs.get(viewers.indexOf(currentViewer))[FULL], vv.getSize());
             vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
+            rightClickMenu.setVisible(false);
+            rightClickMenu.setEnabled(false);
+            int size = rightClickMenu.getComponentCount();
             for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
+                rightClickMenu.remove(i);
             }
             graphLayout.lock(true);
         }
@@ -752,11 +764,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         public void actionPerformed(ActionEvent e) {
             AbstractLayout<Agent, TestbedEdge> graphLayout = new ISOMLayout<Agent, TestbedEdge>(graphs.get(viewers.indexOf(currentViewer))[FULL]);
             vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
+            rightClickMenu.setVisible(false);
+            rightClickMenu.setEnabled(false);
+            int size = rightClickMenu.getComponentCount();
             for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
+                rightClickMenu.remove(i);
             }
             graphLayout.lock(true);
         }
@@ -774,11 +786,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         public void actionPerformed(ActionEvent e) {
             AbstractLayout<Agent, TestbedEdge> graphLayout = new KKLayout<Agent, TestbedEdge>(graphs.get(viewers.indexOf(currentViewer))[FULL]);
             vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
+            rightClickMenu.setVisible(false);
+            rightClickMenu.setEnabled(false);
+            int size = rightClickMenu.getComponentCount();
             for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
+                rightClickMenu.remove(i);
             }
             graphLayout.lock(true);
         }
@@ -796,18 +808,18 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         public void actionPerformed(ActionEvent e) {
             AbstractLayout<Agent, TestbedEdge> graphLayout = new CircleLayout<Agent, TestbedEdge>(graphs.get(viewers.indexOf(currentViewer))[FULL]);
             vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
+            rightClickMenu.setVisible(false);
+            rightClickMenu.setEnabled(false);
+            int size = rightClickMenu.getComponentCount();
             for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
+                rightClickMenu.remove(i);
             }
             graphLayout.lock(true);
         }
     }
 
     public void loadAlgorithms() {
-        if (options.getLogFile() != null) {
+        if (config.containsKey(AlgorithmLoader.LOG_PATH)) {
             if (events != null) {
                 events.clear();
                 eventThread.stopPlayback();
@@ -820,13 +832,11 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
                 playbackSlider.setValue(0);
                 fastSpeedSlider.setEnabled(false);
             }
-        
+
             initGraphComponents();
-            algs = options.getAlgs();
-            TrustGraphLoader graphLoader = new TrustGraphLoader(algs, loadingBar);
+            TrustGraphLoader graphLoader = new TrustGraphLoader(config, loadingBar);
             graphs = graphLoader.getGraphs();
             events = graphLoader.createList(options.getLogFile());
-
             startGraph();
         }
     }

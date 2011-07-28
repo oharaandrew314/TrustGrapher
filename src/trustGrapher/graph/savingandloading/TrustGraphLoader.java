@@ -30,37 +30,49 @@ public class TrustGraphLoader {
     private LoadingBar loadingBar;
     private LinkedList<TrustLogEvent> logEvents;
     private ArrayList<SimGraph[]> graphs;
+    private TrustPropertyManager config;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustGraphLoader(ArrayList<String[]> algs, LoadingBar l) {
+    public TrustGraphLoader(TrustPropertyManager config, LoadingBar l) {
         graphs = new ArrayList<SimGraph[]>();
+        this.config = config;
         this.loadingBar = l;
+       
+        loadingBar.loadingStarted(config.getAlgs().size(), "graphs");
+        ArrayList<Integer> trustAlgs = new ArrayList<Integer>();
 
-        //Build the graphs
+        //Finds the property indices that have algorithms
+        ArrayList<Integer> indices = new ArrayList<Integer>();
+        for (int i = 0 ; i <= AlgorithmLoader.MAX_ALGS ; i++){
+            if (config.containsKey("alg" + i)){
+                indices.add(i);
+            }
+        }
         int i=0;
-        loadingBar.loadingStarted(algs.size(), "graphs");
-        ArrayList<String[]> trustAlgs = new ArrayList<String[]>();
-        for (String[] entry : algs){
+        //Build the graphs
+        for (Object index : indices){
+            String[] entry = config.getAlg((Integer) index);
             boolean display = (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)) ? true : false;
             if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.FB)){
                 addFeedbackGraph(display);
                 i++;
             }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.REP)){
-                addReputationGraph(entry, display);
+                addReputationGraph(entry, (Integer) index, display);
                 i++;
             }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.TRUST)){
-                trustAlgs.add(entry);
+                trustAlgs.add((Integer) index);
             }else{
                 ChatterBox.error("TrustEventLoader", "TrustEventLoader()", "Uncaught graph type.");
             }
             loadingBar.loadingProgress(i);            
         }
-        for (String[] entry : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
+        for (Integer index : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
+            String[] entry = config.getAlg(index);
             boolean display = false;
             if (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)){
                 display = true;
             }
-            addTrustGraph(entry, display);
+            addTrustGraph(entry, (Integer) index, display);
             i++;
             loadingBar.loadingProgress(i);
         }
@@ -82,9 +94,8 @@ public class TrustGraphLoader {
         graphs.add(graphSet.clone());
     }
 
-    private void addReputationGraph(String[] entry, boolean display){
+    private void addReputationGraph(String[] entry, int index, boolean display){
         SimGraph[] graphSet = new SimGraph[2];
-        int id = Integer.parseInt(entry[AlgorithmLoader.ID].replace("alg", ""));
         
         ReputationAlgorithm dynEigenAlg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
         ReputationAlgorithm fulEigenAlg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
@@ -92,14 +103,13 @@ public class TrustGraphLoader {
         ((FeedbackHistoryGraph)getBase(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(dynEigenAlg); //The algorithm will then add the graphs
         ((FeedbackHistoryGraph)getBase(FULL, entry[AlgorithmLoader.BASE])).addObserver(fulEigenAlg);
 
-        graphSet[FULL] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[FULL], id, display); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, id, display);
+        graphSet[FULL] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[FULL], index, display); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, index, display);
         graphs.add(graphSet.clone());
     }
 
-    private void addTrustGraph(String[] entry, boolean display){
+    private void addTrustGraph(String[] entry, int index, boolean display){
         SimGraph[] graphSet = new SimGraph[2];
-        int id = Integer.parseInt(entry[AlgorithmLoader.ID].replace("alg", ""));
 
         TrustAlgorithm dynRankAlg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
         TrustAlgorithm fulRankAlg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
@@ -107,8 +117,8 @@ public class TrustGraphLoader {
         ((ReputationGraph) getBase(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(dynRankAlg); //The algorithm will then add the graphs
         ((ReputationGraph) getBase(FULL, entry[AlgorithmLoader.BASE])).addObserver(fulRankAlg);
 
-        graphSet[FULL] = new SimTrustGraph(id, display);
-        graphSet[DYNAMIC] = new SimTrustGraph(dynRankAlg, id, display);
+        graphSet[FULL] = new SimTrustGraph(index, display);
+        graphSet[DYNAMIC] = new SimTrustGraph(dynRankAlg, index, display);
         graphs.add(graphSet.clone());
     }
 

@@ -48,20 +48,22 @@ This is as far as I can go with the major additions/changes until Parthy gives m
 
     Build 35
 Tweaked the Loading Bar and optimized some code
-Removed Spring Layout since it invoked graph methods incompatible with the JGrapht graph
-Commit prior to AlgorithmLoader proeprty rewrite
+Removed Spring Layout since there was a bug where it invoked graph methods incompatible with the JGrapht graph
+Commit prior to AlgorithmLoader property rewrite
 
+    Build 36
+The PropertyManager class is now a Properties extension rather than a wrapper.  The constructor still takes care of loading an exisitng properties file for you
+Updated My Java Library to make it more robust
+Massive revision to algorithm loader to remove two heavily used fields in favor of the properties file
+Fixed a bug where the loading bar would not dissapear if another graph was loaded, or the view was changed while the graph was playing
 
 -----
 To Do
 -----
 
     High Priority
-
+JavaDocs!!!
 
     Low Priority
-JavaDocs!!!
-Remove the fields in AlgorithmLoader than can be replaced by the properties file
-Change the base property to a key rather than index
 Add graphic buttons for the playback bar
 Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
