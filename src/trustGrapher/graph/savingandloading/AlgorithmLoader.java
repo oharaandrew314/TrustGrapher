@@ -138,8 +138,8 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             } else {
                 propertiesField.setText(new File(entry[CONFIG]).getName());
             }
-            choosePropertiesButton.setEnabled(index == 0 ? false : true);
-            removePropertyButton.setEnabled(index == 0 ? false : true);
+            choosePropertiesButton.setEnabled(entry[TYPE].equals(FB) ? false : true);
+            removePropertyButton.setEnabled(entry[TYPE].equals(FB) ? false : true);
         }
     }
 
@@ -164,9 +164,9 @@ public class AlgorithmLoader extends javax.swing.JFrame {
 
         //Load the class properties
         classes.clear();
-        for (String key : config.getKeys()) {
-            if (key.startsWith("class") && !key.contains("Path")) {
-                classes.add(config.getProperty(key));
+        for (int i=0 ; i < config.getKeys().length ; i++){
+            if (config.hasKey("class" + i)){
+                classes.add(config.getProperty("class" + i));
             }
         }
 
@@ -650,7 +650,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             classes.add(file.getPath());
         } else { //Otherwise, it's a jar file.  This is ensured by the file filter
             config.setProperty(getNewKey("class"), file.getPath() + "!" + o.getClass().getName());
-            classes.add(file.getPath() + "!" + o.getClass().getSimpleName());
+            classes.add(file.getPath() + "!" + o.getClass().getName());
         }
 
         updateFields();
@@ -667,9 +667,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                 return;
             }
         }
-        if (ChatterBox.yesNoDialog("Are you sure you want to remove " + classList.getSelectedItem() + "?")) {
-            classes.remove(index);
+        ChatterBox.alert(index + " " + classes.get(index));
+        ChatterBox.alert("Property is\n" + config.getProperty("class" + index));
+        if (ChatterBox.yesNoDialog("Are you sure you want to remove " + classList.getItemAt(index) + "?")) {
             config.removeProperty("class" + index);
+            classes.remove(index);
             classList.removeItemAt(index);
 
             updateFields();

@@ -220,18 +220,28 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
 
         //[start] View Menu
         JMenu view = new JMenu("View");
-        JMenuItem logTable = new JMenuItem("Show Log Table");
+        JMenuItem logTable = new JMenuItem("Toggle Log Table");
         logTable.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
-                if (events != null) { //graph has been initialized
-                    JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-                    p.setResizeWeight(1);
-                    p.add(getContentPane().getComponent(0));
-                    p.add(initializeLogList(events));
+                if (events != null){ //graph has been initialized
+                    Component c = ((JSplitPane)getContentPane().getComponent(0)).getRightComponent();
+                    String s = c.getName() != null ? c.getName() : "";
+                    if (!s.equals("Log Events")) { //The log events window doesn't exist yet, so add it
+                        JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+                        p.setResizeWeight(1);
+                        p.add(getContentPane().getComponent(0));
+                        p.add(initializeLogList(events));
+                        p.setDividerSize(3);
 
-                    getContentPane().add(p);
-                    validate();
+                        getContentPane().add(p);
+                        validate();
+                    }else if (s.equals("Log Events")){ //The log events window exists, so remove it
+                        JSplitPane p = (JSplitPane) ((JSplitPane)getContentPane().getComponent(0)).getLeftComponent();
+                        getContentPane().removeAll();
+                        getContentPane().add(p);
+                        validate();
+                    }
                 }
             }
         });
@@ -259,16 +269,18 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
             l.loadingStarted(logEvents.size(), "Log List");
         }
 
-        Object[][] table = new Object[logEvents.size()][4];
+        Object[][] table = new Object[logEvents.size() - 1][3];
         int i = 0;
         for (TrustLogEvent evt : logEvents) {
-            table[i] = evt.toArray();
-            i++;
-            for (LoadingListener l : loadingListeners) {
-                l.loadingProgress(i);
+            if (evt.getAssessor() != -1){ //If the event isn't a start or end event
+                table[i] = evt.toArray();
+                i++;
+                for (LoadingListener l : loadingListeners) {
+                    l.loadingProgress(i);
+                }
             }
         }
-        Object[] titles = {"Time (ms)", "Assessor", "Assessee", "Feedback"};
+        Object[] titles = {"Assessor", "Assessee", "Feedback"};
 
 
         logList = new JTable(table, titles);
@@ -291,7 +303,9 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
 
         JPanel tablePanel = new JPanel(new GridLayout(1, 1));
         tablePanel.add(listScroller);
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Log Events"));
+        tablePanel.setName("Log Events");
+        tablePanel.setBorder(BorderFactory.createTitledBorder(tablePanel.getName()));
+        
 
         for (LoadingListener l : loadingListeners) {
             l.loadingComplete();
@@ -436,6 +450,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         mainPane.setResizeWeight(1);
         mainPane.add(graphsPanel);
         mainPane.add(initializeSouthPanel());
+        mainPane.setDividerSize(3);
         getContentPane().removeAll();
         getContentPane().add(mainPane);
         validate();

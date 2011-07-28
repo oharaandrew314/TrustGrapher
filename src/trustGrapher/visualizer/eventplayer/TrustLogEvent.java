@@ -70,7 +70,7 @@ public class TrustLogEvent implements Comparable<TrustLogEvent> {
     }
 
     public Object[] toArray() {
-        Object[] array = {(new Long(time)), (new Integer(assessor)), (new Integer(assessee)), feedback};
+        Object[] array = {(new Integer(assessor)), (new Integer(assessee)), feedback};
         return array;
     }
 

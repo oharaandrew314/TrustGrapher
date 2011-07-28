@@ -14,20 +14,18 @@ public class TrustClassLoader extends utilities.MyClassLoader {
 ////////////////////////////////Static Methods//////////////////////////////////
     public static Object newAlgorithm(String classPath) {
         Object o = newClass(classPath);
-        if ((o instanceof ReputationAlgorithm) || (o instanceof TrustAlgorithm)) {
+        if ((o instanceof ReputationAlgorithm) || (o instanceof TrustAlgorithm) || classPath.endsWith(".jar")) {
             return o;
         }
-        ChatterBox.alert("The file was not a recognized algorithm.\n" + classPath);
+        ChatterBox.error("TrustClassLoader", "newAlgorithm()", "The file was not a recognized algorithm.\n" + classPath);
         return null;
     }
 
     public static String formatClassName(String path) {
-        if (path.contains("!")) { //Replace the long jar path with "<algName> from <jarName>"
-            path = path.substring(path.lastIndexOf('.') + 1, path.length()) + " from " + path.substring(path.lastIndexOf('/') + 1, path.indexOf('!'));
-        } else {
-            path = path.substring(path.lastIndexOf('/') + 1).replace(".class", "");
-        }
-        return path;
+        //if it is a .jar, the name appears after the last '.'
+        //Otherwise, it is a .class, and the name will appear after the last '/'
+        char startChar = path.contains(".jar") ? '.' : '/';
+        return path.substring(path.lastIndexOf(startChar) + 1);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
