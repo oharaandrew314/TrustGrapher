@@ -203,7 +203,6 @@ public class TrustEventPlayer implements ActionListener {
     }
 
     public void run() {
-        //ChatterBox.debug(this, "run()", "Starting log event sequence.");
         schedule = new Timer(speed, this);
         schedule.start();
 

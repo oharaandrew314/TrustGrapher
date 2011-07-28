@@ -22,6 +22,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     protected boolean display;
 
 //////////////////////////////////Constructor///////////////////////////////////
+
     public SimGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id, boolean display) {
         super(graph);
         this.type = type;

@@ -17,7 +17,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import edu.uci.ics.jung.algorithms.layout.*;
-import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.VisualizationViewer.GraphMouse;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
@@ -53,7 +52,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
     private Integer viewType; //The way that the graphs are displayed
     public static final Integer TABBED = 0, GRID = 1, DEFAULT_VIEW = TABBED;
     private PropertyManager config;
-    private List<LoadingListener> loadingListeners;
+    private LoadingBar loadingBar;
     protected JTable logList;
     protected JButton fastForwardButton, forwardButton, pauseButton, reverseButton, fastReverseButton;
     protected JSlider fastSpeedSlider, playbackSlider;
@@ -66,20 +65,22 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustApplet() {
 
-        loadingListeners = new LinkedList<LoadingListener>();
+        loadingBar = new LoadingBar();
         config = new PropertyManager("TrustApplet.properties");
         options = new AlgorithmLoader(this, config);
-        initFrameComponents();
-        start();
-        JFrame frame = new JFrame();
 
-        //The default frame state is now maximized
+        //Initializes basic frame components.  The rest are started when a graph is loader
+        getContentPane().setFont(new Font("Arial", Font.PLAIN, 12));
+        getContentPane().setBounds(0, 0, DEFWIDTH, DEFHEIGHT);
+        setPreferredSize(new Dimension(DEFWIDTH, DEFHEIGHT));
+        setJMenuBar(createFileMenu());
+
+        //start();
+        JFrame frame = new JFrame("Trust Grapher - Written by Andrew O'Hara");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(this);
-
         frame.pack();
-        frame.setTitle("Trust Grapher - Written by Andrew O'Hara");
         frame.setVisible(true);
     }
 
@@ -224,8 +225,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         logTable.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
-                if (events != null){ //graph has been initialized
-                    Component c = ((JSplitPane)getContentPane().getComponent(0)).getRightComponent();
+                if (events != null) { //graph has been initialized
+                    Component c = ((JSplitPane) getContentPane().getComponent(0)).getRightComponent();
                     String s = c.getName() != null ? c.getName() : "";
                     if (!s.equals("Log Events")) { //The log events window doesn't exist yet, so add it
                         JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -236,8 +237,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
 
                         getContentPane().add(p);
                         validate();
-                    }else if (s.equals("Log Events")){ //The log events window exists, so remove it
-                        JSplitPane p = (JSplitPane) ((JSplitPane)getContentPane().getComponent(0)).getLeftComponent();
+                    } else if (s.equals("Log Events")) { //The log events window exists, so remove it
+                        JSplitPane p = (JSplitPane) ((JSplitPane) getContentPane().getComponent(0)).getLeftComponent();
                         getContentPane().removeAll();
                         getContentPane().add(p);
                         validate();
@@ -265,19 +266,14 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
     }
 
     private JPanel initializeLogList(List<TrustLogEvent> logEvents) {
-        for (LoadingListener l : loadingListeners) {
-            l.loadingStarted(logEvents.size(), "Log List");
-        }
-
+        loadingBar.loadingStarted(logEvents.size() - 2, "Log List");
         Object[][] table = new Object[logEvents.size() - 1][3];
         int i = 0;
         for (TrustLogEvent evt : logEvents) {
-            if (evt.getAssessor() != -1){ //If the event isn't a start or end event
+            if (evt.getAssessor() != -1) { //If the event isn't a start or end event
                 table[i] = evt.toArray();
-                i++;
-                for (LoadingListener l : loadingListeners) {
-                    l.loadingProgress(i);
-                }
+                loadingBar.loadingProgress(i++);
+                ChatterBox.alert("lol");
             }
         }
         Object[] titles = {"Assessor", "Assessee", "Feedback"};
@@ -292,10 +288,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         logList.setColumnSelectionAllowed(false);
         logList.setVisible(true);
 
-        for (LoadingListener l : loadingListeners) {
-            l.loadingProgress(logEvents.size() + 1);
-        }
-
         JScrollPane listScroller = new JScrollPane(logList);
         listScroller.setWheelScrollingEnabled(true);
         listScroller.setBorder(BorderFactory.createLoweredBevelBorder());
@@ -305,11 +297,8 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         tablePanel.add(listScroller);
         tablePanel.setName("Log Events");
         tablePanel.setBorder(BorderFactory.createTitledBorder(tablePanel.getName()));
-        
 
-        for (LoadingListener l : loadingListeners) {
-            l.loadingComplete();
-        }
+        loadingBar.loadingComplete();
 
         return tablePanel;
     }
@@ -326,7 +315,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         fastSpeedSlider.setFont(new Font("Arial", Font.PLAIN, 8));
         fastSpeedSlider.setPaintTicks(false);
         fastSpeedSlider.setPaintLabels(true);
-        //fastSpeedSlider.setBackground(Color.DARK_GRAY);
         fastSpeedSlider.setForeground(Color.BLACK);
         fastSpeedSlider.setBorder(BorderFactory.createTitledBorder("Quick Playback Speed"));
         fastSpeedSlider.setEnabled(false);
@@ -422,23 +410,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
     }
     //[end] Create Components
 
-    /**
-     * Builds the split pane and adds the empty graphs panel
-     */
-    private void initFrameComponents() {
-
-
-
-        getContentPane().setFont(new Font("Arial", Font.PLAIN, 12));
-        //try set the size
-        getContentPane().setBounds(0, 0, DEFWIDTH, DEFHEIGHT);
-        setJMenuBar(createFileMenu());
-
-        setPreferredSize(new Dimension(DEFWIDTH, DEFHEIGHT));
-
-        loadingListeners.add(new LoadingBar());
-    }
-
     private void initGraphComponents() {
         JSplitPane mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         if (viewType == GRID) {
@@ -460,66 +431,14 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
      * Once a graph has been loaded, build the viewing panes and start the graph
      */
     public void startGraph() {
-        for (LoadingListener l : loadingListeners) {
-            l.loadingStarted(7, "Building Visualizer");
-        }
+        loadingBar.loadingStarted(graphs.size(), "Building Visualizer");
 
         //Build all the viewing panes
-        buildViewers();
-
-        if (events.isEmpty()) {
-            SliderListener s = new SliderListener();
-
-            playbackSlider.setMaximum(0);
-            playbackSlider.addChangeListener(s);
-            playbackSlider.addMouseListener(s);
-
-            /// create the event player
-            eventThread = new TrustEventPlayer(graphs);
-            eventThread.addEventPlayerListener(this);
-        } else {
-            SliderListener s = new SliderListener();
-            //playbackSlider.setMinimum((int)events.getFirst().getTime());
-            playbackSlider.setMinimum(0);
-            playbackSlider.setMaximum((int) events.getLast().getTime());
-            playbackSlider.addChangeListener(s);
-            playbackSlider.addMouseListener(s);
-
-            /// create the event player
-            eventThread = new TrustEventPlayer(graphs, events, playbackSlider);
-            eventThread.addEventPlayerListener(this);
-        }
-        for (LoadingListener l : loadingListeners) {
-            l.loadingProgress(2);
-        }
-
-        for (LoadingListener l : loadingListeners) {
-            l.loadingComplete();
-        }
-
-        fastReverseButton.setEnabled(true);
-        reverseButton.setEnabled(true);
-        pauseButton.setEnabled(true);
-        forwardButton.setEnabled(false);
-        fastForwardButton.setEnabled(true);
-        playbackSlider.setEnabled(true);
-        fastSpeedSlider.setEnabled(true);
-
-        layout.lock(true);
-
-        doRepaint();
-        eventThread.run();
-    }
-
-    private void buildViewers() {
-        for (LoadingListener l : loadingListeners) {
-            l.loadingChanged(5, "Building Visualizer");
-        }
-
         DefaultModalGraphMouse<Agent, TestbedEdge> gm = new DefaultModalGraphMouse<Agent, TestbedEdge>();
         GraphMouseListener graphListener = new GraphMouseListener();
+        initializeMouseContext(gm);
         graphsPanel.removeAll();
-        viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();
+        viewers = new ArrayList<VisualizationViewer<Agent, TestbedEdge>>();        
 
         //Create the Visualization Viewers
         int i = 0;
@@ -533,27 +452,55 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
                 viewers.get(i).getRenderContext().setVertexIncludePredicate(new VertexIsInTheOtherGraphPredicate(graph[DYNAMIC]));
                 viewers.get(i).getRenderContext().setEdgeIncludePredicate(new EdgeIsInTheOtherGraphPredicate(graph[DYNAMIC]));
                 addViewer(viewers.get(i), graph[FULL].toString());
-                for (LoadingListener l : loadingListeners) {
-                    l.loadingProgress(i + 1);
-                }
-                i++;
+                loadingBar.loadingProgress(i++);
             }
-        }
-        for (LoadingListener l : loadingListeners) {
-            l.loadingProgress(1);
-        }
-        initializeMouseContext(gm);
+        }        
         graphsPanel.validate();
+
+        if (events.isEmpty()) {
+            SliderListener s = new SliderListener();
+
+            playbackSlider.setMaximum(0);
+            playbackSlider.addChangeListener(s);
+            playbackSlider.addMouseListener(s);
+
+            /// create the event player
+            eventThread = new TrustEventPlayer(graphs);
+            eventThread.addEventPlayerListener(this);
+        } else {
+            SliderListener s = new SliderListener();
+            playbackSlider.setMinimum(0);
+            playbackSlider.setMaximum((int) events.getLast().getTime());
+            playbackSlider.addChangeListener(s);
+            playbackSlider.addMouseListener(s);
+
+            /// create the event player
+            eventThread = new TrustEventPlayer(graphs, events, playbackSlider);
+            eventThread.addEventPlayerListener(this);
+        }
+
+        fastReverseButton.setEnabled(true);
+        reverseButton.setEnabled(true);
+        pauseButton.setEnabled(true);
+        forwardButton.setEnabled(false);
+        fastForwardButton.setEnabled(true);
+        playbackSlider.setEnabled(true);
+        fastSpeedSlider.setEnabled(true);
+
+        layout.lock(true);
+
+        loadingBar.loadingComplete();
+        doRepaint();
+        eventThread.run();
     }
 
     private void addViewer(VisualizationViewer<Agent, TestbedEdge> viewer, String name) {
-        if (viewType == TABBED) {
-            ((JTabbedPane) graphsPanel).addTab(name, viewer);
-        } else if (viewType == GRID) {
+        if (viewType == GRID) {  //This assumes that the graphsPanel is already in GridFormat
             viewer.setBorder(BorderFactory.createTitledBorder(name));
             ((JPanel) graphsPanel).add(viewer);
+        } else { //Tabbed view by default.  This assumes that the graphsPanel is already a JSplitPane
+            ((JTabbedPane) graphsPanel).addTab(name, viewer);
         }
-
     }
 
     //[end] Initialization
@@ -563,19 +510,16 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         JMenuItem frLayout = new JMenuItem("FR Layout");
         JMenuItem isomLayout = new JMenuItem("ISOM Layout");
         JMenuItem circleLayout = new JMenuItem("Circle Layout");
-        JMenuItem springLayout = new JMenuItem("Spring Layout");
 
         frLayout.addActionListener(new FRLayoutListener(currentViewer));
         kkLayout.addActionListener(new KKLayoutListener(currentViewer));
         isomLayout.addActionListener(new ISOMLayoutListener(currentViewer));
         circleLayout.addActionListener(new CircleLayoutListener(currentViewer));
-        springLayout.addActionListener(new SpringLayoutListener(currentViewer));
 
         menuItems.add(circleLayout);
         menuItems.add(frLayout);
         menuItems.add(isomLayout);
         menuItems.add(kkLayout);
-        menuItems.add(springLayout);
         return menuItems;
     }
 
@@ -644,7 +588,7 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
     /**
      * an actionlistener that defines the use of a button to stop the spring-layout processing
      * @author adavoust
-     *
+     *@author Andrew O'Hara
      */
     private class GraphMouseListener extends MouseAdapter {
 
@@ -689,7 +633,6 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
     /**
      * An ActionListener that defines the action of the reverse button for the applet
      * @author Matthew
-     * @version May 2011
      */
     class ReverseButtonListener implements ActionListener {
 
@@ -863,48 +806,26 @@ public class TrustApplet extends JApplet implements EventPlayerListener {
         }
     }
 
-    class SpringLayoutListener implements ActionListener {
-
-        VisualizationViewer<Agent, TestbedEdge> vv;
-
-        public SpringLayoutListener(VisualizationViewer<Agent, TestbedEdge> vv) {
-            this.vv = vv;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            AbstractLayout<Agent, TestbedEdge> graphLayout = new SpringLayout<Agent, TestbedEdge>(graphs.get(viewers.indexOf(currentViewer))[FULL]);
-            vv.getModel().setGraphLayout(graphLayout);
-            mouseContext.setVisible(false);
-            mouseContext.setEnabled(false);
-            int size = mouseContext.getComponentCount();
-            for (int i = size - 1; i > 4; i--) {
-                mouseContext.remove(i);
-            }
-            graphLayout.lock(true);
-        }
-    }
-
     public void loadAlgorithms() {
-        if (events != null) {
-            events.clear();
-            eventThread.stopPlayback();
-            fastReverseButton.setEnabled(false);
-            reverseButton.setEnabled(false);
-            pauseButton.setEnabled(false);
-            forwardButton.setEnabled(false);
-            fastForwardButton.setEnabled(false);
-            playbackSlider.setEnabled(false);
-            playbackSlider.setValue(0);
-            fastSpeedSlider.setEnabled(false);
-        }
         if (options.getLogFile() != null) {
+            if (events != null) {
+                events.clear();
+                eventThread.stopPlayback();
+                fastReverseButton.setEnabled(false);
+                reverseButton.setEnabled(false);
+                pauseButton.setEnabled(false);
+                forwardButton.setEnabled(false);
+                fastForwardButton.setEnabled(false);
+                playbackSlider.setEnabled(false);
+                playbackSlider.setValue(0);
+                fastSpeedSlider.setEnabled(false);
+            }
+        
             initGraphComponents();
             algs = options.getAlgs();
-            TrustGraphLoader loader = new TrustGraphLoader(algs);
-            loader.addLoadingListener(new LoadingBar());
-            graphs = loader.getGraphs();
-            events = loader.createList(options.getLogFile());
+            TrustGraphLoader graphLoader = new TrustGraphLoader(algs, loadingBar);
+            graphs = graphLoader.getGraphs();
+            events = graphLoader.createList(options.getLogFile());
 
             startGraph();
         }

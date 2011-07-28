@@ -39,12 +39,17 @@ The Property buttons and base field now disable when feedback history is selecte
 Remove class now works
 Fixed a bug that did not allow you to load the maximum amount of algorithms at startup
 
-    Build 44
+    Build 34
 Removed the timestamps from the log window since they are irrelevant
 The Log Window now toggles on and off
 A class from a .jar will now display the same was a one from a .class
 Removing a class will now remove the correct class from the properties file
 This is as far as I can go with the major additions/changes until Parthy gives me the new algorithms
+
+    Build 35
+Tweaked the Loading Bar and optimized some code
+Removed Spring Layout since it invoked graph methods incompatible with the JGrapht graph
+Commit prior to AlgorithmLoader proeprty rewrite
 
 
 -----
@@ -52,13 +57,11 @@ To Do
 -----
 
     High Priority
-None
+
 
     Low Priority
-Add window view mode
+JavaDocs!!!
+Remove the fields in AlgorithmLoader than can be replaced by the properties file
 Change the base property to a key rather than index
-Investigate possible layout mode bug
-Fix jerky graph when switching to tabbed view after loading a second time (doesn't always happen)
 Add graphic buttons for the playback bar
-Fix Spring layout button
 Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)

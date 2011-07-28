@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.io.File;
 import java.io.FileReader;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -28,28 +27,33 @@ import utilities.ChatterBox;
 public class TrustGraphLoader {
 
     public static final int DYNAMIC = 0, FULL = 1;
-    private List<LoadingListener> loadingListeners;
+    private LoadingBar loadingBar;
     private LinkedList<TrustLogEvent> logEvents;
     private ArrayList<SimGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustGraphLoader(ArrayList<String[]> algs) {
+    public TrustGraphLoader(ArrayList<String[]> algs, LoadingBar l) {
         graphs = new ArrayList<SimGraph[]>();
-        loadingListeners = new ArrayList<LoadingListener>();
+        this.loadingBar = l;
 
         //Build the graphs
+        int i=0;
+        loadingBar.loadingStarted(algs.size(), "graphs");
         ArrayList<String[]> trustAlgs = new ArrayList<String[]>();
         for (String[] entry : algs){
             boolean display = (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)) ? true : false;
             if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.FB)){
                 addFeedbackGraph(display);
+                i++;
             }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.REP)){
                 addReputationGraph(entry, display);
+                i++;
             }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.TRUST)){
                 trustAlgs.add(entry);
             }else{
                 ChatterBox.error("TrustEventLoader", "TrustEventLoader()", "Uncaught graph type.");
             }
+            loadingBar.loadingProgress(i);            
         }
         for (String[] entry : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
             boolean display = false;
@@ -57,7 +61,10 @@ public class TrustGraphLoader {
                 display = true;
             }
             addTrustGraph(entry, display);
+            i++;
+            loadingBar.loadingProgress(i);
         }
+        loadingBar.loadingComplete();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -67,10 +74,6 @@ public class TrustGraphLoader {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-
-    public void addLoadingListener(LoadingListener loadingListener) {
-        loadingListeners.add(loadingListener);
-    }
 
     private void addFeedbackGraph(boolean display){
         SimGraph[] graphSet = new SimGraph[2];
@@ -125,25 +128,16 @@ public class TrustGraphLoader {
         logEvents = new LinkedList<TrustLogEvent>();
         String line = ""; //will contain each log event as it is read.
         int lineCount = 0;
-        int totalLines;
+        logEvents.add(TrustLogEvent.getStartEvent()); //a start event to know when to stop playback of a reversing feedbackGraph
 
         try {
             BufferedReader logReader = new BufferedReader(new FileReader(logFile));
-
-            totalLines = findTotalLines(logFile);
-            skipToData(logReader);
-
-            for (LoadingListener l : loadingListeners) { //notify the listeners that the log events have begun loading
-                l.loadingChanged(totalLines, "LogEvents");
-            }
-
-            logEvents.add(TrustLogEvent.getStartEvent()); //a start event to know when to stop playback of a reversing feedbackGraph
+            int totalLines = findTotalLines(logFile) - skipToData(logReader);
+            loadingBar.loadingStarted(totalLines, "LogEvents");//notify the listeners that the log events have begun loading
 
             while ((line = logReader.readLine()) != null) { //reading lines log logFile
                 lineCount++;
-                for (LoadingListener l : loadingListeners) { //Notify loading bar that another line has been read
-                    l.loadingProgress(lineCount);
-                }
+                loadingBar.loadingProgress();//Notify loading bar that another line has been read
                 line = (lineCount * 100) + "," + line; //Add the timestamp to the line
                 TrustLogEvent event = new TrustLogEvent(line);//create the log event
                 logEvents.add(event); //add this read log event to the list
@@ -152,16 +146,12 @@ public class TrustGraphLoader {
                     graph[FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
                 }
             }
-            logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
 
         } catch (IOException ex) {
             ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
         }
-
-        for (LoadingListener l : loadingListeners) {
-            l.loadingComplete();
-        }
-
+        logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
+        loadingBar.loadingComplete();
         return (LinkedList<TrustLogEvent>) logEvents;
     }
 
@@ -170,7 +160,9 @@ public class TrustGraphLoader {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
             int totalLines = 0;
             while (true) {
-                if (reader.readLine() != null) totalLines++;
+                if (reader.readLine() != null) {
+                    totalLines++;
+                }
                 else return totalLines;
             }
         } catch (IOException ex) {
@@ -179,14 +171,16 @@ public class TrustGraphLoader {
         return 0;
     }
 
-    private void skipToData(BufferedReader log) {
+    private int skipToData(BufferedReader log) {
         String line;
+        int dataLines = 0;
         while (true) { //reading lines log file
             try {
                 line = log.readLine();
                 if (line.equals("@data") || line.equals("@data\n")) { //Wait until the data filed has started
-                    return;
+                    return dataLines;
                 }
+                dataLines++;
             } catch (IOException ex) {
                 ChatterBox.error(this, "skipToData()", "Read a null line while trying to skip to data.");
             }
