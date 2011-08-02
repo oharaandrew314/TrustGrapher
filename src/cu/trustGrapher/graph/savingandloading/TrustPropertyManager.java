@@ -1,7 +1,6 @@
 ////////////////////////////////TrustPropertyManager//////////////////////////////////
 package cu.trustGrapher.graph.savingandloading;
 
-import cu.trustGrapher.graph.savingandloading.AlgorithmLoader;
 import java.io.File;
 import java.util.ArrayList;
 

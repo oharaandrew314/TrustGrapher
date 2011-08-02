@@ -9,7 +9,7 @@
 
 1.0.0 Description
 
-2.0.0 Instructions
+2.0.0 Usage Instructions
     2.1.0 Running the program
     2.2.0 Start Screen
         2.2.1 The Menu Bar
@@ -25,9 +25,11 @@
         2.4.1 The Playback Panel
         2.4.2 Right-Clicking in a Viewer Window
 
-3.0.0 ChangeLog
+3.0.0 Code Maintenance Explanation
 
-4.0.0 ToDo List
+4.0.0 ChangeLog
+
+5.0.0 ToDo List
     4.1.0 High Priority
     4.2.0 Low Priority
 
@@ -45,9 +47,9 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
 
 --------------------------------------------------------------------------------
 
-------------------
-2.0.0 Instructions
-------------------
+------------------------
+2.0.0 Usage Instructions
+------------------------
 
     -------------------------
     2.1.0 Running The Program
@@ -206,6 +208,12 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
 
 --------------------------------------------------------------------------------
 
+----------------------------------
+3.0.0 Code Maintenance Explanation
+----------------------------------
+
+--------------------------------------------------------------------------------
+
 ---------------
 3.0.0 ChangeLog
 ---------------
@@ -277,6 +285,11 @@ Readme instructions done... I think
 More documentation
 Fixed a bug where the right-click menu items were not being highlighted
 
+    Revision 38
+Major Code cleanup and refactoring
+Embedded loading bar into playback panel
+The log reader now runs in the background thread to prevent the EDT thread from locking
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -291,9 +304,9 @@ Fixed a bug where the right-click menu items were not being highlighted
     ------------------
     4.2.0 Low Priority
     ------------------
-    Redo the playback panel in a seperate module and embed the loading bar
+    Change event list to a linked list
+    Fix jerky tabbed pane feedback graph
     Have the properties file save next to the jar
-    Get rid of all the crap in the initSpecialTransformers() method
     Add graphic buttons for the playback bar
     Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
 

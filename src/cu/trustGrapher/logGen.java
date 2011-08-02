@@ -7,7 +7,7 @@ import utilities.BitStylus;
 import utilities.ChatterBox;
 
 /**
- * Generates a random EventLog file
+ * Generates a random Trust Event Log file for use with the TrustGrapher simulator
  * @author Andrew O'Hara
  */
 public class logGen {

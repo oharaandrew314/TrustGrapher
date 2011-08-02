@@ -1,6 +1,7 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
 package cu.trustGrapher.visualizer.eventplayer;
 
+import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.graph.SimGraph;
 
 import java.awt.event.ActionEvent;
@@ -22,12 +23,12 @@ import javax.swing.Timer;
  */
 public class TrustEventPlayer implements ActionListener {
 
-    public static final int DYNAMIC = 0, FULL = 1;
+    public static final int FASTREVERSE = -2, REVERSE = -1, PAUSE = 0, FORWARD = 1, FASTFORWARD = 2;
     private Timer schedule;
     private TimeCounter timeCounter;
     private static final int speed = 33; // 33 millisec between events while playing regularly
     private int fastMultiplier = 10;
-    private PlayState state;
+    private int state;
     private LinkedList<TrustLogEvent> myEventList;
     private List<EventPlayerListener> my_listeners;
     private int current_index;
@@ -42,7 +43,7 @@ public class TrustEventPlayer implements ActionListener {
         this.playbackSlider = playbackSlider;
         myEventList = eventlist;
         current_index = 0;
-        state = PlayState.FORWARD;
+        state = FORWARD;
         //timeCounter = new TimeCounter(speed,eventlist.getFirst().getTime(),eventlist.getFirst().getTime(),eventlist.getLast().getTime());
         timeCounter = new TimeCounter(speed, 0, 0, eventlist.getLast().getTime());
         my_listeners = new LinkedList<EventPlayerListener>();
@@ -55,14 +56,14 @@ public class TrustEventPlayer implements ActionListener {
         this.playbackSlider = null;
         myEventList = new LinkedList<TrustLogEvent>();
         current_index = 0;
-        state = PlayState.PAUSE;
+        state = PAUSE;
         timeCounter = new TimeCounter(0, 0, 0, 0);
         my_listeners = new LinkedList<EventPlayerListener>();
         playable = false;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public PlayState getPlayState() {
+    public int getPlayState() {
         return state;
     }
 
@@ -76,7 +77,7 @@ public class TrustEventPlayer implements ActionListener {
      */
     public boolean isForward() {
 
-        return ((state == PlayState.FASTFORWARD) || (state == PlayState.FORWARD));
+        return ((state == FASTFORWARD) || (state == FORWARD));
     }
 
     /**
@@ -84,7 +85,7 @@ public class TrustEventPlayer implements ActionListener {
      * @return <code>true</code> if the Play State is fast in forward or reverse.
      */
     public boolean isFast() {
-        return ((state == PlayState.FASTFORWARD) || (state == PlayState.FASTREVERSE));
+        return ((state == FASTFORWARD) || (state == FASTREVERSE));
     }
 
     public boolean atFront() {
@@ -108,9 +109,9 @@ public class TrustEventPlayer implements ActionListener {
     public void setFastSpeed(int value) {
         if (value != fastMultiplier) {
             fastMultiplier = value;
-            if (state == PlayState.FASTFORWARD) {
+            if (state == FASTFORWARD) {
                 timeCounter.setIncrement(speed * fastMultiplier);
-            } else if (state == PlayState.FASTREVERSE) {
+            } else if (state == FASTREVERSE) {
                 timeCounter.setIncrement(-speed * fastMultiplier);
             }
         }
@@ -120,9 +121,9 @@ public class TrustEventPlayer implements ActionListener {
         for (EventPlayerListener epl : my_listeners) {
             epl.playbackFastReverse();
         }
-        if (state != PlayState.FASTREVERSE) {
-            PlayState prevState = state;
-            state = PlayState.FASTREVERSE;
+        if (state != FASTREVERSE) {
+            int prevState = state;
+            state = FASTREVERSE;
             timeCounter.setIncrement(-speed * fastMultiplier);
             wakeup(prevState);
         }
@@ -132,9 +133,9 @@ public class TrustEventPlayer implements ActionListener {
         for (EventPlayerListener epl : my_listeners) {
             epl.playbackReverse();
         }
-        if (state != PlayState.REVERSE) {
-            PlayState prevState = state;
-            state = PlayState.REVERSE;
+        if (state != REVERSE) {
+            int prevState = state;
+            state = REVERSE;
             timeCounter.setIncrement(-speed);
             wakeup(prevState);
         }
@@ -144,9 +145,9 @@ public class TrustEventPlayer implements ActionListener {
         for (EventPlayerListener epl : my_listeners) {
             epl.playbackFastForward();
         }
-        if (state != PlayState.FASTFORWARD) {
-            PlayState prevState = state;
-            state = PlayState.FASTFORWARD;
+        if (state != FASTFORWARD) {
+            int prevState = state;
+            state =FASTFORWARD;
             timeCounter.setIncrement(speed * fastMultiplier);
             wakeup(prevState);
         }
@@ -156,16 +157,16 @@ public class TrustEventPlayer implements ActionListener {
         for (EventPlayerListener epl : my_listeners) {
             epl.playbackForward();
         }
-        if (state != PlayState.FORWARD) {
-            PlayState prevState = state;
-            state = PlayState.FORWARD;
+        if (state != FORWARD) {
+            int prevState = state;
+            state = FORWARD;
             timeCounter.setIncrement(speed);
             wakeup(prevState);
         }
     }
 
-    private synchronized void wakeup(PlayState previousState) {
-        if (previousState == PlayState.PAUSE) {
+    private synchronized void wakeup(int previousState) {
+        if (previousState == PAUSE) {
             if (atAnEnd()) {
                 timeCounter.doIncrement();
             }
@@ -178,21 +179,15 @@ public class TrustEventPlayer implements ActionListener {
         for (EventPlayerListener epl : my_listeners) {
             epl.playbackPause();
         }
-        if (state != PlayState.PAUSE) {
-            state = PlayState.PAUSE;
+        if (state != PAUSE) {
+            state = PAUSE;
             notify();
         }
     }
 
     public void goToTime(int value) {
-        PlayState prevState = state;
-
-        if (value < timeCounter.getTime()) {
-            state = PlayState.REVERSE;
-        } else {
-            state = PlayState.FORWARD;
-        }
-
+        int prevState = state;
+        state = (value < timeCounter.getTime()) ? REVERSE : FORWARD;
         timeCounter.setTime(value);
         state = prevState;
     }
@@ -256,7 +251,7 @@ public class TrustEventPlayer implements ActionListener {
     private void handleLogEvent(TrustLogEvent evt, boolean forward) {
         if (!evt.equals(TrustLogEvent.getStartEvent()) && !evt.equals(TrustLogEvent.getEndEvent(evt))) {
             for (SimGraph[] graph : graphs){
-                graph[DYNAMIC].graphEvent(evt, forward, graph[FULL]);
+                graph[TrustGrapher.DYNAMIC].graphEvent(evt, forward, graph[TrustGrapher.FULL]);
             }
         }
     }
@@ -264,7 +259,7 @@ public class TrustEventPlayer implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent arg0) {
         if (playable) {
-            if (state != PlayState.PAUSE) {
+            if (state != PAUSE) {
                 timeCounter.doIncrement();
             }
             long nextTime = timeCounter.getTime();

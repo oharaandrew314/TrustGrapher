@@ -4,7 +4,7 @@ package cu.trustGrapher.graph.savingandloading;
 import java.io.File;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
-import cu.trustGrapher.TrustApplet;
+import cu.trustGrapher.TrustGrapher;
 
 import utilities.BitStylus;
 import utilities.ChatterBox;
@@ -22,11 +22,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     public static String ALG = "alg", CLASS = "class"; //Key
     private TrustPropertyManager config;
     private int visibleGraphs;
-    private TrustApplet applet;
+    private TrustGrapher applet;
     private File logFile;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public AlgorithmLoader(TrustApplet applet, TrustPropertyManager config) {
+    public AlgorithmLoader(TrustGrapher applet, TrustPropertyManager config) {
         this.applet = applet;
         this.config = config;
         initComponents();
@@ -109,7 +109,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     }
 
     /**
-     * This is called by the TrustApplet.  It displays the algorithm loader window,
+     * This is called by the TrustGrapher.  It displays the algorithm loader window,
      * loads all of the properties from the properties file, and then updates the window
      */
     public void run() {

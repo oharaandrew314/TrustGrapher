@@ -1,21 +1,15 @@
-//////////////////////////////////TrustGraphLoader//////////////////////////////
+//////////////////////////////////GraphLoader//////////////////////////////
 package cu.trustGrapher.graph.savingandloading;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.ReputationGraph;
+import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.graph.*;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.io.File;
-import java.io.FileReader;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import utilities.AreWeThereYet;
 import utilities.ChatterBox;
 
 /**
@@ -25,17 +19,14 @@ import utilities.ChatterBox;
  * @author Matthew Smith (I think)
  * @author Andrew O'Hara
  */
-public class TrustGraphLoader {
+public class GraphLoader{
 
-    public static final int DYNAMIC = 0, FULL = 1;
-    private LinkedList<TrustLogEvent> logEvents;
+    public static final int DYNAMIC = TrustGrapher.DYNAMIC, FULL = TrustGrapher.FULL;
     private ArrayList<SimGraph[]> graphs;
-    private AreWeThereYet loadingBar;
+    
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustGraphLoader(TrustPropertyManager config, AreWeThereYet loadingBar) {
-        graphs = new ArrayList<SimGraph[]>();
-        this.loadingBar = loadingBar;
-       
+    public GraphLoader(TrustPropertyManager config) {
+        graphs = new ArrayList<SimGraph[]>();       
         ArrayList<Integer> trustAlgs = new ArrayList<Integer>();
         for (int i = 0 ; i <= AlgorithmLoader.MAX_ALGS ; i++){
             if (config.containsKey("alg" + i)){
@@ -115,69 +106,6 @@ public class TrustGraphLoader {
         }
         ChatterBox.debug(this, "getBase()", "Could not find a graph with id " + baseID);
         return null;
-    }
-    
-    public LinkedList<TrustLogEvent> createList(File logFile) {
-        logEvents = new LinkedList<TrustLogEvent>();
-        String line = ""; //will contain each log event as it is read.
-        int lineCount = 0;
-        logEvents.add(TrustLogEvent.getStartEvent()); //a start event to know when to stop playback of a reversing feedbackGraph
-
-        try {
-            BufferedReader logReader = new BufferedReader(new FileReader(logFile));
-            int totalLines = findTotalLines(logFile) - skipToData(logReader);
-            loadingBar.loadingStarted(totalLines, "LogEvents");//notify the listeners that the log events have begun loading
-
-            while ((line = logReader.readLine()) != null) { //reading lines log logFile
-                lineCount++;
-                loadingBar.loadingProgress();//Notify loading bar that another line has been read
-                line = (lineCount * 100) + "," + line; //Add the timestamp to the line
-                TrustLogEvent event = new TrustLogEvent(line);//create the log event
-                logEvents.add(event); //add this read log event to the list
-
-                for (SimGraph[] graph: graphs){
-                    graph[FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
-                }
-            }
-
-        } catch (IOException ex) {
-            ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
-        }
-        logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
-        loadingBar.loadingComplete();
-        return (LinkedList<TrustLogEvent>) logEvents;
-    }
-
-    private int findTotalLines(File logFile) {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(logFile));
-            int totalLines = 0;
-            while (true) {
-                if (reader.readLine() != null) {
-                    totalLines++;
-                }
-                else return totalLines;
-            }
-        } catch (IOException ex) {
-            ChatterBox.error(this, "findTotalLines()", "Problem reading log");
-        }
-        return 0;
-    }
-
-    private int skipToData(BufferedReader log) {
-        String line;
-        int dataLines = 0;
-        while (true) { //reading lines log file
-            try {
-                line = log.readLine();
-                if (line.equals("@data") || line.equals("@data\n")) { //Wait until the data filed has started
-                    return dataLines;
-                }
-                dataLines++;
-            } catch (IOException ex) {
-                ChatterBox.error(this, "skipToData()", "Read a null line while trying to skip to data.");
-            }
-        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
