@@ -21,7 +21,6 @@ import edu.uci.ics.jung.visualization.decorators.PickableVertexPaintTransformer;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -42,7 +41,7 @@ public class TrustGrapher extends JFrame {
     //Each of the viewers in this pane is a component which displays a graph
     private ArrayList<VisualizationViewer<Agent, TestbedEdge>> viewers;
     private AbstractLayout<Agent, TestbedEdge> layout = null;
-    private LinkedList<TrustLogEvent> events;
+    private ArrayList<TrustLogEvent> events;
     private ArrayList<SimGraph[]> graphs;  //Each element is an array containing a hidden and dynamic graph
     //The dynamic graph is not shown, but components in the full graph will only be displayed if they exist in the dynamic graph.
     //As events occur, they are added to the dynamic graphs through the graphEvent() method.
@@ -88,7 +87,7 @@ public class TrustGrapher extends JFrame {
      * @return A list of Menu Items
      */
     private List<JMenuItem> getLayoutItems() {
-        List<JMenuItem> menuItems = new LinkedList<JMenuItem>();
+        List<JMenuItem> menuItems = new java.util.LinkedList<JMenuItem>();
         JMenuItem kkLayout = new JMenuItem("KK Layout");
         JMenuItem frLayout = new JMenuItem("FR Layout");
         JMenuItem isomLayout = new JMenuItem("ISOM Layout");
@@ -132,7 +131,7 @@ public class TrustGrapher extends JFrame {
      * Called by the log reader thread upon completion.  Builds the graph viewers and starts the graph
      * @param events The event list returned by the evetn reader thread
      */
-    public void startGraph(LinkedList<TrustLogEvent> events) {
+    public void startGraph(ArrayList<TrustLogEvent> events) {
         this.events = events;
         buildViewers();
         playbackPanel.eventThread.run();
@@ -254,19 +253,18 @@ public class TrustGrapher extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 if (events != null) { //graph has been initialized
                     JCheckBoxMenuItem button = (JCheckBoxMenuItem) arg0.getSource();
-                    if (button.isSelected()) {
+                    if (button.isSelected()) { //Add the log table
                         JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
                         p.setResizeWeight(1);
-                        p.add(getContentPane().getComponent(0));
+                        p.add(mainPane);
                         p.add(initializeLogList(events));
                         p.setDividerSize(3);
 
                         getContentPane().add(p);
                         validate();
-                    } else {
-                        JSplitPane p = (JSplitPane) ((JSplitPane) getContentPane().getComponent(0)).getLeftComponent();
+                    } else { //Remove the log table
                         getContentPane().removeAll();
-                        getContentPane().add(p);
+                        getContentPane().add(mainPane);
                         validate();
                     }
                 }
@@ -299,8 +297,8 @@ public class TrustGrapher extends JFrame {
 
     /**
      * Creates the log list panel which shows the events in the current log
-     * @param logEvents
-     * @return
+     * @param logEvents The list of log events
+     * @return The JPanel containing the log list
      */
     private JPanel initializeLogList(List<TrustLogEvent> logEvents) {
         Object[][] table = new Object[logEvents.size() - 1][3];
@@ -312,10 +310,7 @@ public class TrustGrapher extends JFrame {
             }
         }
         Object[] titles = {"Assessor", "Assessee", "Feedback"};
-
-
         logList = new JTable(table, titles);
-
         logList.setBackground(Color.LIGHT_GRAY);
         logList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         logList.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -337,7 +332,8 @@ public class TrustGrapher extends JFrame {
     }
 
     /**
-     * Once algorithms have been has been loaded, build the viewing panes and start the graph
+     * Called when the algorithms have been loaded and the graph is to be started
+     * This method builds the viewing panes and adds them to the main pane
      */
     public void buildViewers() {
         graphsPanel = (viewType == GRID) ? new JPanel(new GridLayout(2, 3)) : new JTabbedPane(JTabbedPane.TOP);
@@ -345,6 +341,7 @@ public class TrustGrapher extends JFrame {
         mainPane.removeAll();
         mainPane.add(graphsPanel);
         mainPane.add(playbackPanel);
+        playbackPanel.resetPanel(events, graphs);
 
         //Build all the viewing panes
         DefaultModalGraphMouse<Agent, TestbedEdge> gm = new DefaultModalGraphMouse<Agent, TestbedEdge>();
@@ -378,9 +375,8 @@ public class TrustGrapher extends JFrame {
                 }
             }
         }
-        playbackPanel.resetButtons(events, graphs);
+        
         layout.lock(true);
-        playbackPanel.doRepaint();
         validate();
     }
 
@@ -428,6 +424,10 @@ public class TrustGrapher extends JFrame {
     }
 
 ////////////////////////////////////Listeners///////////////////////////////////
+    /**
+     * Initializes the right-click menu components and listeners
+     * @param gm
+     */
     private void initializeMouseContext(final DefaultModalGraphMouse<Agent, TestbedEdge> gm) {
         rightClickMenu = new JPopupMenu("Mouse Mode");
         JMenuItem picking = new JMenuItem("Picking");
@@ -491,6 +491,10 @@ public class TrustGrapher extends JFrame {
             }
         }
 
+        /**
+         * Called when the right-click menu is to be displayed
+         * @param e The mouse event which triggered the menu to be displayed
+         */
         private void doPop(MouseEvent e) {
             currentViewer = (VisualizationViewer) e.getComponent();
             //If this is a right-click, add the menu

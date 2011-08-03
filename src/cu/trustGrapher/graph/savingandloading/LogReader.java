@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import javax.swing.SwingWorker;
 import utilities.ChatterBox;
@@ -19,29 +18,31 @@ import utilities.AreWeThereYet;
  * Description
  * @author Andrew O'Hara
  */
-public class LogReader extends SwingWorker<LinkedList<TrustLogEvent>, String> {
+public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
 
     public static final int DYNAMIC = TrustGrapher.DYNAMIC, FULL = TrustGrapher.FULL;
     private AreWeThereYet loadingBar;
     private File logFile;
     private TrustGrapher applet;
-    private LinkedList<TrustLogEvent> logEvents;
-    ArrayList<SimGraph[]> graphs;
+    private ArrayList<TrustLogEvent> logEvents;
+    private ArrayList<SimGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public LogReader(TrustGrapher applet, AreWeThereYet loadingBar, ArrayList<SimGraph[]> graphs, File logFile) {
         this.loadingBar = loadingBar;
         this.applet = applet;
-        this.graphs = graphs;
         this.logFile = logFile;
-        loadingBar.loadingStarted(findTotalLines(logFile), "Log Events");
+        this.graphs = graphs;
+        int totalLines = findTotalLines(logFile);
+        logEvents = new ArrayList<TrustLogEvent>();
+        logEvents.ensureCapacity(totalLines);
+        loadingBar.loadingStarted(totalLines, "Log Events");
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
 ///////////////////////////////////Methods//////////////////////////////////////
     @Override
-    protected LinkedList<TrustLogEvent> doInBackground() throws Exception {
-        logEvents = new LinkedList<TrustLogEvent>();
+    protected ArrayList<TrustLogEvent> doInBackground() throws Exception {        
         String line = ""; //will contain each log event as it is read.
         int lineCount = 0;
         logEvents.add(TrustLogEvent.getStartEvent()); //a start event to know when to stop playback of a reversing feedbackGraph
@@ -55,7 +56,6 @@ public class LogReader extends SwingWorker<LinkedList<TrustLogEvent>, String> {
                 line = (lineCount * 100) + "," + line; //Add the timestamp to the line
                 TrustLogEvent event = new TrustLogEvent(line);//create the log event
                 logEvents.add(event); //add this read log event to the list
-
                 for (SimGraph[] graph : graphs) {
                     graph[FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
                 }
@@ -63,7 +63,7 @@ public class LogReader extends SwingWorker<LinkedList<TrustLogEvent>, String> {
             }
 
         } catch (IOException ex) {
-            ChatterBox.error(this, "TrustEventLoader()", "Read a null line when loading events");
+            ChatterBox.debug(this, "TrustEventLoader()", "Read a null line when loading events");
         }
         logEvents.add(TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1))); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
         return logEvents;

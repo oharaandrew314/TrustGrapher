@@ -16,9 +16,9 @@ public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
 
 //////////////////////////////////Constructor///////////////////////////////////
 
-    public MyFeedbackEdge(int key, Agent assessor, Agent assessee) throws Exception {
-        super(assessor, assessee);
-        this.id = key;
+    public MyFeedbackEdge(Agent src, Agent sink, int id) throws Exception{
+        super(src, sink);
+        this.id = id;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -47,6 +47,7 @@ public class MyFeedbackEdge extends FeedbackHistoryGraphEdge {
             super.addFeedback(new Feedback(assessor, assessee, feedback));
         } catch (Exception ex) {
             ChatterBox.error(this, "addFeedback()", ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

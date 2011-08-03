@@ -29,7 +29,7 @@ public class TrustEventPlayer implements ActionListener {
     private static final int speed = 33; // 33 millisec between events while playing regularly
     private int fastMultiplier = 10;
     private int state;
-    private LinkedList<TrustLogEvent> myEventList;
+    private ArrayList<TrustLogEvent> myEventList;
     private List<EventPlayerListener> my_listeners;
     private int current_index;
     private ArrayList<SimGraph[]> graphs;
@@ -38,14 +38,14 @@ public class TrustEventPlayer implements ActionListener {
     private boolean playable; //for when a graph is loaded without any events
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventPlayer(ArrayList<SimGraph[]> graphs, LinkedList<TrustLogEvent> eventlist, JSlider playbackSlider) {
+    public TrustEventPlayer(ArrayList<SimGraph[]> graphs, ArrayList<TrustLogEvent> eventlist, JSlider playbackSlider) {
         this.graphs = graphs;
         this.playbackSlider = playbackSlider;
         myEventList = eventlist;
         current_index = 0;
         state = FORWARD;
         //timeCounter = new TimeCounter(speed,eventlist.getFirst().getTime(),eventlist.getFirst().getTime(),eventlist.getLast().getTime());
-        timeCounter = new TimeCounter(speed, 0, 0, eventlist.getLast().getTime());
+        timeCounter = new TimeCounter(speed, 0, 0, eventlist.get(eventlist.size() -1).getTime());
         my_listeners = new LinkedList<EventPlayerListener>();
         myTimeNow = timeCounter.getLowerBound();
         playable = true;
@@ -54,7 +54,7 @@ public class TrustEventPlayer implements ActionListener {
     public TrustEventPlayer(ArrayList<SimGraph[]> graphs) {
         this.graphs = graphs;
         this.playbackSlider = null;
-        myEventList = new LinkedList<TrustLogEvent>();
+        myEventList = new ArrayList<TrustLogEvent>();
         current_index = 0;
         state = PAUSE;
         timeCounter = new TimeCounter(0, 0, 0, 0);
@@ -298,9 +298,9 @@ public class TrustEventPlayer implements ActionListener {
 
     public synchronized void addEvents(LinkedList<TrustLogEvent> events) {
         //current_index--;
-        myEventList.removeLast();
+        myEventList.remove(myEventList.size() - 1);
         myEventList.addAll(events);
-        playbackSlider.setMaximum((int) myEventList.getLast().getTime());
+        playbackSlider.setMaximum((int) myEventList.get(myEventList.size() - 1).getTime());
     }
 
     public long getCurrentTime() {

@@ -290,6 +290,11 @@ Major Code cleanup and refactoring
 Embedded loading bar into playback panel
 The log reader now runs in the background thread to prevent the EDT thread from locking
 
+    Revision 39
+Changed the event list to an ArrayList rather than a Linked List.  This greatly increased playspeed of the orignal program, but it may not help as much here or at all
+Massive optimizations to graphs for increased efficiency and minimization of "ripples"
+Fixed a possible bug where feedback not being completely removed when rewinding may have adversely affected the reputation algorithm when going back forward
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -299,12 +304,15 @@ The log reader now runs in the background thread to prevent the EDT thread from 
     ------------------
     4.1.0 High Priority
     -------------------
+    Do I really need algorithms attached to the dynamic graph?  Remvoing it would speed things up a lot!
+    Implement a speed hack (If there are this many vertices, skip a few alg checks maybe) (Add an option  for it)
+    Graphs must display proper algorithm name
+    Interrupt reader thread when the algorithm window is opened
     JavaDocs!!!
 
     ------------------
     4.2.0 Low Priority
     ------------------
-    Change event list to a linked list
     Fix jerky tabbed pane feedback graph
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar

@@ -2,19 +2,18 @@
 package cu.trustGrapher.graph.edges;
 
 import cu.repsystestbed.entities.Agent;
-import cu.repsystestbed.graphs.TestbedEdge;
+import cu.repsystestbed.graphs.TrustEdge;
 
 /**
  * An edge between two Agents that signifies that one trusts the other
  * @author Andrew O'Hara
  */
-public class MyTrustEdge extends TestbedEdge{
+public class MyTrustEdge extends TrustEdge{
     private int id;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public MyTrustEdge(Agent from, Agent to, int id){
-        src = from;
-        sink = to;
+        super(from, to);
         this.id = id;
     }
 

@@ -35,6 +35,11 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     private AreWeThereYet loadingBar;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Creates a JPanel which contains the controls for the event player
+     * @param applet The main TrustGrapher object
+     * @param logList The east log panel if it exists
+     */
     public PlaybackPanel(TrustGrapher applet, JTable logList) {
         this.applet = applet;
         this.logList = logList;
@@ -42,11 +47,18 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+    /**
+     * Gets the loading bar object which is embedded into the playbackPanel
+     * @return The loading bar
+     */
     public AreWeThereYet getLoadingBar() {
         return loadingBar;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
+    /**
+     * Creates all the components of the playback panel
+     */
     private void initComponents() {
         fastSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 25);
         fastSpeedSlider.addChangeListener(new SpeedSliderListener());
@@ -102,13 +114,18 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
         add(playbackSlider);
     }
 
-    public void resetButtons(java.util.LinkedList<TrustLogEvent> events, java.util.ArrayList<cu.trustGrapher.graph.SimGraph[]> graphs) {
+    /**
+     * Resets the panel buttons and EventPlayer when a new log is loaded
+     * @param events The List of log events
+     * @param graphs The graphs to be displayed
+     */
+    public void resetPanel(java.util.ArrayList<TrustLogEvent> events, java.util.ArrayList<cu.trustGrapher.graph.SimGraph[]> graphs) {
         if (events.isEmpty()) {
             playbackSlider.setMaximum(0);
             eventThread = new TrustEventPlayer(graphs); // create the event player
         } else {
             playbackSlider.setMinimum(0);
-            playbackSlider.setMaximum((int) events.getLast().getTime());
+            playbackSlider.setMaximum((int) events.get(events.size() - 1).getTime());
             eventThread = new TrustEventPlayer(graphs, events, playbackSlider); // create the event player
         }
         SliderListener s = new SliderListener();
@@ -181,6 +198,9 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
         fastForwardButton.setEnabled(false);
     }
 
+    /**
+     * Repaints all the viewers to update them
+     */
     @Override
     public void doRepaint() {
         for (VisualizationViewer<Agent, TestbedEdge> viewer : applet.getViewers()) {

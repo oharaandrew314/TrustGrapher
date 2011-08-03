@@ -1,77 +1,94 @@
 ///////////////////////////////SimFeedbackGraph/////////////////////////////
 package cu.trustGrapher.graph;
 
+import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+
 import cu.trustGrapher.graph.edges.MyFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
-import cu.repsystestbed.graphs.TestbedEdge;
-import java.util.Collection;
+
 import org.jgrapht.graph.SimpleDirectedGraph;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+
 import utilities.ChatterBox;
 
 /**
- * A trust graph that displays individual feedbacks grouped together into edges
+ * A Tust Graph that displays individual feedbacks grouped together into edges
  * @author Andrew O'Hara
  */
 public class SimFeedbackGraph extends SimGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Creates a generic feedback graph
+     * @param type The graph type (full or dynamic)
+     * @param display Whether or not this graph will have a viewer built for it
+     */
     public SimFeedbackGraph(int type, boolean display) {
         super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, 0, display);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    public void feedback(SimFeedbackGraph hiddenGraph, int from, int to, double feedback, int key) {
-        if (type == FULL) {
-            ChatterBox.error(this, "feedback()", "This graph is not a visible graph");
+    /**
+     * Creates a new dynamic edge if the one with the given graphID doesn't exist
+     * Then adds the given feedback value to it and the equivalent full edge
+     *
+     * Warning: For efficiency, this assumes that the agents area already ensured to exist in the graph by the graphEvent method
+     * @param fullGraph This graph's fullGraph partner.  Needed to add the feedback since the equivalent edge in that graph is the one actually being displayed in the viewer
+     * @param src The graphID of the Agent that gave the feedback
+     * @param sink The graphID of the Agent that is recieving the feedback
+     * @param feedback The double value of the feedback being given
+     * @param graphID The graphID of the edge to add feedback to
+     */
+    @Override
+    protected void forwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
+        if (type != DYNAMIC){
+            ChatterBox.error(this, "forwardEvent()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
-        if (getVertexInGraph(from) == null) {
-            addPeer(from);
-        }
-        if (getVertexInGraph(to) == null) {
-            addPeer(to);
-        }
-        Agent assessor = getVertexInGraph(from);
-        Agent assessee = getVertexInGraph(to);
-        MyFeedbackEdge edge = (MyFeedbackEdge) findEdge(from, to);
-        if (edge == null) {//If the edge doesn't  exist, add it
-            try {
-                edge = new MyFeedbackEdge(key, assessor, assessee);
-                addEdge(edge, (Agent) edge.src, (Agent) edge.sink);
-            } catch (Exception ex) {
-                ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
-            }
-        }
-
-        MyFeedbackEdge fullEdge = ((MyFeedbackEdge) hiddenGraph.findEdge(assessor, assessee));
-        edge.addFeedback(assessor, assessee, feedback);
-        fullEdge.addFeedback(assessor, assessee, feedback);
+        Agent src = ensureAgentExists(gev.getAssessor());
+        Agent sink = ensureAgentExists(gev.getAssessee());
+        double feedback = gev.getFeedback();        
+        int edgeID = ((MyFeedbackEdge) fullGraph.findEdge(src, sink)).getID();
+        
+        //Ensures that the proper edge exists in the dynamic graph and adds feedback to it
+        ((MyFeedbackEdge) ensureEdgeExists(src, sink, edgeID, this)).addFeedback(src, sink, feedback);
+        //Add the feedback to the full edge so it can be seen in the viewer
+        ((MyFeedbackEdge) fullGraph.findEdge(src, sink)).addFeedback(src, sink, feedback);
     }
 
-    public void unfeedback(SimFeedbackGraph fullGraph, int from, int to, double feedback, int key) {
-        if (type == FULL) {
-            ChatterBox.error(this, "unfeedback()", "This graph is not a visible graph");
+    /**
+     * Removes the given feedback from the edge between the given src and sink Agents
+     * If the edge no longer has any feedback, it removes the edge from the dynamic graph
+     * Note: The edge must stay in the full graph since it is needed if the user chooses to play forward again
+     * @param fullGraph
+     * @param src
+     * @param sink
+     * @param feedback
+     */
+    @Override
+    protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
+        if (type != DYNAMIC){
+            ChatterBox.error(this, "backwardEvent()", "This graph is not a dynamic graph.  Illegal method call.");
             return;
         }
-        MyFeedbackEdge edge = (MyFeedbackEdge) findEdge(from, to);
-        if (edge == null) {
-            ChatterBox.alert("Edge " + from + " " + to + " feedback: " + feedback);
-            ChatterBox.error(this, "unFeedback()", "Couldn't find an edge to remove!");
+        Agent src = ensureAgentExists(gev.getAssessor()), sink = ensureAgentExists(gev.getAssessee());
+        double feedback = gev.getFeedback();
+        
+        MyFeedbackEdge dynEdge = (MyFeedbackEdge) findEdge(src, sink);
+        MyFeedbackEdge fullEdge = ((MyFeedbackEdge) fullGraph.findEdge(src, sink));
+        if (dynEdge == null) {            
+            ChatterBox.error(this, "backwardEvent()", "dynEdge " + src + " " + sink + " wasn't found when it should have existed!");
             return;
         }
-        MyFeedbackEdge fullEdge = ((MyFeedbackEdge) fullGraph.findEdge(from, to));
+        if (fullEdge == null) {
+            ChatterBox.error(this, "backwardEvent()", "fullEdge " + src + " " + sink + " wasn't found when it should have existed!");
+            return;
+        }
+        dynEdge.removeFeedback(feedback);
         fullEdge.removeFeedback(feedback);
         if (fullEdge.feedbacks.isEmpty()) {
-            Collection<Agent> verts = super.getIncidentVertices(edge);
-            super.removeEdge(edge);
-            for (Agent v : verts) {
-                if (super.getIncidentEdges(v).isEmpty()) {
-                    super.removeVertex(v);
-                }
-            }
+            removeEdgeAndVertices(dynEdge);
         }
     }
 
@@ -79,60 +96,15 @@ public class SimFeedbackGraph extends SimGraph {
      * Creates an edge but does not yet add the feedback to it.  As the visible edges, are added, the feedbacks will be added to the hidden edges
      * @param gev	The Log event which needs to be handled.
      */
+    @Override
     public void graphConstructionEvent(TrustLogEvent gev) {
-        if (type == DYNAMIC) {
-            ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a hidden graph.");
+        if (type != FULL) {
+            ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a full graph.  Illegal method call");
             return;
         }
-        int from = gev.getAssessor();
-        int to = gev.getAssessee();
-        if (getVertexInGraph(from) == null) {
-            addPeer(from);
-        }
-        if (getVertexInGraph(to) == null) {
-            addPeer(to);
-        }
-        Agent assessor = getVertexInGraph(from);
-        Agent assessee = getVertexInGraph(to);
-        MyFeedbackEdge edge = (MyFeedbackEdge) findEdge(from, to);
-        if (edge == null) {//If the edge doesn't  exist, add it
-            try {
-                edge = new MyFeedbackEdge(edgecounter++, assessor, assessee);
-                addEdge(edge, (Agent)edge.src, (Agent)edge.sink);
-            } catch (Exception ex) {
-                ChatterBox.error(this, "feedback()", "Error creating edge: " + ex.getMessage());
-            }
-        }
-    }
-
-    public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph referenceGraph) {
-        int from = gev.getAssessor();
-        int to = gev.getAssessee();
-        double feedback = gev.getFeedback();
-        int key = ((MyFeedbackEdge) referenceGraph.findEdge(from, to)).getID();
-        if (forward) {
-            feedback((SimFeedbackGraph) referenceGraph, from, to, feedback, key);
-        } else {
-            unfeedback((SimFeedbackGraph) referenceGraph, from, to, feedback, key);
-        }
-    }
-
-    public void printGraph() {
-        if (type == FULL) {
-            ChatterBox.print("Printing hidden " + this.getClass().getSimpleName() + "...");
-        } else {
-            ChatterBox.print("Printing visible " + this.getClass().getSimpleName() + "...");
-        }
-        Collection<Agent> agents = this.getVertices();
-        for (Agent a : agents) {
-            ChatterBox.print(a.toString());
-        }
-        Collection<TestbedEdge> edges = getEdges();
-        for (TestbedEdge e : edges) {
-            ChatterBox.print("Edge: " + e.src + " to " + e.sink);
-
-        }
-        ChatterBox.print("Done.");
+        Agent src = ensureAgentExists(gev.getAssessor());
+        Agent sink = ensureAgentExists(gev.getAssessee());
+        ensureEdgeExists(src, sink, edgecounter++, this);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
