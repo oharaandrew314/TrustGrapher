@@ -72,11 +72,11 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
             Exits the program
 
         View > Tabbed View
-            The defualt view.  Keeps all viewer windows in a tabbed pane
+            The default view.  Keeps all viewer windows in a tabbed pane
         View > Grid View
-            Seperates the graphs panel into a 2 x 3 grid
+            Separates the graphs panel into a 2 x 3 grid
         View > Toggle Log Table
-            Shows/hides a table which displays the current log events.  As the simulator plays, events that have occured are highlighted
+            Shows/hides a table which displays the current log events.  As the simulator plays, events that have occurred are highlighted
             
 
     ------------------------
@@ -136,8 +136,8 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
         You can change:
             Whether or not the algorithm is displayed as a graph
             The base of the algorithm
-            The properties file that contains the instructions on how to use the algorithm and its defualt values
-                An algorithm doesn't always need to have a proeprties file to work
+            The properties file that contains the instructions on how to use the algorithm and its default values
+                An algorithm doesn't always need to have a properties file to work
 
         ----------------------------------
         2.3.7 TrustGrapher Properties File
@@ -268,10 +268,10 @@ Removed Spring Layout since there was a bug where it invoked graph methods incom
 Commit prior to AlgorithmLoader property rewrite
 
     Revision 36
-The PropertyManager class is now a Properties extension rather than a wrapper.  The constructor still takes care of loading an exisitng properties file for you
+The PropertyManager class is now a Properties extension rather than a wrapper.  The constructor still takes care of loading an existing properties file for you
 Updated My Java Library to make it more robust
 Massive revision to algorithm loader to remove two heavily used fields in favor of the properties file
-Fixed a bug where the loading bar would not dissapear if another graph was loaded, or the view was changed while the graph was playing
+Fixed a bug where the loading bar would not dissappear if another graph was loaded, or the view was changed while the graph was playing
 various code cleanups
 Beginning to do thorough code documentation
 
@@ -280,8 +280,8 @@ Fixed a bug where the class wasn't always removed, or the wrong one was being re
 The log table now persists after loading a new graph
 The loading bar bug came back.  I have removed the loading bar from the log table builder to remove this
 Now uses a new loading bar from My Java Library
-trustGrapher is now in the cu package
-Readme instructions done... I think
+The trustGrapher package is now in the cu package
+ReadMe instructions done... I think
 More documentation
 Fixed a bug where the right-click menu items were not being highlighted
 
@@ -291,9 +291,18 @@ Embedded loading bar into playback panel
 The log reader now runs in the background thread to prevent the EDT thread from locking
 
     Revision 39
-Changed the event list to an ArrayList rather than a Linked List.  This greatly increased playspeed of the orignal program, but it may not help as much here or at all
+Changed the event list to an ArrayList rather than a Linked List.  This greatly increased playspeed of the original program, but it may not help as much here or at all
 Massive optimizations to graphs for increased efficiency and minimization of "ripples"
 Fixed a possible bug where feedback not being completely removed when rewinding may have adversely affected the reputation algorithm when going back forward
+
+    Revision 40
+The algorithms attached to the full graphs were unnecessary, and have been removed
+Massive increase in log loading speed
+Non-Feedback Graph Backward Events are now much more efficient
+Made the tabbed view playback faster by only repainting the selected viewer
+More major code refactoring.  This caused a bunch of awesome new bugs, but I fixed the ones I know about!
+Fixed an annoyingly persistent bug that caused the graph to jerk for a few seconds when switching from grid view to tabbed view
+More documentation (Makes my head explode!)
 
 --------------------------------------------------------------------------------
 
@@ -301,19 +310,16 @@ Fixed a possible bug where feedback not being completely removed when rewinding 
 4.0.0 ToDo List
 ---------------
 
-    ------------------
+    -------------------
     4.1.0 High Priority
     -------------------
-    Do I really need algorithms attached to the dynamic graph?  Remvoing it would speed things up a lot!
-    Implement a speed hack (If there are this many vertices, skip a few alg checks maybe) (Add an option  for it)
-    Graphs must display proper algorithm name
-    Interrupt reader thread when the algorithm window is opened
-    JavaDocs!!!
+    Implement speed hacks (maybe, If there are this many vertices, skip a few alg checks) (Add an option  for it)
 
     ------------------
     4.2.0 Low Priority
     ------------------
-    Fix jerky tabbed pane feedback graph
+    Maybe make algorithm class for AlgorithmLoader
+    Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar
     Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)

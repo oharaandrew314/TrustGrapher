@@ -9,7 +9,7 @@ import utilities.ChatterBox;
  * @author adavoust
  * @author Andrew O'Hara
  */
-public class TrustLogEvent implements Comparable<TrustLogEvent> {
+public class TrustLogEvent {
     private long time;
     private int assessor;
     private int assessee;
@@ -36,19 +36,6 @@ public class TrustLogEvent implements Comparable<TrustLogEvent> {
             ChatterBox.error("TrustLogEvent", "TrustLogEvent()", "The log format is incorrect.");
             ex.printStackTrace();
         }
-    }
-
-    /**
-     * Constructor for the static colouredLogEvent which creates an event from another TrustLogEvent which created it.
-     * @param time		the time in milliseconds the event happened
-     * @param assessor 	the peer who is giving the feedback (peer number)
-     * @param assessee	the peerr who is recieving the feedback (peer number)
-     */
-    public TrustLogEvent(long time, int param1, int param2, double feedback) {
-        this.time = time;
-        this.assessor = param1;
-        this.assessee = param2;
-        this.feedback = feedback;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -80,15 +67,6 @@ public class TrustLogEvent implements Comparable<TrustLogEvent> {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    @Override
-    public int compareTo(TrustLogEvent other) {
-        if (this.time < other.time) { //sort first by time
-            return -1;
-        } else if (this.time > other.time) {
-            return 1;
-        }
-        return 0; //Otherwise they may as well be equal
-    }
 
     @Override
     public boolean equals(Object obj){

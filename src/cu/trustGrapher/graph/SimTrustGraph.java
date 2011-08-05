@@ -5,43 +5,70 @@ import cu.repsystestbed.algorithms.TrustAlgorithm;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
-import java.util.ArrayList;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import cu.trustGrapher.graph.edges.MyTrustEdge;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import java.util.Set;
 import utilities.ChatterBox;
 
 /**
- * Description
+ * A graph that shows whether each agent trusts the other
  * @author Andrew O'Hara
  */
 public class SimTrustGraph extends SimGraph {
     private TrustAlgorithm alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Creates a FULL Trust Graph.  The components of this graph are actually the ones being displayed.
+     * @param id The id of this graph and its dynamic partner
+     * @param display Whether or not this graph will be shown in a TrustGraphViewer
+     */
     public SimTrustGraph(int id, boolean display) {
-        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL, id, display);
+        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL, id);
+        this.display = display;
     }
 
-    public SimTrustGraph(TrustAlgorithm alg, int id, boolean display) {
-        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC, id, display);
+    /**
+     * Creates a DYNAMIC Trust graph.  This graph is only used by the full graph to see which of it's own components should be displayed.
+     * @param alg The algorithm that this graph will use to update the reputation values of the full graph
+     * @param id The id of this graph and its full partner
+     */
+    public SimTrustGraph(TrustAlgorithm alg, int id) {
+        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC, id);
         this.alg = alg;
     }
 
+//////////////////////////////////Accessors/////////////////////////////////////
+
+    /**
+     * This String returned by this is the String displayed on the viewer border
+     * This can only be called on a DYNAMIC graph because it is the only one with the algorithm
+     */
+    public String getDisplayName(){
+        if (type != DYNAMIC){
+            ChatterBox.error(this, "getDisplayName()", "This graph is not a dynamic graph.  Illegal method call.");
+            return null;
+        }
+        return graphID + "-" + alg.getClass().getSimpleName();
+    }
+
 ///////////////////////////////////Methods//////////////////////////////////////
+    /**
+     * Adds any necessary agents to the graph and then checks if every agent trusts the other.
+     * If the agents trust eachother, then this ensures that there is a Trust Edge between them.
+     * @param gev The TrustLogEvent that is being processed
+     * @param fullGraph Any new edges will be added to this graph
+     */
     @Override
     protected void forwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
-        if (type != DYNAMIC){
-            ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
-            return;
-        }
         ensureAgentExists(gev.getAssessor());
         ensureAgentExists(gev.getAssessee());
-        for (Agent src : alg.getReputationGraph().vertexSet()){
-            for (Agent sink : alg.getReputationGraph().vertexSet()){
+        Set<Agent> vertices = alg.getReputationGraph().vertexSet();
+        for (Agent src : vertices){
+            for (Agent sink : vertices){
                 try{
-                    if (!src.equals(sink) && alg.trusts(src, sink) && findEdge(src,sink) == null){
-                        ensureEdgeExists(src, sink,((MyTrustEdge)fullGraph.findEdge(src, sink)).getID(), this);
+                    if (!src.equals(sink) && alg.trusts(src, sink)){
+                        ensureEdgeExists(src, sink, this);
                     }
                 }catch(Exception ex){
                     ChatterBox.error(this, "forwardEvent()", ex.getMessage());
@@ -50,34 +77,27 @@ public class SimTrustGraph extends SimGraph {
         }
     }
 
+    /**
+     * Checks all the vertices in this graph.
+     * If the algorithm freaks out because one of those vertices don't exist in the reputation graph,
+     * the edge between them is removed.
+     * @param gev The TrustLogEvent that is being processed
+     * @param fullGraph Any new edges will be added to this graph
+     */
     @Override
     protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
-        if (type != DYNAMIC){
-            ChatterBox.error(this, "feedback()", "This graph is not a dynamic graph.  Illegal method call.");
-            return;
-        }
-        for (Agent src : getVertices()){
-            for (Agent sink : getVertices()){
+        java.util.Collection<Agent> vertices = getVertices();
+        for (Agent src : vertices){
+            for (Agent sink : vertices){
                 try{
                     alg.trusts(src, sink);
-                }catch(Exception ex){
-                    MyTrustEdge edge = (MyTrustEdge) findEdge(src, sink);
-                    if (edge != null){
-                        removeEdge(edge);
-                    }
+                }catch(NullPointerException ex){ //One of the agents doesn't exist in the feedback graph anymore, so remove the edge between the two agents
+                    removeEdgeAndVertices(findEdge(src, sink));
+                    vertices = getVertices();
+                }catch (Exception ex){
+                    ChatterBox.debug(this, "backwardEvent()", ex.getMessage());
                 }
             }
-        }
-
-        //remove unnecessary vertices
-        ArrayList<Agent> toRemove = new ArrayList<Agent>();
-        for (Agent a : getVertices()){
-            if (!alg.getReputationGraph().vertexSet().contains(a)){
-                toRemove.add(a);
-            }
-        }
-        for (Agent a : toRemove){
-            removeVertex(a);
         }
     }
 }

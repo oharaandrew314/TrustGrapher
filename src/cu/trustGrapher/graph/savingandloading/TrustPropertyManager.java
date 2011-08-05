@@ -5,7 +5,9 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Extends my PropertyManager wrapper for added functionality specific to TrustGrapher
+ * Extends my PropertyManager wrapper for added functionality specific to TrustGrapher.
+ * This PropertyManager extension is extended to deal with Algorithms in array format 
+ * and class paths needed by the AlgorithmLoader.
  * @author Andrew O'Hara
  */
 public class TrustPropertyManager extends utilities.PropertyManager {
@@ -20,6 +22,11 @@ public class TrustPropertyManager extends utilities.PropertyManager {
     }
 /////////////////////////////Algorithm Methods//////////////////////////////////
 
+    /**
+     * Gets an array of the display names for the algorithms loaded in the AlgorithmLoader
+     * If there are no algorithms, returns an empty array
+     * @return An array of algorithm display names
+     */
     public Object[] getAlgDisplayNames() {
         ArrayList<String> names = new ArrayList<String>();
         for (int i = 0; i <= AlgorithmLoader.MAX_ALGS; i++) {
@@ -30,6 +37,10 @@ public class TrustPropertyManager extends utilities.PropertyManager {
         return names.toArray();
     }
 
+    /**
+     * Returns an array of the algorithms in array format required by the AlgorithLoader
+     * @return The List of algorithms in array format
+     */
     public ArrayList<String[]> getAlgs() {
         ArrayList<String[]> algs = new ArrayList<String[]>();
         for (int i = 0; i <= AlgorithmLoader.MAX_ALGS; i++) {
@@ -40,14 +51,31 @@ public class TrustPropertyManager extends utilities.PropertyManager {
         return algs;
     }
 
+    /**
+     * Gets the algorithm in array format with the given index.
+     * Returns null if no algorithm can be found.
+     * @param index
+     * @return 
+     */
     public String[] getAlg(int index) {
         return this.getProperty("alg" + index).split(",");
     }
 
+    /**
+     * Checks if the Properties contains the algorithm with the given index
+     * @param index The index of the algorithm to find
+     * @return true or false depending on whether the algorithm was found
+     */
     public boolean hasAlg(int index) {
         return containsKey("alg" + index);
     }
 
+    /**
+     * Modifies an existing algorithm in the properties
+     * @param index The index of the algorithm to modify
+     * @param element The index of the element to change (algorithm array format)
+     * @param newElement The String that will replace the specified element
+     */
     public void modifyAlg(int index, int element, String newElement) {
         String[] alg = getAlg(index);
         alg[element] = newElement;
@@ -62,6 +90,12 @@ public class TrustPropertyManager extends utilities.PropertyManager {
 
 ///////////////////////////////////Class Methods////////////////////////////////
 
+    /**
+     * Returns the class path of the class property with the given index
+     * Returns null if no class was found
+     * @param index The index of the Class property to find
+     * @return The classPath of the property that was found
+     */
     public String getClassPath(int index){
         return getProperty("class" + index);
     }

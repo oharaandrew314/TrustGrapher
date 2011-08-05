@@ -13,20 +13,22 @@ import org.jgrapht.graph.SimpleDirectedGraph;
 import utilities.ChatterBox;
 
 /**
- * Reads an .arff file and parses it into a collection of TrustLogEvents
- * Also creates the necessary graphs and adds every event to a full graph so
- * that the event player knows where to add each object
- * @author Matthew Smith (I think)
+ * Creates the necessary graphs specified by the algorithms in the given Properties object
  * @author Andrew O'Hara
  */
 public class GraphLoader{
 
     public static final int DYNAMIC = TrustGrapher.DYNAMIC, FULL = TrustGrapher.FULL;
-    private ArrayList<SimGraph[]> graphs;
-    
-//////////////////////////////////Constructor///////////////////////////////////
-    public GraphLoader(TrustPropertyManager config) {
-        graphs = new ArrayList<SimGraph[]>();       
+    private static ArrayList<SimGraph[]> graphs;    
+
+///////////////////////////////////Methods//////////////////////////////////////
+
+    /**
+     * Creates all of the graphs specified by the algorithms in the config
+     * @param config The PropertyManager that contains all the info on the algorithms
+     */
+    public static ArrayList<SimGraph[]> loadGraphs(TrustPropertyManager config){
+        graphs = new ArrayList<SimGraph[]>();
         ArrayList<Integer> trustAlgs = new ArrayList<Integer>();
         for (int i = 0 ; i <= AlgorithmLoader.MAX_ALGS ; i++){
             if (config.containsKey("alg" + i)){
@@ -51,60 +53,70 @@ public class GraphLoader{
             }
             addTrustGraph(entry, (Integer) index, display);
         }
-    }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-
-    public ArrayList<SimGraph[]> getGraphs() {
         return graphs;
     }
 
-///////////////////////////////////Methods//////////////////////////////////////
-
-    private void addFeedbackGraph(boolean display){
+    /**
+     * Creats a new feedback history graph
+     * @param display Whether or not the graph will be displayed in a TrustGraphViewer
+     */
+    private static void addFeedbackGraph(boolean display){
         SimGraph[] graphSet = new SimGraph[2];
         graphSet[DYNAMIC] = new SimFeedbackGraph(DYNAMIC, display);
         graphSet[FULL] = new SimFeedbackGraph(FULL, display);
         graphs.add(graphSet.clone());
     }
 
-    private void addReputationGraph(String[] entry, int index, boolean display){
+    /**
+     * Creates a new Reputation Graph
+     * @param entry The algorithm entry array
+     * @param index The algorithm number
+     * @param display Whether or not the graph will be displayed in a TrustGraphViewer
+     */
+    private static void addReputationGraph(String[] entry, int index, boolean display){
         SimGraph[] graphSet = new SimGraph[2];
         
-        ReputationAlgorithm dynEigenAlg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
-        ReputationAlgorithm fulEigenAlg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
+        ReputationAlgorithm alg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
+        ((FeedbackHistoryGraph)getInnerGraph(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(alg); //The algorithm will then add the graphs
 
-        ((FeedbackHistoryGraph)getBase(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(dynEigenAlg); //The algorithm will then add the graphs
-        ((FeedbackHistoryGraph)getBase(FULL, entry[AlgorithmLoader.BASE])).addObserver(fulEigenAlg);
-
-        graphSet[FULL] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[FULL], index, display); //This automatically turns the full feedbackGraph into the full reputationGraph
-        graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], dynEigenAlg, index, display);
+        graphSet[FULL] = new SimReputationGraph(index, display); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], alg, index);
         graphs.add(graphSet.clone());
     }
 
-    private void addTrustGraph(String[] entry, int index, boolean display){
+    /**
+     * Creates a new Trust Graph
+     * @param entry The algorithm entry array
+     * @param index The algorithm number
+     * @param display Whether or not the graph will be displayed in a TrustGraphViewer
+     */
+    private static void addTrustGraph(String[] entry, int index, boolean display){
         SimGraph[] graphSet = new SimGraph[2];
 
-        TrustAlgorithm dynRankAlg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
-        TrustAlgorithm fulRankAlg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
-
-        ((ReputationGraph) getBase(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(dynRankAlg); //The algorithm will then add the graphs
-        ((ReputationGraph) getBase(FULL, entry[AlgorithmLoader.BASE])).addObserver(fulRankAlg);
+        TrustAlgorithm alg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
+        ((ReputationGraph) getInnerGraph(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(alg); //The algorithm will then add the graphs
 
         graphSet[FULL] = new SimTrustGraph(index, display);
-        graphSet[DYNAMIC] = new SimTrustGraph(dynRankAlg, index, display);
+        graphSet[DYNAMIC] = new SimTrustGraph(alg, index);
         graphs.add(graphSet.clone());
     }
 
-    private SimpleDirectedGraph getBase(int type, String baseID){
+    /**
+     * Searches the existing graphs for the graph with the correct ID and then returns that graphs inner jGrapht graph.
+     * This is needed since the trustTestBed algorithms require trustTestBed graphs to be attached to them
+     * @param type Whether the inner graph is to be a DYNAMIC or FULL graph
+     * @param graphID The ID of the graph pair that contains the inner graph to return
+     * @return The jGrapht graph inside of the specified graph
+     */
+    private static SimpleDirectedGraph getInnerGraph(int type, String graphID){
         for (SimGraph[] graph : graphs){
             if (graph != null){
-                if (graph[type].getID() == Integer.parseInt(baseID.replace("alg", ""))){
+                if (graph[type].getID() == Integer.parseInt(graphID.replace("alg", ""))){
                     return graph[type].getInnerGraph();
                 }
             }
         }
-        ChatterBox.debug(this, "getBase()", "Could not find a graph with id " + baseID);
+        ChatterBox.error("GraphLoader", "getBase()", "Could not find a graph with id " + graphID);
         return null;
     }
 }

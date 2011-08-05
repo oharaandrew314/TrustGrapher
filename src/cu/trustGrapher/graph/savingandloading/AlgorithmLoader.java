@@ -26,6 +26,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     private File logFile;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Initializes the algorithm loader components
+     * @param applet The main class.  Needed to inform it that the algorithms have been loaded
+     * @param config The properties manager to load all of the class and algorithm properties
+     */
     public AlgorithmLoader(TrustGrapher applet, TrustPropertyManager config) {
         this.applet = applet;
         this.config = config;
@@ -533,7 +538,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         config.save();
         setVisible(false);
-        applet.loadAlgorithms();
+        if (visibleGraphs > 0){
+            applet.loadAlgorithms();
+        }else{
+            ChatterBox.alert("No graphs are displayed,\nso no action was done.");
+        }
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed

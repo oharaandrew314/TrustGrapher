@@ -1,13 +1,11 @@
-//////////////////////////////////SimGraph////////////////////////////////////
+////////////////////////////////////SimGraph////////////////////////////////////
 package cu.trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.TrustGrapher;
-import cu.trustGrapher.graph.edges.MyFeedbackEdge;
-import cu.trustGrapher.graph.edges.MyReputationEdge;
-import cu.trustGrapher.graph.edges.MyTrustEdge;
-
+import cu.trustGrapher.graph.edges.SimFeedbackEdge;
+import cu.trustGrapher.graph.edges.SImReputationEdge;
+import cu.trustGrapher.graph.edges.SimTrustEdge;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -16,18 +14,17 @@ import utilities.ChatterBox;
 
 /**
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
+ * This classs accepts a parameter of the jGraphT SimpleDirectedGraph that this graph is to be based on
  * @author Andrew O'Hara
  */
 public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
-    public static final int DYNAMIC = TrustGrapher.DYNAMIC, FULL = TrustGrapher.FULL;
+    public static final int DYNAMIC = 0, FULL = 1;
     protected int type;
-    protected int edgecounter = 0;
-    protected int graphID;
+    protected int graphID; //The index of the algorithm that was given to the graph
     protected boolean display;
 
 //////////////////////////////////Constructor///////////////////////////////////
-
     /**
      * Calls superclass and initializes some fields
      * @param graph This graph is given to the superclass.  It is the graph this graph will be built on
@@ -35,28 +32,27 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param graphID The graphID number of this graph
      * @param display Whether or not this graph will have a viewer built for it
      */
-    public SimGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id, boolean display) {
+    public SimGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id) {
         super(graph);
         this.type = type;
         this.graphID = id;
-        this.display = display;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-
     /**
-     * This String returned by this is the String displayed on the viewer border
+     * Returns the graph type (full or dynamic)
+     * Refer to the SimGraph static field definitions to find what graph type the int representation refers to
+     * @return The int representation of the graph type
      */
-    @Override
-    public String toString(){
-        return this.getClass().getSimpleName() + " " + graphID;
-    }
-
     public int getType() {
         return type;
     }
 
-    public int getID(){
+    /**
+     * Returns the id of this graph.  It is currently used to generate the name of the graph
+     * @return The graph id
+     */
+    public int getID() {
         return graphID;
     }
 
@@ -64,10 +60,10 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * Whether or not this graph will have a viewer built for it
      * @return the displayed boolean
      */
-    public boolean isDisplayed(){
+    public boolean isDisplayed() {
         return display;
     }
-    
+
     /**
      * Gets an Agent already in the graph that has the given peerID
      * to be used when adding edges; the edge should relate two Agents actually in the graph, not copies of these vertices
@@ -77,7 +73,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @return The Agent with the given ID
      */
     protected Agent findAgent(Agent agent) {
-        for (Agent v : super.getVertices()) {
+        for (Agent v : getVertices()) {
             if (v.equals(agent)) {
                 return (Agent) v;
             }
@@ -100,33 +96,46 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
         return agent;
     }
 
-    protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, int id, SimGraph caller){
-        TestbedEdge edge = newEdge(src, sink, id, caller);
+    /**
+     * Ensures that the edge with the given agents and id exists in the graph.
+     * If it doesn't exist, create it and it to the graph.
+     * Then return the edge
+     * @param src The Agent that the edge originates from
+     * @param sink The Agent that the edge goes to
+     * @param id The id of the edge
+     * @param caller The graph that is calling, so that if an edge must be created, it knows what type to make
+     * @return The edge that is assured to be in the graph
+     */
+    protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, SimGraph caller) {
+        TestbedEdge edge = newEdge(src, sink, caller);
         addEdge(edge, src, sink);
         return edge;
     }
 
     /**
-     * Create an edge, and add all connected Agents to the graph if they have not yet been added
-     * @param src
-     * @param sink
-     * @param graphID
-     * @param caller
-     * @return
+     * Create an edge with the given agents and id.
+     * The edge will be of the class appropriate for the caller.
+     * For example, a SimFeedbackEdge will be created for a caller of class SimFeedbackGraph
+     * If the caller isn't valid, then this returns null;
+     * @param src The Agent that the edge is to originate from
+     * @param sink The Agent that the edge is to go to
+     * @param edgeID The id that the edge is to have
+     * @param caller The graph that the new edge is to be returned to
+     * @return The new Edge
      */
-    private TestbedEdge newEdge(Agent src, Agent sink, int id, SimGraph caller){
-        if (caller instanceof SimFeedbackGraph){
-            try{
-                return new MyFeedbackEdge(src, sink, id);
-            }catch(Exception ex){
+    private TestbedEdge newEdge(Agent src, Agent sink, SimGraph caller) {
+        if (caller instanceof SimFeedbackGraph) {
+            try {
+                return new SimFeedbackEdge(src, sink);
+            } catch (Exception ex) {
                 ChatterBox.debug("MyFeedbackEdge", "MyFeedbackEdge()", ex.getMessage());
                 return null;
             }
-        }else if (caller instanceof SimReputationGraph){
-            return new MyReputationEdge(src, sink, id);
-        }else if (caller instanceof SimTrustGraph){
-            return new MyTrustEdge(src, sink, id);
-        }else{
+        } else if (caller instanceof SimReputationGraph) {
+            return new SImReputationEdge(src, sink);
+        } else if (caller instanceof SimTrustGraph) {
+            return new SimTrustEdge(src, sink);
+        } else {
             ChatterBox.debug(this, "newEdge()", "Unsupported caller");
             return null;
         }
@@ -134,12 +143,11 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
     /**
      * Removes the given edge from the graph and and the Agents connected to it if they
-     * would no longer have any edges after removing this one
+     * would no longer have any edges after removing the given edge
      * @param edge The edge to be removed
-     * @return Whether or not the edge was succesfully removed from the graph
      */
-    public void removeEdgeAndVertices(TestbedEdge edge){
-        removeEdge(edge); //I actually need the super here
+    protected void removeEdgeAndVertices(TestbedEdge edge) {
+        removeEdge(edge);
         for (Agent v : getIncidentVertices(edge)) {
             if (getIncidentEdges(v).isEmpty()) {
                 removeVertex(v);
@@ -148,40 +156,52 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     /**
-     * Determines how to handle a normal TrustLogEvent
-     * @param gev
-     * @param forward
-     * @param fullGraph
+     * Called by the EventPlayer whenever a TrustLogEvent occurs.  This graph must be a dynamic graph in order to call this method.
+     * If the graph is playing forward, call the forwardEvent method, otherwise, call backwardEvent
+     * @param gev The TrustLogEvent that has just occured
+     * @param forward Whether or not the graph is being played forward
+     * @param fullGraph The full graph paired to this dynamic graph
      */
     public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph fullGraph) {
-        if (type != DYNAMIC){
+        if (type != DYNAMIC) {
             ChatterBox.error(this, "graphEvent()", "This graph is not a dynamic graph.  Illegal method call");
             return;
         }
-        if (forward){
+        if (forward) {
             forwardEvent(gev, fullGraph);
-        }else{
+        } else {
             backwardEvent(gev, fullGraph);
         }
     }
 
-    public void graphConstructionEvent(TrustLogEvent gev) {
+    /**
+     * Called by the EventPlayer whenever a TrustLogEvent occurs.  This graph must be a full graph in order to call this method.
+     * Adds any new Agents to the full graph referred to by the TrustLogevent and all edges that might possibly exist
+     * @param event The TrustLogEvent that has just occured
+     */
+    public void graphConstructionEvent(TrustLogEvent event) {
         if (type != FULL) {
             ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a full graph.  Illegal method call.");
             return;
         }
-        ensureAgentExists(gev.getAssessor());
-        ensureAgentExists(gev.getAssessee());
-        for (Agent src : getVertices()) {
-            for (Agent sink : getVertices()) {
-                if (!src.equals(sink)){
-                    ensureEdgeExists(src, sink, edgecounter++, this);
+        if (event.getAssessor() == -1) {  //If it's the last event, add all edges to the graph
+            for (Agent src : getVertices()) {
+                for (Agent sink : getVertices()) {
+                    if (!src.equals(sink)) {
+                        ensureEdgeExists(src, sink, this);
+                    }
                 }
             }
+        } else { //Otherwise, just add any new Agents to the graph
+            ensureAgentExists(((TrustLogEvent) event).getAssessor());
+            ensureAgentExists(((TrustLogEvent) event).getAssessee());
         }
     }
 
+    public abstract String getDisplayName();
+
     protected abstract void forwardEvent(TrustLogEvent gev, SimGraph fullGraph);
+
     protected abstract void backwardEvent(TrustLogEvent gev, SimGraph fullGraph);
 }
 ////////////////////////////////////////////////////////////////////////////////

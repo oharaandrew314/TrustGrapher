@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -18,7 +19,6 @@ import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import utilities.AreWeThereYet;
 
 /**
  * The Playback Panel components, listeners, and handlers
@@ -32,7 +32,6 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     private TrustGrapher applet;
     public TrustEventPlayer eventThread;
     private JTable logList;
-    private AreWeThereYet loadingBar;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -40,19 +39,9 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
      * @param applet The main TrustGrapher object
      * @param logList The east log panel if it exists
      */
-    public PlaybackPanel(TrustGrapher applet, JTable logList) {
+    public PlaybackPanel(TrustGrapher applet) {
         this.applet = applet;
-        this.logList = logList;
         initComponents();
-    }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-    /**
-     * Gets the loading bar object which is embedded into the playbackPanel
-     * @return The loading bar
-     */
-    public AreWeThereYet getLoadingBar() {
-        return loadingBar;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -70,32 +59,32 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
         fastSpeedSlider.setBorder(BorderFactory.createTitledBorder("Quick Playback Speed"));
         fastSpeedSlider.setEnabled(false);
 
+        ActionListener listener = new PlaybackButtonListener();
+
         fastReverseButton = new JButton("<|<|");
-        fastReverseButton.addActionListener(new FastReverseButtonListener());
+        fastReverseButton.addActionListener(listener);
         fastReverseButton.setEnabled(false);
 
         reverseButton = new JButton("<|");
-        reverseButton.addActionListener(new ReverseButtonListener());
+        reverseButton.addActionListener(listener);
         reverseButton.setEnabled(false);
 
         pauseButton = new JButton("||");
-        pauseButton.addActionListener(new PauseButtonListener());
+        pauseButton.addActionListener(listener);
         pauseButton.setEnabled(false);
 
         forwardButton = new JButton("|>");
-        forwardButton.addActionListener(new ForwardButtonListener());
+        forwardButton.addActionListener(listener);
         forwardButton.setEnabled(false);
         //forwardButton.setIcon(new ImageIcon(getClass().getResource("/trustGrapher/resources/forward.png")));
         //forwardButton.setSize(48,25);
 
         fastForwardButton = new JButton("|>|>");
-        fastForwardButton.addActionListener(new FastForwardButtonListener());
+        fastForwardButton.addActionListener(listener);
         fastForwardButton.setEnabled(false);
 
         playbackSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
         playbackSlider.setEnabled(false);
-
-        loadingBar = new AreWeThereYet(this, true);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
@@ -106,7 +95,6 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
         buttonPanel.add(forwardButton);
         buttonPanel.add(fastForwardButton);
         buttonPanel.add(fastSpeedSlider);
-        buttonPanel.add(loadingBar.embed());
 
         setLayout(new java.awt.GridLayout(2, 1));
         setBorder(BorderFactory.createTitledBorder("Playback Panel"));
@@ -115,9 +103,18 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     }
 
     /**
+     * When the event list table is shown, this is called to pass the event list to this
+     * The logList is needed so the PlaybackPanel can highlight the events that have passed
+     * @param logList The list of Trust Log Events
+     */
+    public void setLogList(JTable logList){
+        this.logList = logList;
+    }
+
+    /**
      * Resets the panel buttons and EventPlayer when a new log is loaded
      * @param events The List of log events
-     * @param graphs The graphs to be displayed
+     * @param graphs The graphs to be displayed in the viewers
      */
     public void resetPanel(java.util.ArrayList<TrustLogEvent> events, java.util.ArrayList<cu.trustGrapher.graph.SimGraph[]> graphs) {
         if (events.isEmpty()) {
@@ -173,11 +170,11 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
 
     @Override
     public void playbackPause() {
-        fastReverseButton.setEnabled(eventThread.atFront() ? false: true);
-        reverseButton.setEnabled(eventThread.atFront() ? false: true);
+        fastReverseButton.setEnabled(eventThread.atFront() ? false : true);
+        reverseButton.setEnabled(eventThread.atFront() ? false : true);
         pauseButton.setEnabled(false);
-        forwardButton.setEnabled(eventThread.atBack() ? false: true);
-        fastForwardButton.setEnabled(eventThread.atBack() ? false: true);
+        forwardButton.setEnabled(eventThread.atBack() ? false : true);
+        fastForwardButton.setEnabled(eventThread.atBack() ? false : true);
     }
 
     @Override
@@ -199,61 +196,48 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     }
 
     /**
-     * Repaints all the viewers to update them
+     * Repaints the viewers to update them
+     * If the view type is tabbed, then it is only necessary to update the current viewer
      */
     @Override
     public void doRepaint() {
-        for (VisualizationViewer<Agent, TestbedEdge> viewer : applet.getViewers()) {
-            viewer.repaint();
+        if (applet.getViewType() == TrustGrapher.TABBED){
+            applet.getCurrentViewer().repaint();
+        }else{
+            for (VisualizationViewer<Agent, TestbedEdge> viewer : applet.getViewers()) {
+                viewer.repaint();
+            }
         }
     }
 
 ////////////////////////////////////Listeners///////////////////////////////////
 
-    class FastReverseButtonListener implements ActionListener {
+    /**
+     * Handles PlaybackPanel button clicks
+     */
+    class PlaybackButtonListener implements ActionListener {
 
-        public void actionPerformed(ActionEvent ae) {
-            eventThread.fastReverse();
+        public void actionPerformed(ActionEvent e) {
+            String buttonText = ((AbstractButton)e.getSource()).getText();
+            if (buttonText.equals("<|<|")){
+                eventThread.fastReverse();
+            }else if (buttonText.equals("<|")){
+                eventThread.reverse();
+            }else if (buttonText.equals("||")){
+                eventThread.pause();
+            }else if (buttonText.equals("|>")){
+                eventThread.forward();
+            }else if (buttonText.equals("|>|>")){
+                eventThread.fastForward();
+            }else{
+                utilities.ChatterBox.error(this, "actionPerformed()", "An unhandled PlayBackPanel button press occured");
+            }
         }
     }
 
     /**
-     * An ActionListener that defines the action of the reverse button for the applet
-     * @author Matthew
+     * Handles changes to the Speed Slider
      */
-    class ReverseButtonListener implements ActionListener {
-
-        /**
-         * Method called when the reverse button has an action performed(clicked)
-         * Tells eventThread to traverse the graph placement in reverse.
-         * @param ae	The ActionEvent that triggered the listener
-         */
-        public void actionPerformed(ActionEvent ae) {
-            eventThread.reverse();
-        }
-    }
-
-    class PauseButtonListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent ae) {
-            eventThread.pause();
-        }
-    }
-
-    class ForwardButtonListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent ae) {
-            eventThread.forward();
-        }
-    }
-
-    class FastForwardButtonListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent ae) {
-            eventThread.fastForward();
-        }
-    }
-
     class SpeedSliderListener implements ChangeListener {
 
         @Override
@@ -262,6 +246,9 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
         }
     }
 
+    /**
+     * Handles mouse clicks on the timeline slider on the playbackPanel
+     */
     class SliderListener extends MouseAdapter implements ChangeListener {
 
         int prevState = TrustEventPlayer.PAUSE;
@@ -290,12 +277,17 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
         @Override
         public void mouseReleased(MouseEvent e) {
             if (((JSlider) (e.getSource())).isEnabled()) {
-                switch (prevState){
-                    case TrustEventPlayer.FASTREVERSE: eventThread.fastReverse();
-                    case TrustEventPlayer.REVERSE: eventThread.reverse();
-                    case TrustEventPlayer.PAUSE: eventThread.pause();
-                    case TrustEventPlayer.FORWARD: eventThread.forward();
-                    case TrustEventPlayer.FASTFORWARD: eventThread.fastForward();
+                switch (prevState) {
+                    case TrustEventPlayer.FASTREVERSE:
+                        eventThread.fastReverse();
+                    case TrustEventPlayer.REVERSE:
+                        eventThread.reverse();
+                    case TrustEventPlayer.PAUSE:
+                        eventThread.pause();
+                    case TrustEventPlayer.FORWARD:
+                        eventThread.forward();
+                    case TrustEventPlayer.FASTFORWARD:
+                        eventThread.fastForward();
                 }
             }
         }
