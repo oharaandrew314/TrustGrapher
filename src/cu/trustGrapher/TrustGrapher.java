@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import utilities.ChatterBox;
+import utilities.PropertyManager;
 
 /**
  *
@@ -52,7 +53,7 @@ public class TrustGrapher extends JFrame {
     //This window is used to configure which algorithms to load, what graphs are using what algorithms, and what graphs to display.
     //It saves all of the configurations to TrustPropertyManager config
     public final AlgorithmLoader options;
-    private TrustPropertyManager config; //The Property Manager that contains all of the saved options for the applet and algorithm loader
+    private PropertyManager config; //The Property Manager that contains all of the saved options for the applet and algorithm loader
     private ArrayList<TrustLogEvent> events;  // The List of Trust Log Events
     private JCheckBoxMenuItem toggleLogTable; //A check box which is used to show the log table
     private JSplitPane mainPane; //The JSplitPane which is to contain the graphsPanel and playbackPanel
@@ -64,7 +65,7 @@ public class TrustGrapher extends JFrame {
      * Creates the TrustGrapher frame and menu bar.  The viewers are not yet created
      */
     public TrustGrapher() {
-        config = new TrustPropertyManager("TrustApplet.properties");
+        config = new PropertyManager("TrustApplet.properties");
         options = new AlgorithmLoader(this, config);
         initComponents();
     }
@@ -122,10 +123,12 @@ public class TrustGrapher extends JFrame {
                 playbackPanel.disableButtons();
             }
 
-            graphs = GraphLoader.loadGraphs(config);
+            graphs = GraphLoader.loadGraphs(options.getAlgorithms());
             java.io.File logFile = new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH));
             LogReader logReader = new LogReader(this, logFile);
             logReader.execute(); //After the log reader thread is complete, startGraph() will be called
+        }else{
+            ChatterBox.alert("No log was loaded, so no action will be taken.");
         }
     }
 
@@ -323,7 +326,7 @@ public class TrustGrapher extends JFrame {
         @Override
         public void mouseReleased(MouseEvent e) {
             //Windows only shows the popup menu on right-click release.  Silly Windows
-            if (System.getProperty("os.name").toLowerCase().equals("windows") & e.isPopupTrigger()){
+            if (System.getProperty("os.name").toLowerCase().startsWith("windows") & e.isPopupTrigger()){
                 popupMenu.showPopupMenu();
             }
         }

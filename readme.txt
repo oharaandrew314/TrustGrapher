@@ -304,6 +304,12 @@ More major code refactoring.  This caused a bunch of awesome new bugs, but I fix
 Fixed an annoyingly persistent bug that caused the graph to jerk for a few seconds when switching from grid view to tabbed view
 More documentation (Makes my head explode!)
 
+    Revision 41
+Right-click works on Windows platforms again
+Massive Algorithm Loader rewrite to use Algorithm objects to keep track of algorithm configurations
+The simulator properties file is now read every time the algorithm configuration window is opened
+Added a small help box in the Algorithm Configuration Window and renamed "Base Algorithm" to "Depends on"
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -313,12 +319,20 @@ More documentation (Makes my head explode!)
     -------------------
     4.1.0 High Priority
     -------------------
-    Implement speed hacks (maybe, If there are this many vertices, skip a few alg checks) (Add an option  for it)
+    Edit the events
+    Export results at the current time
+    The algorithm graphs no longer go away
+    Speed hack ideas:
+        Skip algorithm checks (when speed is set to high or user selects option maybe)
+        have the algorithms run in a seperate thread
+        Make it so that you can drag and drop the playback slider
+        Add go to start and end buttons
+        Optimize edge and vertex to String methods (caching)
 
     ------------------
     4.2.0 Low Priority
     ------------------
-    Maybe make algorithm class for AlgorithmLoader
+    Merge full and dynamic graphs
     Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar

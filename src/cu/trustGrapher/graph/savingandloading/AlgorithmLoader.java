@@ -3,11 +3,9 @@ package cu.trustGrapher.graph.savingandloading;
 
 import java.io.File;
 
-import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.trustGrapher.TrustGrapher;
-
-import utilities.BitStylus;
-import utilities.ChatterBox;
+import java.util.ArrayList;
+import utilities.*;
 
 /**
  * An options frame which allows the user to choose which algorithms to load, and which ones to display
@@ -15,15 +13,12 @@ import utilities.ChatterBox;
  */
 public class AlgorithmLoader extends javax.swing.JFrame {
 
-    public static final int NAME = 0, TYPE = 1, DISPLAY = 2, BASE = 3, PATH = 4, CONFIG = 5, MAX_ALGS = 12, MAX_GRAPHS = 6;
-    public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm", TRUE = "true";
-    public static final String FALSE = "false", LOG_PATH = "logPath", CLASS_PATH = "classPath", PROPERTY_PATH = "propertyPath";
-    public static String NO_BASE = "noBase", NO_CLASS = "noClass", NO_CONFIG = "noConfig";
-    public static String ALG = "alg", CLASS = "class"; //Key
-    private TrustPropertyManager config;
-    private int visibleGraphs;
+    public static final String ALG = "alg", CLASS = "class";
+    public static final String LOG_PATH = "logPath", CLASS_PATH = "classPath", PROPERTY_PATH = "propertyPath";
+    private PropertyManager config;
     private TrustGrapher applet;
     private File logFile;
+    private AlgorithmList algorithms;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -31,7 +26,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
      * @param applet The main class.  Needed to inform it that the algorithms have been loaded
      * @param config The properties manager to load all of the class and algorithm properties
      */
-    public AlgorithmLoader(TrustGrapher applet, TrustPropertyManager config) {
+    public AlgorithmLoader(TrustGrapher applet, PropertyManager config) {
         this.applet = applet;
         this.config = config;
         initComponents();
@@ -45,13 +40,26 @@ public class AlgorithmLoader extends javax.swing.JFrame {
      * @param type A String which contains the type of key to generate.  Ex: "alg" , "class"
      * @return An unused property key that is of the specified type
      */
-    private String getNewKey(String type) {
+    private Integer getNewKey(String type) {
         for (int i = 0; i < config.keySet().size() + 1; i++) {
             if (!config.containsKey(type + i)) {
-                return type + i;
+                return i;
             }
         }
         return null;
+    }
+    
+    public AlgorithmList getAlgorithms(){
+        return algorithms;
+    }
+    
+    private int getBaseIndex(){
+        return Integer.parseInt(((String)baseField.getSelectedItem()).split("-")[0]);
+    }
+    
+    private Algorithm getSelectedAlg(){
+        String temp = ((String)algList.getSelectedValue()).split("-")[0];
+        return algorithms.getAlg(Integer.parseInt(temp));
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -60,56 +68,53 @@ public class AlgorithmLoader extends javax.swing.JFrame {
      * It updates all of the components to indicate the current selection or change that was made
      */
     private void updateFields() {
-        int index = algList.getSelectedIndex();
+        Algorithm alg = getSelectedAlg();
+        if (alg != null) { //If an algorithm is selected
+            nameField.setText(alg.getDisplayName()); //Set the graph name field
+            displayField.setSelected(alg.isDisplayed()); //Set the Display JCheckBox
 
-        if (index != -1) { //If an algorithm is selected
-            String[] entry = config.getAlg(index);
-
-            nameField.setText(ALG + index + "-" + entry[NAME]); //Set the graph name field
-            displayField.setSelected(entry[DISPLAY].equals(TRUE) ? true : false); //Set the Display JCheckBox
-
-            propertiesField.setText(entry[CONFIG].equals(NO_CONFIG) ? "" : new File(entry[CONFIG]).getName()); //Set the properties file
+            propertiesField.setText(alg.getProperties() != null ? alg.getProperties().getName() : ""); //Set the properties file
             //If the feedbackHistory is selected, disable the properties buttons
-            choosePropertiesButton.setEnabled(entry[TYPE].equals(FB) ? false : true);
-            removePropertyButton.setEnabled(entry[TYPE].equals(FB) ? false : true);
+            choosePropertiesButton.setEnabled(alg.isFeedbackHistory() ? false : true);
+            removePropertyButton.setEnabled(alg.isFeedbackHistory() ? false : true);
 
             //Set the Base List
             baseField.setEnabled(false);
             baseField.removeAllItems();
-            if (index == 0) { //If the alg is the feedbackHistory
-                baseField.addItem(NO_BASE);
+            if (alg.isFeedbackHistory()) { //If the alg is the feedbackHistory
+                baseField.addItem(Algorithm.NO_BASE);
                 baseField.setSelectedIndex(0);
-            } else if (entry[TYPE].equals(REP)) { //if the alg is a reputation alg
-                baseField.addItem("0-" + config.getAlg(0)[NAME]);
+            } else if (alg.isReputationAlg()) { //if the alg is a reputation alg
+                baseField.addItem(algorithms.getAlg(0).getDisplayName());
                 baseField.setSelectedIndex(0);
-                config.modifyAlg(index, BASE, "alg0");
             } else { //Otherwise, it must be a trust alg
-                int baseIndex = 1;
-                for (int i = 0; i <= MAX_ALGS; i++) { //Add All reputation algs to the base list
-                    if (!config.containsKey(ALG + i)) {
-                        continue;
-                    }
-                    String[] e = config.getAlg(i);
-                    if (e[TYPE].equals(REP)) {
-                        baseField.addItem(i + "-" + e[NAME]);
-                        if (entry[BASE].equals(ALG + i)) { //If this alg is the alg's base, select it
-                            baseField.setSelectedItem(e[NAME]);
-                            baseIndex = i;
+                for (Algorithm a : algorithms.getAlgs()) { //Add All reputation algs to the base list
+                    if (a.isReputationAlg()) {
+                        baseField.addItem(a.getDisplayName());
+                        if (alg.getBase() != -1){
+                            if (alg.getBase() == a.getIndex()) { //If this alg is the alg's base, select it
+                                baseField.setSelectedItem(a.getDisplayName());
+                            }
                         }
                     }
                 }
-                config.modifyAlg(index, BASE, ALG + baseIndex);
+            }
+            if (((String)baseField.getSelectedItem()).equals(Algorithm.NO_BASE)){
+                 alg.setBase(-1);
+            }else{
+                alg.setBase(getBaseIndex());
             }
             //If the selected algorithm is a trust algrithm, enable the base field
-            baseField.setEnabled(entry[TYPE].equals(TRUST) ? true : false);
+            baseField.setEnabled(alg.isTrustAlg() ? true : false);
 
             //Set the class list
             classList.removeAllItems();
             for (int i = 0; i < config.keySet().size(); i++) {
                 if (config.containsKey(CLASS + i)) {
-                    classList.addItem(TrustClassLoader.formatClassName(i, config.getClassPath(i)));
+                    classList.addItem(TrustClassLoader.formatClassName(i, config.getProperty(CLASS + i)));
                 }
             }
+            config.setProperty(alg.getKey(), alg.toString());
         }
     }
 
@@ -118,24 +123,25 @@ public class AlgorithmLoader extends javax.swing.JFrame {
      * loads all of the properties from the properties file, and then updates the window
      */
     public void run() {
-        //If the feedbackHistory graph does not exist, add it
-        if (!config.hasAlg(0)) {//     name       type   display     base         class path        config
-            config.setProperty("alg0", FB + "," + FB + ",true," + NO_BASE + "," + NO_CLASS + "," + NO_CONFIG);
+        algorithms = new AlgorithmList(config);
+        config = new PropertyManager(config.getFile());
+        if (!config.containsKey(ALG + 0)){ //If the feedbackHistory graph does not exist in the properties, add it
+            algorithms.newAlg(0, true, -1);
         }
-        //Count the number of displayed algorithms
-        visibleGraphs = 0;
-        for (String[] alg : config.getAlgs()) {
-            if (alg[DISPLAY].equals(TRUE)) {
-                visibleGraphs++;
+        //Add the rest of the algorithms
+        for (int i = 0; i <= AlgorithmList.MAX_ALGS; i++) {
+            if (config.containsKey(ALG + i)){
+                algorithms.newAlgFromProperty(i, config.getProperty(ALG + i).split(","));
             }
         }
+
         //Set the path field to the last log
         String logPath = config.getProperty(LOG_PATH);
         if (logPath != null) {
-            pathField.setText(new File(logPath).getPath());
             logFile = new File(logPath);
+            pathField.setText(logPath);
         }
-        algList.setListData(config.getAlgDisplayNames()); //Set the algList
+        algList.setListData(algorithms.getAlgDisplayNames()); //Set the algList
         algList.setSelectedIndex(0);
         updateFields();
         setVisible(true);
@@ -180,6 +186,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         propertiesField = new javax.swing.JTextField();
         choosePropertiesButton = new javax.swing.JButton();
         removePropertyButton = new javax.swing.JButton();
+        helpButton = new javax.swing.JButton();
 
         setTitle("Algorithm Configuration");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -232,7 +239,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("Base Algorithm");
+        jLabel2.setText("Depends on:");
 
         addButton.setText("Add");
         addButton.addActionListener(new java.awt.event.ActionListener() {
@@ -305,6 +312,13 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             }
         });
 
+        helpButton.setText("Help");
+        helpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                helpButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -336,7 +350,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                                             .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel2)
                                                 .addGap(18, 18, 18)
-                                                .addComponent(baseField, 0, 217, Short.MAX_VALUE))
+                                                .addComponent(baseField, 0, 234, Short.MAX_VALUE))
                                             .addGroup(layout.createSequentialGroup()
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                                     .addComponent(choosePropertiesButton)
@@ -350,7 +364,9 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                                             .addComponent(nameField, javax.swing.GroupLayout.DEFAULT_SIZE, 340, Short.MAX_VALUE)))))
                             .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 540, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(191, 191, 191)
+                        .addContainerGap()
+                        .addComponent(helpButton)
+                        .addGap(134, 134, 134)
                         .addComponent(applyButton)
                         .addGap(18, 18, 18)
                         .addComponent(okButton)
@@ -432,7 +448,8 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(cancelButton)
                             .addComponent(okButton)
-                            .addComponent(applyButton)))
+                            .addComponent(applyButton)
+                            .addComponent(helpButton)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(102, 102, 102)
                         .addComponent(jLabel1))
@@ -452,81 +469,43 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     }//GEN-LAST:event_algListValueChanged
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        //Generate a key, and check if you're not trying to have more than the maximum number of algorithms
-        String newKey = getNewKey(ALG);
-        if (Integer.parseInt(newKey.replace(ALG, "")) > MAX_ALGS) {
-            ChatterBox.alert("You cannot have more than " + MAX_ALGS + " algorithms.");
-            return;
-        }
-
-        //Create the list of simple class names
-        int highestClassIndex = -1;
-        for (int i = 0; i < config.keySet().size(); i++) {
-            if (config.containsKey(CLASS + i)) {
-                highestClassIndex = i;
+        //Generate array of algorithms to load
+        ArrayList<String> classPaths = new ArrayList<String>();
+        for (int i = 0 ; i <= AlgorithmList.MAX_ALGS ; i++){
+            if (config.containsKey(CLASS + i)){
+                classPaths.add(TrustClassLoader.formatClassName(i, config.getProperty(CLASS + i)));
             }
         }
+        //Ask which algorithm to load
+        String selectedClassName = ChatterBox.selectionPane("Question", "Which class would you like to load?", classPaths.toArray());        
+        if (selectedClassName != null){
+            int newKey = getNewKey(ALG);
+            algorithms.newAlg(newKey, false, classPaths.indexOf((Object) selectedClassName));
+            config.setProperty(ALG + newKey, algorithms.getAlg(newKey).toString());
 
-        String[] options = new String[highestClassIndex + 1];
-        for (int i = 0; i <= highestClassIndex; i++) {
-            options[i] = TrustClassLoader.formatClassName(i, config.getClassPath(i));
+            //Add the info to the loader and window
+            algList.setListData(algorithms.getAlgDisplayNames());
+            algList.setSelectedIndex(algList.getLastVisibleIndex());
         }
-        //Choose which algorithm to load
-        String path = null;
-        String temp = ChatterBox.selectionPane("Question", "Which class would you like to load?", options);
-        for (int i = 0; i < options.length; i++) {
-            if (options[i].equals(temp)) {
-                path = config.getClassPath(i);
-                break;
-            }
-        }
-        if (path == null) {
-            return;
-        }
-
-        //Load the algorithm to find out what type of algorithm it is, and if it can be added
-        Object alg = TrustClassLoader.newAlgorithm(path);
-        String type = (alg instanceof ReputationAlgorithm) ? REP : TRUST;
-        if (type.equals(TRUST)) {
-            //There must already be a reputation algorithm to use a trust algorithm.  Check if one exists
-            boolean repAlgExists = false;
-            for (String[] entry : config.getAlgs()) {
-                if (entry[TYPE].equals(REP)) {
-                    repAlgExists = true;
-                    break;
-                }
-            }
-            if (!repAlgExists) {
-                ChatterBox.alert("There must be an existing Reputation Algorithm\nbefore you can add a Trust Algorithm.");
-                return;
-            }
-        }
-
-        //Create the property for the properties file            type         display         base         class path       configPath
-        String property = alg.getClass().getSimpleName() + "," + type + "," + FALSE + "," + NO_BASE + "," + path + "," + NO_CONFIG;
-        config.setProperty(newKey, property);
-
-        //Add the info to the loader and window
-        algList.setListData(config.getAlgDisplayNames());
-        algList.setSelectedIndex(algList.getLastVisibleIndex());
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
-        int index = algList.getSelectedIndex();
+        int index = getSelectedAlg().getIndex();
         if (index == 0) {
             ChatterBox.alert("You cannot remove the FeedbackHistory.");
         } else if (index != -1) {
             //Check if this algorithm is being used by another
-            for (String[] entry : config.getAlgs()) {
-                if ((entry[BASE]).equals(ALG + index)) {
-                    ChatterBox.alert("You cannot remove an algorithm that is used by another.");
-                    return;
+            for (Algorithm alg : algorithms.getAlgs()){
+                if (alg.getBase() != -1) {
+                    if (alg.getBase() == index){
+                        ChatterBox.alert("You cannot remove an algorithm that is used by another.");
+                        return;
+                    }
                 }
             }
-            if (!config.removeProperty(ALG + index)) {
-                ChatterBox.debug(this, "removeButtonActionPerformed()", "The property was not removed");
-            }
-            algList.setListData(config.getAlgDisplayNames());
+            algorithms.removeAlg(index);
+            config.remove(ALG + index);
+            algList.setListData(algorithms.getAlgDisplayNames());
             algList.setSelectedIndex(algList.getLastVisibleIndex());
         }
     }//GEN-LAST:event_removeButtonActionPerformed
@@ -538,10 +517,10 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         config.save();
         setVisible(false);
-        if (visibleGraphs > 0){
+        if (AlgorithmList.VISIBLE_COUNT > 0) {
             applet.loadAlgorithms();
-        }else{
-            ChatterBox.alert("No graphs are displayed,\nso no action was done.");
+        } else {
+            ChatterBox.alert("No graphs are displayed, so no action was done.");
         }
     }//GEN-LAST:event_okButtonActionPerformed
 
@@ -552,24 +531,27 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     private void displayFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayFieldActionPerformed
         if (algList.getSelectedIndex() != -1 && isVisible()) {
             if (displayField.isSelected()) {
-                if (visibleGraphs >= MAX_GRAPHS) {
+                if (AlgorithmList.VISIBLE_COUNT >= AlgorithmList.MAX_VISIBLE) {
                     displayField.setSelected(false);
-                    ChatterBox.alert("You cannot have more than " + MAX_GRAPHS + " visible graphs at one time.");
+                    ChatterBox.alert("You cannot have more than " + AlgorithmList.MAX_VISIBLE + " visible graphs at one time.");
                 } else {
-                    config.modifyAlg(algList.getSelectedIndex(), DISPLAY, TRUE);
-                    visibleGraphs++;
+                    AlgorithmList.VISIBLE_COUNT++;
                 }
             } else {
-                config.modifyAlg(algList.getSelectedIndex(), DISPLAY, FALSE);
-                visibleGraphs--;
+                AlgorithmList.VISIBLE_COUNT--;
             }
+            Algorithm alg = getSelectedAlg();
+            alg.setDisplay(displayField.isSelected());
+            config.setProperty(alg.getKey(), alg.toString());
         }
     }//GEN-LAST:event_displayFieldActionPerformed
 
     private void baseFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_baseFieldActionPerformed
         //This is called when the selected algorithm's base is changed from the options window
         if (baseField.isEnabled() && baseField.getSelectedIndex() != -1 && isVisible()) {
-            config.modifyAlg(algList.getSelectedIndex(), BASE, ALG + baseField.getSelectedItem());
+            Algorithm alg = getSelectedAlg();
+            alg.setBase(getBaseIndex());
+            config.setProperty(alg.getKey(), alg.toString());
         }
     }//GEN-LAST:event_baseFieldActionPerformed
 
@@ -595,15 +577,13 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         //Open a JFileChoose asking the user to choose a class file to add
         File file = BitStylus.chooseFile("Choose an algorithm to load", directory, new String[]{CLASS, "jar"});
         Object o = (file != null) ? TrustClassLoader.newAlgorithm(file.getPath()) : null; //Load the object
-        if (o == null) {
-            return;
+        if (o != null) {
+            config.setProperty(CLASS_PATH, file.getParent()); //Save the path of the class file that was loaded
+            String path = file.getPath().endsWith(".jar") ? file.getPath() + "!" + o.getClass().getName() : file.getPath();
+            config.setProperty(CLASS + getNewKey(CLASS), path);
+            updateFields();
+            classList.setSelectedIndex(classList.getItemCount() - 1);
         }
-
-        config.setProperty(CLASS_PATH, file.getParent()); //Save the path of the class file that was loaded
-        String path = file.getPath().endsWith(".jar") ? file.getPath() + "!" + o.getClass().getName() : file.getPath();
-        config.setProperty(getNewKey(CLASS), path);
-        updateFields();
-        classList.setSelectedIndex(classList.getItemCount() - 1);
     }//GEN-LAST:event_addClassButtonActionPerformed
 
     private void removeClassButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeClassButtonActionPerformed
@@ -611,17 +591,19 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         if (classList.getSelectedItem() == null) {
             return;
         }
-        int index = Integer.parseInt(((String) classList.getSelectedItem()).split("-")[0]);
+        int index = Integer.parseInt(((String) classList.getSelectedItem()).split("-")[0].replace(CLASS,""));
 
         //see if any algorithms depend on this class.  If so, the class cannot be deleted
-        for (String[] entry : config.getAlgs()) {
-            if (entry[PATH].equals(config.getClassPath(index))) {
-                ChatterBox.alert("This class cannot be removed since it has algorithms that depend on it.");
-                return;
+        for (Algorithm alg : algorithms.getAlgs()){
+            if (alg.getClassFile() != null){
+                if (alg.getClassFile().getPath().equals(config.getProperty(CLASS + index))) {
+                    ChatterBox.alert("This class cannot be removed since it has algorithms that depend on it.");
+                    return;
+                }
             }
         }
         if (ChatterBox.yesNoDialog("Are you sure you want to remove " + classList.getSelectedItem() + "?")) {
-            if (!config.removeProperty(CLASS + index)) {
+            if (!config.remove(CLASS + index)) {
                 ChatterBox.alert("The property was not removed!");
             }
             classList.removeItemAt(classList.getSelectedIndex());
@@ -634,18 +616,35 @@ public class AlgorithmLoader extends javax.swing.JFrame {
 
         //See if there is a property containing the path of the last properties file loaded
         File lastPath = config.containsKey(PROPERTY_PATH) ? new File(config.getProperty(PROPERTY_PATH)) : null;
-        File configFile = BitStylus.chooseFile("Choose a properties file to load", lastPath, new String[]{"properties"});
-        if (configFile != null) {
-            propertiesField.setText(configFile.getName());
-            config.setProperty(PROPERTY_PATH, configFile.getPath());
-            config.modifyAlg(algList.getSelectedIndex(), CONFIG, configFile.getPath());
+        File propertyFile = BitStylus.chooseFile("Choose a properties file to load", lastPath, new String[]{"properties"});
+        if (propertyFile != null) {
+            propertiesField.setText(propertyFile.getName());
+            config.setProperty(PROPERTY_PATH, propertyFile.getPath());
+            Algorithm alg = getSelectedAlg();
+            alg.setProperties(propertyFile);
+            config.setProperty(alg.getKey(), alg.toString());
         }
     }//GEN-LAST:event_choosePropertiesButtonActionPerformed
 
     private void removePropertyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePropertyButtonActionPerformed
         propertiesField.setText("");
-        config.modifyAlg(algList.getSelectedIndex(), CONFIG, NO_CONFIG);
+        getSelectedAlg().setProperties(null);
     }//GEN-LAST:event_removePropertyButtonActionPerformed
+
+private void helpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpButtonActionPerformed
+    String message = "To use this configuration window:\n\n" +
+            
+            "You must first add a class path to the classes combo box.\nClick the 'Add' Button next to it to do so.\n\n" +
+            
+            "Then you can add an algorithm to the simulator with the 'Add' Button below the 'Algorithms' list.\n" +
+            "You can only add algorithms who have had their class path added already.\n\n"+
+            
+            "You can then select an individual algorithm from the list and change their properties in the panel to the right.\n" +
+            "The 'Depends on' combo box means that the currently selected algorithm will listen to the graph connected to the\n" +
+            "algorithm that is selected in the combo box.\n\n";
+    ChatterBox.alert(message);
+}//GEN-LAST:event_helpButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JButton addClassButton;
@@ -657,6 +656,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     private javax.swing.JComboBox classList;
     private javax.swing.JCheckBox displayField;
     private javax.swing.JLabel graphLabel;
+    private javax.swing.JButton helpButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

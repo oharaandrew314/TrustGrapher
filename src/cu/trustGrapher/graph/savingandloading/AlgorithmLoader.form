@@ -55,7 +55,7 @@
                                           <Group type="102" alignment="0" attributes="0">
                                               <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                                               <EmptySpace type="separate" max="-2" attributes="0"/>
-                                              <Component id="baseField" pref="217" max="32767" attributes="1"/>
+                                              <Component id="baseField" pref="234" max="32767" attributes="1"/>
                                           </Group>
                                           <Group type="102" alignment="0" attributes="0">
                                               <Group type="103" groupAlignment="1" attributes="0">
@@ -79,7 +79,9 @@
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="191" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="helpButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="134" max="-2" attributes="0"/>
                       <Component id="applyButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="okButton" min="-2" max="-2" attributes="0"/>
@@ -182,6 +184,7 @@
                           <Component id="cancelButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="okButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="applyButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="helpButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -279,7 +282,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Base Algorithm"/>
+        <Property name="text" type="java.lang.String" value="Depends on:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JSeparator" name="jSeparator3">
@@ -397,6 +400,14 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="removePropertyButtonActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="helpButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Help"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="helpButtonActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

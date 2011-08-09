@@ -27,31 +27,26 @@ public class GraphLoader{
      * Creates all of the graphs specified by the algorithms in the config
      * @param config The PropertyManager that contains all the info on the algorithms
      */
-    public static ArrayList<SimGraph[]> loadGraphs(TrustPropertyManager config){
+    public static ArrayList<SimGraph[]> loadGraphs(AlgorithmList algorithms){
         graphs = new ArrayList<SimGraph[]>();
         ArrayList<Integer> trustAlgs = new ArrayList<Integer>();
-        for (int i = 0 ; i <= AlgorithmLoader.MAX_ALGS ; i++){
-            if (config.containsKey("alg" + i)){
-                String[] entry = config.getAlg((Integer) i);
-                boolean display = (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)) ? true : false;
-                if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.FB)){
+        for (Algorithm alg : algorithms.getAlgs()){
+            if (alg != null){                
+                boolean display = alg.isDisplayed();
+                if (alg.isFeedbackHistory()){
                     addFeedbackGraph(display);
-                }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.REP)){
-                    addReputationGraph(entry, (Integer) i, display);
-                }else if (entry[AlgorithmLoader.TYPE].equals(AlgorithmLoader.TRUST)){
-                    trustAlgs.add((Integer) i);
+                }else if (alg.isReputationAlg()){
+                    addReputationGraph(alg, alg.getIndex(), display);
+                }else if (alg.isTrustAlg()){
+                    trustAlgs.add(alg.getIndex());
                 }else{
                     ChatterBox.error("TrustEventLoader", "TrustEventLoader()", "Uncaught graph type.");
                 }
             }
         }
         for (Integer index : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
-            String[] entry = config.getAlg(index);
-            boolean display = false;
-            if (entry[AlgorithmLoader.DISPLAY].equals(AlgorithmLoader.TRUE)){
-                display = true;
-            }
-            addTrustGraph(entry, (Integer) index, display);
+            Algorithm alg = algorithms.getAlg(index);
+            addTrustGraph(alg, (Integer) index, alg.isDisplayed());
         }
         return graphs;
     }
@@ -73,11 +68,11 @@ public class GraphLoader{
      * @param index The algorithm number
      * @param display Whether or not the graph will be displayed in a TrustGraphViewer
      */
-    private static void addReputationGraph(String[] entry, int index, boolean display){
+    private static void addReputationGraph(Algorithm algDB, int index, boolean display){
         SimGraph[] graphSet = new SimGraph[2];
         
-        ReputationAlgorithm alg = (ReputationAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
-        ((FeedbackHistoryGraph)getInnerGraph(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(alg); //The algorithm will then add the graphs
+        ReputationAlgorithm alg = (ReputationAlgorithm) algDB.getAlgorithm();
+        ((FeedbackHistoryGraph)getInnerGraph(DYNAMIC, algDB.getBase())).addObserver(alg); //The algorithm will then add the graphs
 
         graphSet[FULL] = new SimReputationGraph(index, display); //This automatically turns the full feedbackGraph into the full reputationGraph
         graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], alg, index);
@@ -90,11 +85,11 @@ public class GraphLoader{
      * @param index The algorithm number
      * @param display Whether or not the graph will be displayed in a TrustGraphViewer
      */
-    private static void addTrustGraph(String[] entry, int index, boolean display){
+    private static void addTrustGraph(Algorithm algDB, int index, boolean display){
         SimGraph[] graphSet = new SimGraph[2];
 
-        TrustAlgorithm alg = (TrustAlgorithm) TrustClassLoader.newAlgorithm(entry[AlgorithmLoader.PATH]);
-        ((ReputationGraph) getInnerGraph(DYNAMIC, entry[AlgorithmLoader.BASE])).addObserver(alg); //The algorithm will then add the graphs
+        TrustAlgorithm alg = (TrustAlgorithm) algDB.getAlgorithm();
+        ((ReputationGraph) getInnerGraph(DYNAMIC, algDB.getBase())).addObserver(alg); //The algorithm will then add the graphs
 
         graphSet[FULL] = new SimTrustGraph(index, display);
         graphSet[DYNAMIC] = new SimTrustGraph(alg, index);
@@ -108,15 +103,19 @@ public class GraphLoader{
      * @param graphID The ID of the graph pair that contains the inner graph to return
      * @return The jGrapht graph inside of the specified graph
      */
-    private static SimpleDirectedGraph getInnerGraph(int type, String graphID){
+    private static SimpleDirectedGraph getInnerGraph(int type, int index){
         for (SimGraph[] graph : graphs){
             if (graph != null){
-                if (graph[type].getID() == Integer.parseInt(graphID.replace("alg", ""))){
-                    return graph[type].getInnerGraph();
+                try{
+                    if (graph[type].getID() == index){
+                        return graph[type].getInnerGraph();
+                    }
+                }catch(NumberFormatException ex){
+                    return null;
                 }
             }
         }
-        ChatterBox.error("GraphLoader", "getBase()", "Could not find a graph with id " + graphID);
+        ChatterBox.error("GraphLoader", "getBase()", "Could not find a graph with id " + index);
         return null;
     }
 }
