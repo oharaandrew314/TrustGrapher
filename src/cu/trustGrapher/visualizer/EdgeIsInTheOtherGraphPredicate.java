@@ -8,7 +8,6 @@ import cu.trustGrapher.graph.SimGraph;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
-import cu.trustGrapher.graph.SimReputationGraph;
 
 /**
  * This class is a predicate, and as such the logical predicate implemented is the following :

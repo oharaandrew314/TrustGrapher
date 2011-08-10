@@ -306,9 +306,19 @@ More documentation (Makes my head explode!)
 
     Revision 41
 Right-click works on Windows platforms again
-Massive Algorithm Loader rewrite to use Algorithm objects to keep track of algorithm configurations
+Massive Algorithm Loader rewrite to use Algorithm objects to keep track of algorithm configurations.  This has created several bugs.  Not all have been found and fixed yet.
 The simulator properties file is now read every time the algorithm configuration window is opened
-Added a small help box in the Algorithm Configuration Window and renamed "Base Algorithm" to "Depends on"
+Added a small help box in the Algorithm Configuration Window and renamed the "Base Algorithm" label to "Depends on"
+
+    Revision 42
+Rewrote TrustLogEvent and TrustEventPlayer for increased stability and compatability with new and intended features
+TrustGraphViewer Repaint is now much faster after optimizing the Entity toString methods
+You can now select an event on the log table to move to that event in the simulator
+    The event injector is a work in progress
+Increased stability of rewritten algorithm loader
+Fixed a new bug where the reputation values were incorrect
+Fixed a bug where algorithm graphs no longer rewound properly
+Fixed a bug where the graph would play in fast forward every time after you scrubbed the playback slider
 
 --------------------------------------------------------------------------------
 
@@ -319,15 +329,16 @@ Added a small help box in the Algorithm Configuration Window and renamed "Base A
     -------------------
     4.1.0 High Priority
     -------------------
+    EventPlayer no longer goes to start.  Fix it
+    GraphManager class (move GraphLoader into it)
+    Change include predicate to evaluate a 'show' field in entities and remove dynamic graph
     Edit the events
     Export results at the current time
-    The algorithm graphs no longer go away
     Speed hack ideas:
+        Calculate reputation ahead of time
         Skip algorithm checks (when speed is set to high or user selects option maybe)
         have the algorithms run in a seperate thread
-        Make it so that you can drag and drop the playback slider
-        Add go to start and end buttons
-        Optimize edge and vertex to String methods (caching)
+        Make it so that you can drag and drop the playback slider rather than scrubbing while paused
 
     ------------------
     4.2.0 Low Priority

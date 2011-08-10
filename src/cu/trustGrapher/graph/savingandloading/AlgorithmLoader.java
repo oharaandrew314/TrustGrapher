@@ -17,7 +17,6 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     public static final String LOG_PATH = "logPath", CLASS_PATH = "classPath", PROPERTY_PATH = "propertyPath";
     private PropertyManager config;
     private TrustGrapher applet;
-    private File logFile;
     private AlgorithmList algorithms;
 
 //////////////////////////////////Constructor///////////////////////////////////
@@ -124,7 +123,10 @@ public class AlgorithmLoader extends javax.swing.JFrame {
      */
     public void run() {
         algorithms = new AlgorithmList(config);
-        config = new PropertyManager(config.getFile());
+        AlgorithmList.ALG_COUNT = 0;
+        AlgorithmList.VISIBLE_COUNT = 0;        
+        config.loadPropertyFile();
+        
         if (!config.containsKey(ALG + 0)){ //If the feedbackHistory graph does not exist in the properties, add it
             algorithms.newAlg(0, true, -1);
         }
@@ -138,7 +140,6 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         //Set the path field to the last log
         String logPath = config.getProperty(LOG_PATH);
         if (logPath != null) {
-            logFile = new File(logPath);
             pathField.setText(logPath);
         }
         algList.setListData(algorithms.getAlgDisplayNames()); //Set the algList
@@ -189,7 +190,9 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         helpButton = new javax.swing.JButton();
 
         setTitle("Algorithm Configuration");
+        setBackground(new java.awt.Color(39, 31, 24));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setForeground(new java.awt.Color(254, 254, 254));
 
         okButton.setText("OK");
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -220,10 +223,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(algList);
 
-        jLabel1.setFont(new java.awt.Font("Ubuntu", 1, 15));
+        jLabel1.setFont(new java.awt.Font("Ubuntu", 1, 15)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Algorithms");
 
+        jSeparator1.setForeground(new java.awt.Color(254, 254, 254));
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         displayField.setText("Display Graph");
@@ -239,6 +243,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setBackground(new java.awt.Color(52, 52, 52));
         jLabel2.setText("Depends on:");
 
         addButton.setText("Add");
@@ -288,7 +293,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             }
         });
 
-        graphLabel.setFont(new java.awt.Font("Ubuntu", 1, 15));
+        graphLabel.setFont(new java.awt.Font("Ubuntu", 1, 15)); // NOI18N
         graphLabel.setText("Algorithm:");
 
         nameField.setEditable(false);
@@ -562,7 +567,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         File lastPath = config.containsKey(LOG_PATH) ? new File(config.getProperty(LOG_PATH)).getParentFile() : null;
 
         //Open a JFileChoose asking the user to choose a new log file
-        logFile = BitStylus.chooseFile("Choose a log file to load", lastPath, new String[]{"arff"});
+        File logFile = BitStylus.chooseFile("Choose a log file to load", lastPath, new String[]{"arff"});
         if (logFile != null) {
             pathField.setText(logFile.getPath());
             config.setProperty(LOG_PATH, logFile.getPath());

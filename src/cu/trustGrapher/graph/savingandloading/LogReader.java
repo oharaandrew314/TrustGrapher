@@ -19,13 +19,14 @@ import utilities.AreWeThereYet;
  * @author Andrew O'Hara
  */
 public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
+
     private AreWeThereYet loadingBar;
     private File logFile;
     private TrustGrapher applet;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public LogReader(TrustGrapher applet, File logFile) {
-        loadingBar = new AreWeThereYet(applet);
+    public LogReader(TrustGrapher applet, File logFile, AreWeThereYet loadingBar) {
+        this.loadingBar = loadingBar;
         this.applet = applet;
         this.logFile = logFile;
         //Disable the menu bars
@@ -43,6 +44,7 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
     private int findTotalLines(File logFile) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
+            skipToData(reader);
             int totalLines = 0;
             while (true) {
                 if (reader.readLine() != null) {
@@ -92,29 +94,25 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         int totalLines = findTotalLines(logFile);
         logEvents.ensureCapacity(totalLines);
         loadingBar.loadingStarted(totalLines, "Log Events");
-        
-        String line = ""; //will contain each log event as it is read.
-        int lineCount = 0;
-        logEvents.add(TrustLogEvent.getStartEvent()); //a start event to know when to stop playback of a reversing feedbackGraph
 
+        String line = ""; //will contain each log event as it is read.
         BufferedReader logReader = new BufferedReader(new FileReader(logFile));
         skipToData(logReader);
 
-        while ((line = logReader.readLine()) != null) { //reading lines log logFile
-            lineCount++;
-            line = (lineCount * 100) + "," + line; //Add the timestamp to the line
-            event = new TrustLogEvent(line);//create the log event
+        //reading log logFile.  Does an extra iteration to create null event so
+        //that non feedback full graphs recieve their construction event
+        logEvents.add(null);
+        for (int i = 0; i < totalLines; i++) {
+            line = logReader.readLine();
+            event = new TrustLogEvent(line);
             logEvents.add(event); //add this read log event to the list
             for (SimGraph[] graph : graphs) {
                 graph[SimGraph.FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
             }
             publish("progress");
         }
-
-        event = TrustLogEvent.getEndEvent(logEvents.get(logEvents.size() - 1));
-        logEvents.add(event); //add an end log to know to stop the playback of the feedbackGraph 100 ms after
         for (SimGraph[] graph : graphs) {
-            graph[SimGraph.FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
+            graph[SimGraph.FULL].graphConstructionEvent(null); //Add the construction event to the hidden graph
         }
         return logEvents;
     }

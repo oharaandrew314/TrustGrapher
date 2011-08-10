@@ -9,6 +9,7 @@ import cu.repsystestbed.graphs.TrustEdge;
  * @author Andrew O'Hara
  */
 public class SimTrustEdge extends TrustEdge{
+    private static final String label = "";
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -29,7 +30,7 @@ public class SimTrustEdge extends TrustEdge{
      */
     @Override
     public String toString(){
-        return "";
+        return label;
     }
 
     @Override

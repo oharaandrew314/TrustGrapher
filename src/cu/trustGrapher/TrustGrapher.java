@@ -17,9 +17,9 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import java.util.List;
 import java.util.ArrayList;
 
+import utilities.AreWeThereYet;
 import utilities.ChatterBox;
 import utilities.PropertyManager;
 
@@ -59,6 +59,7 @@ public class TrustGrapher extends JFrame {
     private JSplitPane mainPane; //The JSplitPane which is to contain the graphsPanel and playbackPanel
     private Container graphsPanel; //This container contains all of the TrustGrapgViewers as components
     private PlaybackPanel playbackPanel; //The panel beneath the graphs which controls playback
+    private AreWeThereYet loadingBar;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -125,7 +126,7 @@ public class TrustGrapher extends JFrame {
 
             graphs = GraphLoader.loadGraphs(options.getAlgorithms());
             java.io.File logFile = new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH));
-            LogReader logReader = new LogReader(this, logFile);
+            LogReader logReader = new LogReader(this, logFile, loadingBar);
             logReader.execute(); //After the log reader thread is complete, startGraph() will be called
         }else{
             ChatterBox.alert("No log was loaded, so no action will be taken.");
@@ -144,11 +145,14 @@ public class TrustGrapher extends JFrame {
         setPreferredSize(new Dimension(DEFWIDTH, DEFHEIGHT));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loadingBar = new AreWeThereYet(this);
 
         //Create the Menu Bar
         MenuBarListener listener = new MenuBarListener();        
         JMenuItem optionsButton = new JMenuItem("Load Algorithms");
         optionsButton.addActionListener(listener);
+        JMenuItem exportButton = new JMenuItem("Export Results");
+        exportButton.addActionListener(listener);
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(listener);
         JRadioButtonMenuItem tabbedView = new JRadioButtonMenuItem("Tabbed View");
@@ -175,6 +179,7 @@ public class TrustGrapher extends JFrame {
         //Create the file menu
         JMenu file = new JMenu("File");
         file.add(optionsButton);
+        file.add(exportButton);
         file.addSeparator();
         file.add(exit);
 
@@ -205,44 +210,7 @@ public class TrustGrapher extends JFrame {
         add(mainPane);
         pack();
     }
-
-    /**
-     * Creates the log list panel which shows the events in the current log
-     * @param logEvents The list of log events
-     * @return The JPanel containing the log list
-     */
-    private JPanel initializeLogList(List<TrustLogEvent> logEvents) {
-        Object[][] table = new Object[logEvents.size() - 1][3];
-        int i = 0;
-        for (TrustLogEvent evt : logEvents) {
-            if (evt.getAssessor() != -1) { //If the event isn't a start or end event
-                table[i] = evt.toArray();
-                i++;
-            }
-        }
-        Object[] titles = {"Assessor", "Assessee", "Feedback"};
-        JTable logList = new JTable(table, titles);
-        logList.setBackground(Color.LIGHT_GRAY);
-        logList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        logList.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        logList.setEnabled(false);
-        logList.setColumnSelectionAllowed(false);
-        logList.setVisible(true);
-
-        JScrollPane listScroller = new JScrollPane(logList);
-        listScroller.setWheelScrollingEnabled(true);
-        listScroller.setBorder(BorderFactory.createLoweredBevelBorder());
-        listScroller.setSize(logList.getWidth(), logList.getHeight());
-
-        JPanel tablePanel = new JPanel(new GridLayout(1, 1));
-        tablePanel.add(listScroller);
-        tablePanel.setName("Log Events");
-        tablePanel.setBorder(BorderFactory.createTitledBorder(tablePanel.getName()));
-        playbackPanel.setLogList(logList);
-
-        return tablePanel;
-    }
-
+    
     /**
      * Called by the log reader thread upon completion.
      * This method rebuilds the main pane, and adds new TrustGraphViewers to the graphsPanel, then starts the graph
@@ -318,15 +286,7 @@ public class TrustGrapher extends JFrame {
         @Override
         public void mousePressed(MouseEvent e) {
             currentViewer = (TrustGraphViewer) e.getComponent();
-            if (e.isPopupTrigger()) {
-                popupMenu.showPopupMenu();
-            }
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            //Windows only shows the popup menu on right-click release.  Silly Windows
-            if (System.getProperty("os.name").toLowerCase().startsWith("windows") & e.isPopupTrigger()){
+            if (SwingUtilities.isRightMouseButton(e)) {
                 popupMenu.showPopupMenu();
             }
         }
@@ -348,6 +308,8 @@ public class TrustGrapher extends JFrame {
                     playbackPanel.pauseButton.doClick();
                     options.run();
                 }
+            }else if (buttonText.equals("Export Results")){
+                ChatterBox.alert("Export results.");
             }else if(buttonText.equals("Exit")){
                 try {
                     playbackPanel.pauseButton.doClick();
@@ -383,7 +345,7 @@ public class TrustGrapher extends JFrame {
                         JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
                         p.setResizeWeight(1);
                         p.add(mainPane);
-                        p.add(initializeLogList(events));
+                        p.add(playbackPanel.initializeLogList(events));
                         p.setDividerSize(3);
 
                         getContentPane().add(p);

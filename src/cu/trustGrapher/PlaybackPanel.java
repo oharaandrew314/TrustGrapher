@@ -5,20 +5,18 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.trustGrapher.visualizer.eventplayer.*;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JTable;
+import java.awt.GridLayout;
+import java.awt.event.*;
+import java.util.List;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import utilities.ChatterBox;
 
 /**
  * The Playback Panel components, listeners, and handlers
@@ -28,10 +26,12 @@ import javax.swing.event.ChangeListener;
 public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerListener {
 
     public JButton fastForwardButton, forwardButton, pauseButton, reverseButton, fastReverseButton;
+    private JPanel tablePanel;
     public JSlider fastSpeedSlider, playbackSlider;
     private TrustGrapher applet;
     public TrustEventPlayer eventThread;
     private JTable logList;
+    private JPopupMenu menu;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -42,6 +42,11 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     public PlaybackPanel(TrustGrapher applet) {
         this.applet = applet;
         initComponents();
+    }
+    
+//////////////////////////////////Accessors/////////////////////////////////////
+    public JSlider getSlider(){
+        return playbackSlider;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -103,12 +108,56 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     }
 
     /**
-     * When the event list table is shown, this is called to pass the event list to this
-     * The logList is needed so the PlaybackPanel can highlight the events that have passed
-     * @param logList The list of Trust Log Events
+     * Creates the log list panel which shows the events in the current log
+     * @param logEvents The list of log events
+     * @return The JPanel containing the log list
      */
-    public void setLogList(JTable logList){
-        this.logList = logList;
+    public JPanel initializeLogList(List<TrustLogEvent> logEvents) {
+        Object[][] table = new Object[logEvents.size()][3];
+        table[0] = new Object[] {"","empty",""};
+        int i = 1;
+        for (TrustLogEvent evt : logEvents) {
+            if (evt != null){
+                table[i] = evt.toArray();
+                i++;
+            }
+        }
+        
+        Object[] titles = {"Assessor", "Assessee", "Feedback"};
+        logList = new JTable(table, titles);
+        logList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        logList.setBackground(Color.LIGHT_GRAY);
+        logList.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        logList.setColumnSelectionAllowed(false);
+        logList.setRowSelectionAllowed(true);
+        ListListener listener = new ListListener();
+        logList.getSelectionModel().addListSelectionListener(listener);
+        logList.addMouseListener(listener);
+        logList.setVisible(true);
+
+        JScrollPane listScroller = new JScrollPane(logList);
+        listScroller.setWheelScrollingEnabled(true);
+        listScroller.setBorder(BorderFactory.createLoweredBevelBorder());
+        listScroller.setSize(logList.getWidth(), logList.getHeight());
+
+        tablePanel = new JPanel(new GridLayout(1, 1));
+        tablePanel.add(listScroller);
+        tablePanel.setName("Log Events");
+        tablePanel.setBorder(BorderFactory.createTitledBorder(tablePanel.getName()));
+        createPopupMenu(listener);
+
+        return tablePanel;
+    }
+
+    private void createPopupMenu(ActionListener listener) {
+        JMenuItem insert = new JMenuItem("Insert Event After");
+        insert.addActionListener(listener);
+        JMenuItem remove = new JMenuItem("Remove Event");
+        remove.addActionListener(listener);
+
+        menu = new JPopupMenu("Edit Events");
+        menu.add(insert);
+        menu.add(remove);
     }
 
     /**
@@ -117,18 +166,13 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
      * @param graphs The graphs to be displayed in the viewers
      */
     public void resetPanel(java.util.ArrayList<TrustLogEvent> events, java.util.ArrayList<cu.trustGrapher.graph.SimGraph[]> graphs) {
-        if (events.isEmpty()) {
-            playbackSlider.setMaximum(0);
-            eventThread = new TrustEventPlayer(graphs); // create the event player
-        } else {
-            playbackSlider.setMinimum(0);
-            playbackSlider.setMaximum((int) events.get(events.size() - 1).getTime());
-            eventThread = new TrustEventPlayer(graphs, events, playbackSlider); // create the event player
-        }
+        playbackSlider.setMinimum(0);
+        playbackSlider.setMaximum((events.size()-1) * TrustEventPlayer.speed);
+        eventThread = new TrustEventPlayer(graphs, events, this); // create the event player
+        
         SliderListener s = new SliderListener();
         playbackSlider.addChangeListener(s);
         playbackSlider.addMouseListener(s);
-        eventThread.addEventPlayerListener(this);
 
         fastReverseButton.setEnabled(true);
         reverseButton.setEnabled(true);
@@ -201,16 +245,57 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
      */
     @Override
     public void doRepaint() {
-        if (applet.getViewType() == TrustGrapher.TABBED){
+        if (applet.getViewType() == TrustGrapher.TABBED) {
             applet.getCurrentViewer().repaint();
-        }else{
+        } else {
             for (VisualizationViewer<Agent, TestbedEdge> viewer : applet.getViewers()) {
                 viewer.repaint();
             }
         }
     }
-
 ////////////////////////////////////Listeners///////////////////////////////////
+
+    private class ListListener extends MouseAdapter implements ListSelectionListener, ActionListener {
+        private int currentRow;
+                
+        public void valueChanged(ListSelectionEvent e) {
+            ListSelectionModel model = logList.getSelectionModel();
+            if (eventThread.getPlayState() == TrustEventPlayer.PAUSE) {
+                for (int i = 0; i <= logList.getRowCount(); i++) {
+                    if (model.isSelectedIndex(i)) {
+                        currentRow = i;
+                        eventThread.goToEvent(i);
+//                        playbackSlider.setValue(i * TrustEventPlayer.speed);
+//                        eventThread.actionPerformed(null);
+//                      eventThread.goToTime(i * TrustEventPlayer.speed);
+//                        doRepaint();
+                        break;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            java.awt.Point p = e.getPoint();
+            currentRow = logList.rowAtPoint(p);
+            logList.getSelectionModel().setSelectionInterval(currentRow, currentRow);
+            if (SwingUtilities.isRightMouseButton(e)) {
+                menu.show(tablePanel, tablePanel.getMousePosition().x, tablePanel.getMousePosition().y);
+            }
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String buttonText = ((AbstractButton) e.getSource()).getText();
+            if (buttonText.equals("Insert Event After")) {
+                EventInjector.getNewEvent();
+            } else if (buttonText.equals("Remove Event")) {
+            } else {
+                ChatterBox.error(this, "actionPerformed()", "Uncaught button press");
+            }
+        }
+    }
 
     /**
      * Handles PlaybackPanel button clicks
@@ -218,18 +303,18 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
     class PlaybackButtonListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
-            String buttonText = ((AbstractButton)e.getSource()).getText();
-            if (buttonText.equals("<|<|")){
+            String buttonText = ((AbstractButton) e.getSource()).getText();
+            if (buttonText.equals("<|<|")) {
                 eventThread.fastReverse();
-            }else if (buttonText.equals("<|")){
+            } else if (buttonText.equals("<|")) {
                 eventThread.reverse();
-            }else if (buttonText.equals("||")){
+            } else if (buttonText.equals("||")) {
                 eventThread.pause();
-            }else if (buttonText.equals("|>")){
+            } else if (buttonText.equals("|>")) {
                 eventThread.forward();
-            }else if (buttonText.equals("|>|>")){
+            } else if (buttonText.equals("|>|>")) {
                 eventThread.fastForward();
-            }else{
+            } else {
                 utilities.ChatterBox.error(this, "actionPerformed()", "An unhandled PlayBackPanel button press occured");
             }
         }
@@ -251,16 +336,16 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
      */
     class SliderListener extends MouseAdapter implements ChangeListener {
 
-        int prevState = TrustEventPlayer.PAUSE;
-
+        int prevState;
+        
         @Override
         public void stateChanged(ChangeEvent ce) {
-            JSlider source = (JSlider) ce.getSource();
-            eventThread.goToTime(source.getValue());
+            eventThread.goToTime(playbackSlider.getValue());
             if (logList != null) { //if log list is initialized and showing
                 if (logList.isVisible()) {
                     logList.clearSelection();
-                    logList.addRowSelectionInterval(0, eventThread.getCurrentIndex() - 1);
+                    ChatterBox.print("" + playbackSlider.getValue() / TrustEventPlayer.speed);
+                    logList.addRowSelectionInterval(0, playbackSlider.getValue() / TrustEventPlayer.speed);
                     logList.scrollRectToVisible(logList.getCellRect(eventThread.getCurrentIndex() - 1, 0, true));
                 }
             }
@@ -268,7 +353,7 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if (((JSlider) (e.getSource())).isEnabled()) {
+            if (playbackSlider.isEnabled()) {
                 prevState = eventThread.getPlayState();
                 eventThread.pause();
             }
@@ -276,18 +361,23 @@ public class PlaybackPanel extends javax.swing.JPanel implements EventPlayerList
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (((JSlider) (e.getSource())).isEnabled()) {
+            if (playbackSlider.isEnabled()) {
                 switch (prevState) {
                     case TrustEventPlayer.FASTREVERSE:
                         eventThread.fastReverse();
+                        break;
                     case TrustEventPlayer.REVERSE:
                         eventThread.reverse();
+                        break;
                     case TrustEventPlayer.PAUSE:
                         eventThread.pause();
+                        break;
                     case TrustEventPlayer.FORWARD:
                         eventThread.forward();
+                        break;
                     case TrustEventPlayer.FASTFORWARD:
                         eventThread.fastForward();
+                        break;
                 }
             }
         }

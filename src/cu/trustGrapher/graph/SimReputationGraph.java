@@ -1,7 +1,7 @@
 ////////////////////////////////SimReputationGraph///////////////////////////////
 package cu.trustGrapher.graph;
 
-import cu.trustGrapher.graph.edges.SImReputationEdge;
+import cu.trustGrapher.graph.edges.SimReputationEdge;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 import cu.repsystestbed.algorithms.EigenTrust;
@@ -10,6 +10,8 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdgeFactory;
 import cu.repsystestbed.graphs.ReputationGraph;
 
+import cu.repsystestbed.graphs.TestbedEdge;
+import java.util.ArrayList;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
@@ -20,18 +22,18 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class SimReputationGraph extends SimGraph {
+
     private ReputationAlgorithm alg;
     private SimFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
-
     /**
      * Creates a FULL graph.  The components of this graph are actually the ones being displayed.
      * @param feedbackGraph The graph that this graph will listen to for changes
      * @param id The id of this graph and its dynamic partner
      * @param display Whether or not this graph will be shown in a TrustGraphViewer
      */
-    public SimReputationGraph(int id, boolean display){
+    public SimReputationGraph(int id, boolean display) {
         super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL, id);
         this.display = display;
     }
@@ -49,13 +51,12 @@ public class SimReputationGraph extends SimGraph {
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-
     /**
      * This String returned by this is the String displayed on the viewer border
      * This can only be called on a DYNAMIC graph because it is the only one with the algorithm
      */
-    public String getDisplayName(){
-        if (type != DYNAMIC){
+    public String getDisplayName() {
+        if (type != DYNAMIC) {
             ChatterBox.error(this, "getDisplayName", "This graph is not a dynamic graph.  Illegal method call.");
             return null;
         }
@@ -73,20 +74,21 @@ public class SimReputationGraph extends SimGraph {
     protected void forwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
         ensureAgentExists(gev.getAssessor());
         ensureAgentExists(gev.getAssessee());
-        ((EigenTrust)alg).setMatrixFilled(false);
-        ((EigenTrust)alg).setIterations(((EigenTrust)alg).getIterations() + 1);
+        ((EigenTrust) alg).setMatrixFilled(false);
+        ((EigenTrust) alg).setIterations(((EigenTrust) alg).getIterations() + 1);
         Collection<Agent> vertices = feedbackGraph.getVertices();
-        for (Agent src : vertices){
-            for (Agent sink : vertices){
-                if (!src.equals(sink)){
-                    try{
-                        double trustScore = alg.calculateTrustScore(src, sink);
-                        SImReputationEdge fullEdge = (SImReputationEdge)fullGraph.findEdge(src, sink);
-                        fullEdge.setReputation(trustScore);
-                        ensureEdgeExists(src, sink, fullGraph);
-                    }catch(Exception ex){
+        for (Agent src : vertices) {
+            for (Agent sink : vertices) {
+                if (!src.equals(sink)) {
+                    double trustScore = -1;
+                    try {
+                        trustScore = alg.calculateTrustScore(src, sink);
+
+                    } catch (Exception ex) {
                         ChatterBox.debug(this, "forwardEvent()", ex.getMessage());
                     }
+                    ((SimReputationEdge) fullGraph.findEdge(src, sink)).setReputation(trustScore);
+                    ((SimReputationEdge) ensureEdgeExists(src, sink, this)).setReputation(trustScore);
                 }
             }
         }
@@ -100,26 +102,28 @@ public class SimReputationGraph extends SimGraph {
      */
     @Override
     protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
-        ((EigenTrust)alg).setMatrixFilled(false);
-        ((EigenTrust)alg).setIterations(((EigenTrust)alg).getIterations() - 1);
-        Collection<Agent> vertices = getVertices();
-        for (Agent src: vertices){
-            for (Agent sink : vertices){
-                if (!src.equals(sink)){
-                    try{
+        ((EigenTrust) alg).setMatrixFilled(false);
+        ((EigenTrust) alg).setIterations(((EigenTrust) alg).getIterations() - 1);
+        Collection<Agent> vertices = feedbackGraph.getVertices();
+        for (Agent src : vertices) {
+            for (Agent sink : vertices) {
+                if (!src.equals(sink)) {
+                    try {
                         double trustScore = alg.calculateTrustScore(src, sink);
-                        SImReputationEdge fullEdge = (SImReputationEdge)fullGraph.findEdge(src, sink);
-                        ((SImReputationEdge) ensureEdgeExists(src, sink, fullGraph)).setReputation(trustScore);
-                        fullEdge.setReputation(trustScore);
-                    }catch(NullPointerException ex){ //One of the agents doesn't exist in the feedback graph anymore, so remove the edge between the two agents
-                        removeEdgeAndVertices(findEdge(src, sink));
-                        vertices = getVertices();
-                    }catch(Exception ex){
-                        //I must ignore exceptions right now, because EigenTrust throws dumb exceptions, since I didn't write it
-//                        ChatterBox.debug(this, "backwardEvent()", type + " " + ex.getMessage());
+                        ((SimReputationEdge) fullGraph.findEdge(src, sink)).setReputation(trustScore);
+                        ((SimReputationEdge) findEdge(src, sink)).setReputation(trustScore);
+                    } catch (Exception ex) { //One of the agents doesn't exist in the feedback graph anymore, so remove the edge between the two agents
                     }
                 }
             }
+        }
+        ArrayList<Agent> toRemove = new ArrayList<Agent>(getVertices());
+        toRemove.removeAll(vertices);
+        for (Agent a : toRemove) {
+            for (TestbedEdge e : this.getIncidentEdges(a)) {
+                this.removeEdge(e);
+            }
+            this.removeVertex(a);
         }
     }
 }

@@ -4,6 +4,12 @@
 @attribute assesseeID string
 @attribute feedbackValue string
 
+@Expected Result
+> a 0.39 0.39 0.39 0.39
+> b 0.39 0.39 0.39 0.39
+> c 0.14 0.14 0.14 0.14
+> d 0.07 0.07 0.07 0.07
+
 @data
 0,1,0.8
 0,1,0.9

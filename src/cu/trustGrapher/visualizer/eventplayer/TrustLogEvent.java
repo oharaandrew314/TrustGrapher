@@ -10,7 +10,6 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class TrustLogEvent {
-    private long time;
     private int assessor;
     private int assessee;
     private double feedback;
@@ -19,15 +18,13 @@ public class TrustLogEvent {
     /**constructor for an event as represented by a line in a (processed) log file*/
 
     public TrustLogEvent(String str) {
-        // possible lines :
-        //timemillisec:assessor:assessee:feedback
+        //Line format: assessor,assessee,feedback
         try{
             str.trim();
-            String [] words = str.split(",");
-            time = Long.parseLong(words[0]);
-            assessor = Integer.parseInt(words[1]);
-            assessee = Integer.parseInt(words[2]);
-            feedback = (double) Double.parseDouble(words[3]);
+            String [] words = str.split(",");          
+            assessor = Integer.parseInt(words[0]);
+            assessee = Integer.parseInt(words[1]);
+            feedback = (double) Double.parseDouble(words[2]);
             if (feedback < 0.0 || feedback > 1.0) {
                 ChatterBox.error("trustGrapher.visualizer.eventPlayer.LogEvent", "LogEvent()", "The feedback (" + feedback + ") was not in the specified range of [0,1].  I am setting the feedback to 0.5");
                 feedback = 0.5;
@@ -39,10 +36,6 @@ public class TrustLogEvent {
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-
-    public long getTime() {
-        return time;
-    }
 
     public double getFeedback() {
         return feedback;
@@ -63,40 +56,7 @@ public class TrustLogEvent {
 
     @Override
     public String toString() {
-        return (time + ":" + assessor + ":" + assessee + ":" + feedback);
-    }
-
-///////////////////////////////////Methods//////////////////////////////////////
-
-    @Override
-    public boolean equals(Object obj){
-        if (obj instanceof TrustLogEvent){
-            TrustLogEvent evt = (TrustLogEvent) obj;
-            if (time == evt.time && assessor == evt.assessor && assessee == evt.assessee && feedback == evt.feedback){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 13 * hash + (int) (this.time ^ (this.time >>> 32));
-        hash = 13 * hash + this.assessor;
-        hash = 13 * hash + this.assessee;
-        hash = 13 * hash + (int) (Double.doubleToLongBits(this.feedback) ^ (Double.doubleToLongBits(this.feedback) >>> 32));
-        return hash;
-    }
-
-////////////////////////////////Static Methods//////////////////////////////////
-
-    public static TrustLogEvent getStartEvent() {
-        return new TrustLogEvent("-1,-1,-1,0");
-    }
-
-    public static TrustLogEvent getEndEvent(TrustLogEvent lastEventInList) {
-        return new TrustLogEvent((lastEventInList.getTime()+100)+",-1,-1,0");
+        return (assessor + ":" + assessee + ":" + feedback);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -12,6 +12,7 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
+    private StringBuffer label;
 
 //////////////////////////////////Constructor///////////////////////////////////
 
@@ -23,6 +24,7 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
      */
     public SimFeedbackEdge(Agent src, Agent sink) throws Exception{
         super(src, sink);
+        label = new StringBuffer();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -33,14 +35,16 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
      */
     @Override
     public String toString(){
-        String s = "";
-        if (!feedbacks.isEmpty()){
-            s = s + "" + feedbacks.get(0).value;
-            for (int i=1 ; i<feedbacks.size() ; i++){
-                s = s + ", " + feedbacks.get(i).value;
+        if (label.length() == 0){
+            if (!feedbacks.isEmpty()){
+                label.append(feedbacks.get(0).value);
+                for (int i=1 ; i<feedbacks.size() ; i++){
+                    label.append(", ");
+                    label.append(feedbacks.get(i).value);
+                }
             }
         }
-        return s;
+        return label.toString();
     }
 ///////////////////////////////////Methods//////////////////////////////////////
     /**
@@ -52,6 +56,7 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
     public void addFeedback(Agent assessor, Agent assessee, double feedback) {
         try {
             super.addFeedback(new Feedback(assessor, assessee, feedback));
+            label = new StringBuffer();
         } catch (Exception ex) {
             ChatterBox.error(this, "addFeedback()", ex.getMessage());
             ex.printStackTrace();
@@ -66,6 +71,7 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
         for (int i = 0; i < feedbacks.size(); i++) {
             if (feedbacks.get(i).value == feedback) {
                 feedbacks.remove(i);
+                label = new StringBuffer();
                 break;
             }
         }

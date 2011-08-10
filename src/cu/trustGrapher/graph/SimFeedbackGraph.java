@@ -34,7 +34,7 @@ public class SimFeedbackGraph extends SimGraph {
      * This String returned by this is the String displayed on the viewer border
      */
     @Override
-    public String getDisplayName(){
+    public String getDisplayName() {
         return "0-FeedbackHistory";
     }
 
@@ -53,8 +53,8 @@ public class SimFeedbackGraph extends SimGraph {
     @Override
     protected void forwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
         Agent src = ensureAgentExists(gev.getAssessor());
-        Agent sink = ensureAgentExists(gev.getAssessee());            
-        ensureEdgeExists(src, sink, this); //Ensures that the proper edge exists in the dynamic graph
+        Agent sink = ensureAgentExists(gev.getAssessee());
+        ((SimFeedbackEdge) ensureEdgeExists(src, sink, this)).addFeedback(src, sink, gev.getFeedback()); //Ensures that the proper edge exists in the dynamic graph
         //Add the feedback to the full edge so it can be seen in the viewer
         ((SimFeedbackEdge) fullGraph.findEdge(src, sink)).addFeedback(src, sink, gev.getFeedback());
     }
@@ -74,15 +74,19 @@ public class SimFeedbackGraph extends SimGraph {
     protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
         Agent src = ensureAgentExists(gev.getAssessor()), sink = ensureAgentExists(gev.getAssessee());
         double feedback = gev.getFeedback();
-        
+
         SimFeedbackEdge fullEdge = ((SimFeedbackEdge) fullGraph.findEdge(src, sink));
+        SimFeedbackEdge dynEdge = ((SimFeedbackEdge) findEdge(src,sink));
         if (fullEdge == null) {
             ChatterBox.error(this, "backwardEvent()", "fullEdge " + src + " " + sink + " wasn't found when it should have existed!");
+            return;
+        }else if (dynEdge == null){
+            ChatterBox.error(this, "backwardEvent()", "dynEdge " + src + " " + sink + " wasn't found when it should have existed!");
             return;
         }
         fullEdge.removeFeedback(feedback);
         if (fullEdge.feedbacks.isEmpty()) {
-            removeEdgeAndVertices(findEdge(src, sink));
+            removeEdgeAndVertices(dynEdge); //Remove that edges dynamic edge partner
         }
     }
 
@@ -95,8 +99,7 @@ public class SimFeedbackGraph extends SimGraph {
         if (type != FULL) {
             ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a full graph.  Illegal method call");
             return;
-        }
-        if (event.getAssessor() != -1){
+        }if (event != null){
             Agent src = ensureAgentExists(event.getAssessor());
             Agent sink = ensureAgentExists(event.getAssessee());
             ensureEdgeExists(src, sink, this);

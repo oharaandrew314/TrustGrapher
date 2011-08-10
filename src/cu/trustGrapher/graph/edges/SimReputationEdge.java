@@ -8,15 +8,15 @@ import cu.repsystestbed.graphs.ReputationEdge;
  * A ReputationEdge extension that adds a id field and other useful methods
  * @author Andrew O'Hara
  */
-public class SImReputationEdge extends ReputationEdge {
+public class SimReputationEdge extends ReputationEdge {
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
-     * Creates a new SImReputationEdge
+     * Creates a new SimReputationEdge
      * @param src The Agent that this edge originates from
      * @param sink The Agent that this edge ends at
      */
-    public SImReputationEdge(Agent src, Agent sink) {
+    public SimReputationEdge(Agent src, Agent sink) {
         super(src, sink);
     }
 
@@ -28,24 +28,15 @@ public class SImReputationEdge extends ReputationEdge {
      */
     @Override
     public String toString(){
-        String rawRep = "" + super.getReputation();
-        String finalRep = "";
-        int length;
-        if (rawRep.length() > 4){
-            length = 5;
-        }else{
-            length = rawRep.length();
-        }
-        for (int i=0 ; i<length ; i++){
-            finalRep = finalRep + rawRep.charAt(i);
-        }
-        return finalRep;
+        String rawRep = "" + getReputation();
+        int length = (rawRep.length() >= 4) ? 4 : rawRep.length();
+        return rawRep.substring(0, length);
     }
 
     @Override
     public boolean equals(Object o){
-        if (o instanceof SImReputationEdge){
-            SImReputationEdge other = (SImReputationEdge) o;
+        if (o instanceof SimReputationEdge){
+            SimReputationEdge other = (SimReputationEdge) o;
         return (src.equals(other.src)) && (sink.equals(other.sink));
         }
         return false;

@@ -4,7 +4,7 @@ package cu.trustGrapher.graph;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
-import cu.trustGrapher.graph.edges.SImReputationEdge;
+import cu.trustGrapher.graph.edges.SimReputationEdge;
 import cu.trustGrapher.graph.edges.SimTrustEdge;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
@@ -132,7 +132,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
                 return null;
             }
         } else if (caller instanceof SimReputationGraph) {
-            return new SImReputationEdge(src, sink);
+            return new SimReputationEdge(src, sink);
         } else if (caller instanceof SimTrustGraph) {
             return new SimTrustEdge(src, sink);
         } else {
@@ -147,8 +147,9 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param edge The edge to be removed
      */
     protected void removeEdgeAndVertices(TestbedEdge edge) {
+        java.util.Collection<Agent> agents = getIncidentVertices(edge);
         removeEdge(edge);
-        for (Agent v : getIncidentVertices(edge)) {
+        for (Agent v : agents) {
             if (getIncidentEdges(v).isEmpty()) {
                 removeVertex(v);
             }
@@ -167,10 +168,12 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
             ChatterBox.error(this, "graphEvent()", "This graph is not a dynamic graph.  Illegal method call");
             return;
         }
-        if (forward) {
-            forwardEvent(gev, fullGraph);
-        } else {
-            backwardEvent(gev, fullGraph);
+        if (gev != null){
+            if (forward) {
+                forwardEvent(gev, fullGraph);
+            } else {
+                backwardEvent(gev, fullGraph);
+            }
         }
     }
 
@@ -184,7 +187,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
             ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a full graph.  Illegal method call.");
             return;
         }
-        if (event.getAssessor() == -1) {  //If it's the last event, add all edges to the graph
+        if (event == null) {  //A null event is passed to signal that there are no more evetns.  Add all edges to the graph
             for (Agent src : getVertices()) {
                 for (Agent sink : getVertices()) {
                     if (!src.equals(sink)) {

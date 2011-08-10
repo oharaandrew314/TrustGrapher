@@ -52,7 +52,7 @@ public class Algorithm {
     @Override
     public String toString() {
         String baseIndex = (base != -1) ? "" + base : NO_BASE;
-        String configString = (properties != null) ? properties.getFile().getPath() : NO_CONFIG;
+        String configString = (properties != null) ? properties.getPropertyFile().getPath() : NO_CONFIG;
         return display + "," + baseIndex + "," + classIndex + "," + configString;
     }
 
@@ -102,7 +102,7 @@ public class Algorithm {
     }
     
     public File getProperties(){
-        return (properties != null) ?properties.getFile() : null;
+        return (properties != null) ?properties.getPropertyFile() : null;
     }
     
     public boolean isFeedbackHistory(){

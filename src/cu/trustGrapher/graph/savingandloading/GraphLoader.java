@@ -40,7 +40,7 @@ public class GraphLoader{
                 }else if (alg.isTrustAlg()){
                     trustAlgs.add(alg.getIndex());
                 }else{
-                    ChatterBox.error("TrustEventLoader", "TrustEventLoader()", "Uncaught graph type.");
+                    ChatterBox.error("TrustEventLoader", "LoadGraphs()", "Uncaught graph type.");
                 }
             }
         }
@@ -74,7 +74,7 @@ public class GraphLoader{
         ReputationAlgorithm alg = (ReputationAlgorithm) algDB.getAlgorithm();
         ((FeedbackHistoryGraph)getInnerGraph(DYNAMIC, algDB.getBase())).addObserver(alg); //The algorithm will then add the graphs
 
-        graphSet[FULL] = new SimReputationGraph(index, display); //This automatically turns the full feedbackGraph into the full reputationGraph
+        graphSet[FULL] = new SimReputationGraph(index, display);
         graphSet[DYNAMIC] = new SimReputationGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], alg, index);
         graphs.add(graphSet.clone());
     }
@@ -92,7 +92,7 @@ public class GraphLoader{
         ((ReputationGraph) getInnerGraph(DYNAMIC, algDB.getBase())).addObserver(alg); //The algorithm will then add the graphs
 
         graphSet[FULL] = new SimTrustGraph(index, display);
-        graphSet[DYNAMIC] = new SimTrustGraph(alg, index);
+        graphSet[DYNAMIC] = new SimTrustGraph((SimFeedbackGraph)graphs.get(0)[DYNAMIC], alg, index);
         graphs.add(graphSet.clone());
     }
 
