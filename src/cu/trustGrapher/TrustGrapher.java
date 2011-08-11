@@ -1,4 +1,4 @@
-/////////////////////////////////////TrustGrapher////////////////////////////////
+/////////////////////////////////////TrustGrapher///////////////////////////////
 package cu.trustGrapher;
 
 import cu.trustGrapher.graph.*;
@@ -32,14 +32,14 @@ import utilities.PropertyManager;
  * @author Matt
  * @author Andrew O'Hara
  */
-public class TrustGrapher extends JFrame {
+public final class TrustGrapher extends JFrame {
 
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
     //Each of the viewers in this pane is a component which displays a graph
     private ArrayList<TrustGraphViewer> viewers;
     //When a mouse click is done, the viewer that it was done in will be held here.  Useful to know which graph to change the layout for
     private TrustGraphViewer currentViewer;
-    private ArrayList<SimGraph[]> graphs;  //Each element is an array containing a hidden and dynamic graph
+    private GraphManager graphs;  //Each element is an array containing a hidden and dynamic graph
     private ArrayList<SimGraph> displayedGraphs;  //The list of graphs that are currently being displayed by the viewers
     //The dynamic graph is not shown, but components in the full graph will only be displayed if they exist in the dynamic graph.
     //As events occur, they are added to the dynamic graphs through the graphEvent() method.
@@ -106,7 +106,7 @@ public class TrustGrapher extends JFrame {
         return null;
     }
 
-    public ArrayList<SimGraph[]> getGraphs(){
+    public GraphManager getGraphManager(){
         return graphs;
     }
 
@@ -124,7 +124,7 @@ public class TrustGrapher extends JFrame {
                 playbackPanel.disableButtons();
             }
 
-            graphs = GraphLoader.loadGraphs(options.getAlgorithms());
+            graphs = new GraphManager(options.getAlgorithms());
             java.io.File logFile = new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH));
             LogReader logReader = new LogReader(this, logFile, loadingBar);
             logReader.execute(); //After the log reader thread is complete, startGraph() will be called
@@ -201,10 +201,8 @@ public class TrustGrapher extends JFrame {
         setJMenuBar(bar);
 
         //Create the frame panels
-        playbackPanel = new PlaybackPanel(this);
         mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         mainPane.add(new JPanel());
-        mainPane.add(playbackPanel);
         mainPane.setResizeWeight(1);
         mainPane.setDividerSize(3);
         add(mainPane);
@@ -225,11 +223,13 @@ public class TrustGrapher extends JFrame {
             ((JTabbedPane)graphsPanel).addChangeListener(new TabChangeListener());
         }
         graphsPanel.setBackground(Color.LIGHT_GRAY);
-        playbackPanel = new PlaybackPanel(this);
+        playbackPanel = new PlaybackPanel(this, events);
+        
         mainPane.removeAll();
         mainPane.add(graphsPanel);
         mainPane.add(playbackPanel);
-        playbackPanel.resetPanel(events, graphs);        
+        getContentPane().removeAll();
+        getContentPane().add(mainPane);      
         DefaultModalGraphMouse<Agent, TestbedEdge> gm = new DefaultModalGraphMouse<Agent, TestbedEdge>();
         MouseClickListener listener = new MouseClickListener();
         popupMenu = new TrustPopupMenu(this, gm, listener);
@@ -237,7 +237,7 @@ public class TrustGrapher extends JFrame {
         //Create the Visualization Viewers
         viewers = new ArrayList<TrustGraphViewer>();
         displayedGraphs = new ArrayList<SimGraph>();
-        for (SimGraph[] graph : graphs) {
+        for (SimGraph[] graph : graphs.getGraphs()) {
             if (graph[FULL].isDisplayed()) {
                 displayedGraphs.add(graph[FULL]);
                 AbstractLayout<Agent, TestbedEdge> layout = new FRLayout2<Agent, TestbedEdge>(graph[FULL]);
@@ -253,14 +253,14 @@ public class TrustGrapher extends JFrame {
                 layout.lock(true);
                 viewers.add(viewer);
             }
-        }
+        }        
         
-        validate();
         playbackPanel.eventThread.run();
         if (toggleLogTable.isSelected()) {
             toggleLogTable.setSelected(false);
             toggleLogTable.doClick();
         }
+        validate();
     }
 
 ////////////////////////////////////Listeners///////////////////////////////////
@@ -305,7 +305,9 @@ public class TrustGrapher extends JFrame {
             String buttonText = ((AbstractButton)e.getSource()).getText();
             if (buttonText.equals("Load Algorithms")){
                 if (!options.isVisible()) {
-                    playbackPanel.pauseButton.doClick();
+                    if (playbackPanel != null){
+                        playbackPanel.pauseButton.doClick();
+                    }
                     options.run();
                 }
             }else if (buttonText.equals("Export Results")){
@@ -345,7 +347,7 @@ public class TrustGrapher extends JFrame {
                         JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
                         p.setResizeWeight(1);
                         p.add(mainPane);
-                        p.add(playbackPanel.initializeLogList(events));
+                        p.add(playbackPanel.getLogPanel());
                         p.setDividerSize(3);
 
                         getContentPane().add(p);
@@ -358,7 +360,6 @@ public class TrustGrapher extends JFrame {
                 }
             }
         }
-
     }
 
 ////////////////////////////////Static Methods//////////////////////////////////
@@ -370,3 +371,4 @@ public class TrustGrapher extends JFrame {
         myApp.setVisible(true);
     }
 }
+////////////////////////////////////////////////////////////////////////////////

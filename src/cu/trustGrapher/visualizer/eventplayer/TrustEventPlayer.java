@@ -2,17 +2,15 @@
 package cu.trustGrapher.visualizer.eventplayer;
 
 import cu.trustGrapher.PlaybackPanel;
+
 import cu.trustGrapher.TrustGrapher;
-import cu.trustGrapher.graph.SimGraph;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.Timer;
-import utilities.ChatterBox;
 
 /**
  * Plays through the list of leg events and sends graphEvents to the graphs
@@ -20,22 +18,22 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  *
  */
-public class TrustEventPlayer implements ActionListener {
+public final class TrustEventPlayer implements ActionListener {
 
     public static final int FASTREVERSE = -2, REVERSE = -1, PAUSE = 0, FORWARD = 1, FASTFORWARD = 2;
+    private int state;
     private Timer schedule;
     private TimeCounter timeCounter;
     public static final int speed = 250; // This many milliseconds between events while playing regularly
     private int fastMultiplier = 10;
-    private int state;
     private ArrayList<TrustLogEvent> logEvents;
     private PlaybackPanel playbackPanel;
     private int currentEventIndex;
-    private ArrayList<SimGraph[]> graphs;
+    private TrustGrapher applet;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public TrustEventPlayer(ArrayList<SimGraph[]> graphs, ArrayList<TrustLogEvent> eventlist, PlaybackPanel playbackPanel) {
-        this.graphs = graphs;
+    public TrustEventPlayer(TrustGrapher applet, ArrayList<TrustLogEvent> eventlist, PlaybackPanel playbackPanel) {
+        this.applet = applet;
         this.playbackPanel = playbackPanel;
         logEvents = eventlist;
         currentEventIndex = 0;
@@ -70,12 +68,10 @@ public class TrustEventPlayer implements ActionListener {
     }
 
     public boolean atFront() {
-//        return timeCounter.getTime() == timeCounter.getLowerBound();
         return currentEventIndex == 0;
     }
 
     public boolean atBack() {
-//        return timeCounter.getTime() == timeCounter.getUpperBound();
         return currentEventIndex == logEvents.size() - 1;
 
     }
@@ -169,10 +165,10 @@ public class TrustEventPlayer implements ActionListener {
         }
     }
 
-    public void goToTime(int value) {
+    public void goToTime(int newTime) {
         int prevState = state;
-        state = (value < timeCounter.getTime()) ? REVERSE : FORWARD;
-        timeCounter.setTime(value);
+        state = (newTime < timeCounter.getTime()) ? REVERSE : FORWARD;
+        timeCounter.setTime(newTime);
         state = prevState;
     }
 
@@ -188,16 +184,6 @@ public class TrustEventPlayer implements ActionListener {
     }
 
     /**
-     * Handles the passed TrustLogEvent be it structural or visual.
-     * @param evt The Log event to handle.
-     */
-    private void handleLogEvent(TrustLogEvent evt, boolean forward) {
-        for (SimGraph[] graph : graphs) {
-            graph[TrustGrapher.DYNAMIC].graphEvent(evt, forward, graph[TrustGrapher.FULL]);
-        }
-    }
-
-    /**
      * Called when the slider is changed
      * @param arg0 
      */
@@ -206,10 +192,10 @@ public class TrustEventPlayer implements ActionListener {
         if (state != PAUSE) {
             timeCounter.doIncrement();
             long nextTime = timeCounter.getTime();
-            boolean isforward = nextTime > getCurrentTime();
-            TrustLogEvent event = getNextEvent(isforward);
+            boolean isForward = nextTime > getCurrentTime();
+            TrustLogEvent event = getNextEvent(isForward);
             if (event != null) {
-                handleLogEvent(event, isforward);
+                applet.getGraphManager().handleGraphEvent(event, isForward);
                 playbackPanel.getSlider().setValue(currentEventIndex * speed);
                 playbackPanel.doRepaint();
             } else {
@@ -235,11 +221,23 @@ public class TrustEventPlayer implements ActionListener {
         }
         if (!events.isEmpty()){
             for (TrustLogEvent event : events){
-                handleLogEvent(event, isForward);
+                applet.getGraphManager().handleGraphEvent(event, isForward);
             }
         }
         playbackPanel.getSlider().setValue(currentEventIndex * speed);
         playbackPanel.doRepaint();
+    }
+    
+    public void insertEvent(TrustLogEvent event){
+        ArrayList<TrustLogEvent> newEvents = new ArrayList<TrustLogEvent>(logEvents.subList(0, currentEventIndex));
+        newEvents.add(event);
+        newEvents.addAll(logEvents.subList(currentEventIndex + 1, logEvents.size() - 1));
+        applet.startGraph(newEvents);
+    }
+    
+    public void removeEvent(){
+        logEvents.remove(currentEventIndex);
+        applet.startGraph(logEvents);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

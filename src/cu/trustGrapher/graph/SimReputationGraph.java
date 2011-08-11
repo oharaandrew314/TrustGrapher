@@ -11,6 +11,7 @@ import cu.repsystestbed.graphs.ReputationEdgeFactory;
 import cu.repsystestbed.graphs.ReputationGraph;
 
 import cu.repsystestbed.graphs.TestbedEdge;
+import cu.trustGrapher.graph.savingandloading.Algorithm;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -24,30 +25,14 @@ import utilities.ChatterBox;
 public class SimReputationGraph extends SimGraph {
 
     private ReputationAlgorithm alg;
-    private SimFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
-     * Creates a FULL graph.  The components of this graph are actually the ones being displayed.
-     * @param feedbackGraph The graph that this graph will listen to for changes
-     * @param id The id of this graph and its dynamic partner
-     * @param display Whether or not this graph will be shown in a TrustGraphViewer
+     * Creates a Reputation Graph.  The edges on this graph display the reputation that Agents have towards others
      */
-    public SimReputationGraph(int id, boolean display) {
-        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), FULL, id);
-        this.display = display;
-    }
-
-    /**
-     * Creates a DYNAMIC graph.  This graph is only used by the full graph to see which of it's own components should be displayed.
-     * @param feedbackGraph The graph that this graph will listen to for changes
-     * @param alg The algorithm that this graph will use to update the reputation values of the full graph
-     * @param id The id of this graph and its full partner
-     */
-    public SimReputationGraph(SimFeedbackGraph feedbackGraph, ReputationAlgorithm alg, int id) {
-        super((SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), DYNAMIC, id);
-        this.feedbackGraph = feedbackGraph;
-        this.alg = alg;
+    public SimReputationGraph(GraphManager graphManager, int type, Algorithm algConfig) {
+        super(graphManager, (SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), type, algConfig);
+        alg = (ReputationAlgorithm) algConfig.getAlgorithm();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -76,7 +61,7 @@ public class SimReputationGraph extends SimGraph {
         ensureAgentExists(gev.getAssessee());
         ((EigenTrust) alg).setMatrixFilled(false);
         ((EigenTrust) alg).setIterations(((EigenTrust) alg).getIterations() + 1);
-        Collection<Agent> vertices = feedbackGraph.getVertices();
+        Collection<Agent> vertices = graphManager.get(GraphManager.FEEDBACK, DYNAMIC).getVertices();
         for (Agent src : vertices) {
             for (Agent sink : vertices) {
                 if (!src.equals(sink)) {
@@ -104,7 +89,7 @@ public class SimReputationGraph extends SimGraph {
     protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
         ((EigenTrust) alg).setMatrixFilled(false);
         ((EigenTrust) alg).setIterations(((EigenTrust) alg).getIterations() - 1);
-        Collection<Agent> vertices = feedbackGraph.getVertices();
+        Collection<Agent> vertices = graphManager.get(GraphManager.FEEDBACK, DYNAMIC).getVertices();
         for (Agent src : vertices) {
             for (Agent sink : vertices) {
                 if (!src.equals(sink)) {

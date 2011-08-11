@@ -6,6 +6,7 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
+import cu.trustGrapher.graph.savingandloading.Algorithm;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
@@ -18,28 +19,14 @@ import utilities.ChatterBox;
  */
 public class SimTrustGraph extends SimGraph {
     private TrustAlgorithm alg;
-    private SimFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
-     * Creates a FULL Trust Graph.  The components of this graph are actually the ones being displayed.
-     * @param id The id of this graph and its dynamic partner
-     * @param display Whether or not this graph will be shown in a TrustGraphViewer
+     * Creates a Trust Graph. The edges on this graph signify that one peers trust the other
      */
-    public SimTrustGraph(int id, boolean display) {
-        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), FULL, id);
-        this.display = display;
-    }
-
-    /**
-     * Creates a DYNAMIC Trust graph.  This graph is only used by the full graph to see which of it's own components should be displayed.
-     * @param alg The algorithm that this graph will use to update the reputation values of the full graph
-     * @param id The id of this graph and its full partner
-     */
-    public SimTrustGraph(SimFeedbackGraph feedbackGraph, TrustAlgorithm alg, int id) {
-        super((SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), DYNAMIC, id);
-        this.alg = alg;
-        this.feedbackGraph = feedbackGraph;
+    public SimTrustGraph(GraphManager graphManager, int type, Algorithm algConfig) {
+        super(graphManager, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), type, algConfig);
+        alg = (TrustAlgorithm) algConfig.getAlgorithm();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -89,8 +76,8 @@ public class SimTrustGraph extends SimGraph {
      * @param fullGraph Any new edges will be added to this graph
      */
     @Override
-    protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
-        java.util.Collection<Agent> vertices = feedbackGraph.getVertices();
+    protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {        
+        java.util.Collection<Agent> vertices = graphManager.get(GraphManager.FEEDBACK, DYNAMIC).getVertices();
         for (Agent src : vertices){
             for (Agent sink : vertices){
                 try{

@@ -320,6 +320,12 @@ Fixed a new bug where the reputation values were incorrect
 Fixed a bug where algorithm graphs no longer rewound properly
 Fixed a bug where the graph would play in fast forward every time after you scrubbed the playback slider
 
+    Revision 43
+Added GraphManager class
+Fixed a bug where the loading bar would not dissapear that was made much more common after optimizing log reader speed
+Event injector almost working
+Commit prior to large edit
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -329,21 +335,15 @@ Fixed a bug where the graph would play in fast forward every time after you scru
     -------------------
     4.1.0 High Priority
     -------------------
-    EventPlayer no longer goes to start.  Fix it
-    GraphManager class (move GraphLoader into it)
-    Change include predicate to evaluate a 'show' field in entities and remove dynamic graph
     Edit the events
     Export results at the current time
     Speed hack ideas:
-        Calculate reputation ahead of time
         Skip algorithm checks (when speed is set to high or user selects option maybe)
-        have the algorithms run in a seperate thread
-        Make it so that you can drag and drop the playback slider rather than scrubbing while paused
+        New Speed slider (change speed value, make default value)
 
     ------------------
     4.2.0 Low Priority
     ------------------
-    Merge full and dynamic graphs
     Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar

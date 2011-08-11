@@ -1,6 +1,7 @@
 ////////////////////////////////EventInjector//////////////////////////////////
 package cu.trustGrapher;
 
+import cu.trustGrapher.visualizer.eventplayer.TrustEventPlayer;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import utilities.ChatterBox;
 
@@ -8,12 +9,14 @@ import utilities.ChatterBox;
  * Description
  * @author Andrew O'Hara
  */
-public class EventInjector extends javax.swing.JFrame {
+public final class EventInjector extends javax.swing.JFrame {
     private TrustLogEvent event = null;
+    private TrustEventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public EventInjector() {
+    public EventInjector(TrustEventPlayer eventThread) {
         initComponents();
+        this.eventThread = eventThread;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -40,16 +43,11 @@ public class EventInjector extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void getNewEvent() {
-        EventInjector injector = new EventInjector();
+    public static void getNewEvent(TrustEventPlayer eventThread) {
+        EventInjector injector = new EventInjector(eventThread);
         injector.setVisible(true);
     }
     
-    public static void main (String[] args){
-        EventInjector injector = new EventInjector();
-        injector.setVisible(true);
-    }
-
 /////////////////////////////////GUI Components/////////////////////////////////
     /** This method is called from within the constructor to
      * initialize the form.
@@ -160,6 +158,7 @@ private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     createEvent();
     if (event != null){
         dispose();
+        eventThread.insertEvent(event);
     }
 }//GEN-LAST:event_okButtonActionPerformed
 

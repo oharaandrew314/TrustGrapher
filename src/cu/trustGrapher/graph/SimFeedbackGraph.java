@@ -2,8 +2,9 @@
 package cu.trustGrapher.graph;
 
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
-
+import cu.trustGrapher.graph.savingandloading.Algorithm;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
+
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
@@ -24,9 +25,8 @@ public class SimFeedbackGraph extends SimGraph {
      * @param type The graph type (full or dynamic)
      * @param display Whether or not this graph will have a viewer built for it.  This is only necessary for full graphs
      */
-    public SimFeedbackGraph(int type, boolean display) {
-        super((SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, 0);
-        this.display = display;
+    public SimFeedbackGraph(GraphManager graphManager, int type, Algorithm algConfig) {
+        super(graphManager, (SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, algConfig);
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -37,6 +37,12 @@ public class SimFeedbackGraph extends SimGraph {
     public String getDisplayName() {
         return "0-FeedbackHistory";
     }
+    
+//    public boolean evaluate(Context<Graph<Agent, TestbedEdge>, Object> context){
+//        if (context.element instanceof Agent){
+//            return 
+//        }
+//    }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     /**

@@ -6,6 +6,7 @@ import cu.repsystestbed.graphs.TestbedEdge;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
 import cu.trustGrapher.graph.edges.SimReputationEdge;
 import cu.trustGrapher.graph.edges.SimTrustEdge;
+import cu.trustGrapher.graph.savingandloading.Algorithm;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -19,10 +20,11 @@ import utilities.ChatterBox;
  */
 public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
-    public static final int DYNAMIC = 0, FULL = 1;
+    public static final int DYNAMIC = GraphManager.DYNAMIC, FULL = GraphManager.FULL;
     protected int type;
     protected int graphID; //The index of the algorithm that was given to the graph
     protected boolean display;
+    protected GraphManager graphManager;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -32,10 +34,12 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param graphID The graphID number of this graph
      * @param display Whether or not this graph will have a viewer built for it
      */
-    public SimGraph(SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, int id) {
+    public SimGraph(GraphManager graphManager, SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, Algorithm algConfig) {
         super(graph);
+        this.graphManager = graphManager;
         this.type = type;
-        this.graphID = id;
+        graphID = algConfig.getIndex();
+        display = algConfig.isDisplayed();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////

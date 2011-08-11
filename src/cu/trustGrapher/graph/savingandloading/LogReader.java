@@ -2,7 +2,6 @@
 package cu.trustGrapher.graph.savingandloading;
 
 import cu.trustGrapher.TrustGrapher;
-import cu.trustGrapher.graph.SimGraph;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,7 +28,7 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         this.loadingBar = loadingBar;
         this.applet = applet;
         this.logFile = logFile;
-        //Disable the menu bars
+        //Disable the menu bars to stop user from messing up background thread
         for (java.awt.Component menu : applet.getJMenuBar().getComponents()) {
             menu.setEnabled(false);
         }
@@ -75,7 +74,7 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        for (java.awt.Component menu : applet.getJMenuBar().getComponents()) {
+        for (java.awt.Component menu : applet.getJMenuBar().getComponents()) { //Re-enable menu bars
             menu.setEnabled(true);
         }
     }
@@ -88,32 +87,26 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
     @Override
     protected ArrayList<TrustLogEvent> doInBackground() throws Exception {
         TrustLogEvent event = null;
-        ArrayList<TrustLogEvent> logEvents = new ArrayList<TrustLogEvent>();
-        ArrayList<SimGraph[]> graphs = applet.getGraphs();
-        //Find the toal lines in the log and then ensure that the arrayList is large enough to prevent unnecessary overhead from
         int totalLines = findTotalLines(logFile);
-        logEvents.ensureCapacity(totalLines);
+        ArrayList<TrustLogEvent> logEvents = new ArrayList<TrustLogEvent>(totalLines);
         loadingBar.loadingStarted(totalLines, "Log Events");
-
-        String line = ""; //will contain each log event as it is read.
         BufferedReader logReader = new BufferedReader(new FileReader(logFile));
         skipToData(logReader);
 
         //reading log logFile.  Does an extra iteration to create null event so
         //that non feedback full graphs recieve their construction event
-        logEvents.add(null);
+        logEvents.add(null); //Adding an empty event the start.  This is to signify that no feedback has been given yet.
         for (int i = 0; i < totalLines; i++) {
-            line = logReader.readLine();
-            event = new TrustLogEvent(line);
-            logEvents.add(event); //add this read log event to the list
-            for (SimGraph[] graph : graphs) {
-                graph[SimGraph.FULL].graphConstructionEvent(event); //Add the construction event to the hidden graph
-            }
+            event = new TrustLogEvent(logReader.readLine());
+            logEvents.add(event); //add this log event to the list
+            applet.getGraphManager().handleConstructionEvent(event); //Build any necessary entities referenced by the event
             publish("progress");
         }
-        for (SimGraph[] graph : graphs) {
-            graph[SimGraph.FULL].graphConstructionEvent(null); //Add the construction event to the hidden graph
-        }
+        
+        //An empty event is not added to the event list, this is just to get the non-feedback graphs to do a construction event
+        //since they will only construct their edges when passed a null event.  During regular events, they only add vertices if needed
+        //If they were to constuct edges after every event, it would severely slow the loading of long logs
+        applet.getGraphManager().handleConstructionEvent(null);
         return logEvents;
     }
 
