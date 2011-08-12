@@ -17,17 +17,17 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
  * @author alan
  *
  */
-public class P2PVertexPlacer implements Transformer<Agent, Point2D> {
+public class VertexPlacer implements Transformer<Agent, Point2D> {
 
     private Layout<Agent, TestbedEdge> existinglayout;
     private RandomLocationTransformer<Agent> rt;
 
-    public P2PVertexPlacer(Layout<Agent, TestbedEdge> l, Dimension d) {
+    public VertexPlacer(Layout<Agent, TestbedEdge> l, Dimension d) {
         existinglayout = l;
         rt = new RandomLocationTransformer<Agent>(d);
     }
 
-//    public P2PVertexPlacer(AbstractLayout<Agent, TestbedEdge> l, Dimension d) {
+//    public VertexPlacer(AbstractLayout<Agent, TestbedEdge> l, Dimension d) {
 //        existinglayout = l;
 //        rt = new RandomLocationTransformer<Agent>(d);
 //    }

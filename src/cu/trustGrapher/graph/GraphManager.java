@@ -5,8 +5,8 @@ import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.ReputationGraph;
-import cu.trustGrapher.graph.savingandloading.Algorithm;
-import cu.trustGrapher.graph.savingandloading.AlgorithmList;
+import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
+import cu.trustGrapher.graph.savingandloading.AlgorithmConfigManager;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -21,10 +21,10 @@ public class GraphManager {
     private ArrayList<SimGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public GraphManager(AlgorithmList algorithms) {
+    public GraphManager(AlgorithmConfigManager algorithms) {
         graphs = new ArrayList<SimGraph[]>();
-        ArrayList<Algorithm> trustAlgs = new ArrayList<Algorithm>();
-        for (Algorithm alg : algorithms.getAlgs()){
+        ArrayList<AlgorithmConfig> trustAlgs = new ArrayList<AlgorithmConfig>();
+        for (AlgorithmConfig alg : algorithms.getAlgs()){
             if (alg != null){                
                 if (alg.isFeedbackHistory()){
                     addFeedbackGraph(alg);
@@ -37,7 +37,7 @@ public class GraphManager {
                 }
             }
         }
-        for (Algorithm alg : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
+        for (AlgorithmConfig alg : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
             addTrustGraph(alg);
         }        
     }
@@ -74,7 +74,8 @@ public class GraphManager {
         return null;
     }
     
-///////////////////////////////////Methods//////////////////////////////////////ndle
+///////////////////////////////////Methods//////////////////////////////////////
+    
     public void handleGraphEvent(TrustLogEvent event, boolean isForward){
         for (SimGraph[] graphSet : graphs){
             graphSet[DYNAMIC].graphEvent(event, isForward, graphSet[FULL]);
@@ -90,7 +91,7 @@ public class GraphManager {
     /**
      * Creats a new feedback history graph
      */
-    private void addFeedbackGraph(Algorithm algConfig){
+    private void addFeedbackGraph(AlgorithmConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
         graphSet[DYNAMIC] = new SimFeedbackGraph(this, DYNAMIC, algConfig);
         graphSet[FULL] = new SimFeedbackGraph(this, FULL, algConfig);
@@ -100,7 +101,7 @@ public class GraphManager {
     /**
      * Creates a new Reputation Graph
      */
-    private void addReputationGraph(Algorithm algConfig){
+    private void addReputationGraph(AlgorithmConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
         
         ReputationAlgorithm alg = (ReputationAlgorithm) algConfig.getAlgorithm();
@@ -114,7 +115,7 @@ public class GraphManager {
     /**
      * Creates a new Trust Graph
      */
-    private void addTrustGraph(Algorithm algConfig){
+    private void addTrustGraph(AlgorithmConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
 
         TrustAlgorithm alg = (TrustAlgorithm) algConfig.getAlgorithm();

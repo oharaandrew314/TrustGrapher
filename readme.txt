@@ -324,7 +324,15 @@ Fixed a bug where the graph would play in fast forward every time after you scru
 Added GraphManager class
 Fixed a bug where the loading bar would not dissapear that was made much more common after optimizing log reader speed
 Event injector almost working
-Commit prior to large edit
+
+    Revision 44
+Event injection and removal works
+The log table now shows by defualt, and its setting is saved in the TrustGrapher properties file
+PlaybackPanel buttons now update properly after selecting event in log table
+Increased stability of log table
+Simulation is paused after the graph is started or reset
+You can no longer remove the start event from the log table
+Fixed a new bug where the playbackPanel would dissapear after chaging viewer tabs
 
 --------------------------------------------------------------------------------
 
@@ -334,16 +342,17 @@ Commit prior to large edit
 
     -------------------
     4.1.0 High Priority
-    -------------------
-    Edit the events
+    -------------------    
     Export results at the current time
-    Speed hack ideas:
-        Skip algorithm checks (when speed is set to high or user selects option maybe)
-        New Speed slider (change speed value, make default value)
+    Fix fast forward
 
     ------------------
     4.2.0 Low Priority
     ------------------
+    Seperate log table into its own class
+    skip algorithm checks (when speed is set to high or user selects option maybe)
+    New Speed slider (change speed value, make default value)
+    try to make it so that log table  isn't in a split pane and takes up a reasonable space
     Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar

@@ -6,7 +6,7 @@ import cu.repsystestbed.graphs.TestbedEdge;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
 import cu.trustGrapher.graph.edges.SimReputationEdge;
 import cu.trustGrapher.graph.edges.SimTrustEdge;
-import cu.trustGrapher.graph.savingandloading.Algorithm;
+import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -34,7 +34,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param graphID The graphID number of this graph
      * @param display Whether or not this graph will have a viewer built for it
      */
-    public SimGraph(GraphManager graphManager, SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, Algorithm algConfig) {
+    public SimGraph(GraphManager graphManager, SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, AlgorithmConfig algConfig) {
         super(graph);
         this.graphManager = graphManager;
         this.type = type;
@@ -86,6 +86,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
+    
     /**
      * Ensures that an Agent with the given ID exists in the graph
      * If it doesn't, then it is added

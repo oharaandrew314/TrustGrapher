@@ -10,7 +10,7 @@ import utilities.PropertyManager;
  * Description
  * @author Andrew O'Hara
  */
-public class Algorithm {
+public class AlgorithmConfig {
 
     public static String NO_BASE = "noBase", NO_CONFIG = "noConfig";
     public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm";
@@ -31,7 +31,7 @@ public class Algorithm {
      * @param classFile
      * @param propertyFile
      */
-    public Algorithm(int index, boolean display, int base, int classIndex, String classPath, File propertyFile){
+    public AlgorithmConfig(int index, boolean display, int base, int classIndex, String classPath, File propertyFile){
         this.index = index;
         setDisplay(display, true);
         this.base = base;
@@ -149,14 +149,14 @@ public class Algorithm {
      * @param display the display to set
      */
     private void setDisplay(boolean display, boolean constructing) {
-        if (AlgorithmList.VISIBLE_COUNT >= AlgorithmList.MAX_VISIBLE) {
-            ChatterBox.alert("You cannot have more than " + AlgorithmList.MAX_VISIBLE + " graphs shown at one time.");
+        if (AlgorithmConfigManager.VISIBLE_COUNT >= AlgorithmConfigManager.MAX_VISIBLE) {
+            ChatterBox.alert("You cannot have more than " + AlgorithmConfigManager.MAX_VISIBLE + " graphs shown at one time.");
         } else {
             this.display = display;
             if (display) {
-                AlgorithmList.VISIBLE_COUNT++;
+                AlgorithmConfigManager.VISIBLE_COUNT++;
             } else if (!constructing){ //It is not necessary to decrement the visible count if called from the constructor
-                AlgorithmList.VISIBLE_COUNT--;
+                AlgorithmConfigManager.VISIBLE_COUNT--;
             }
         }
     }

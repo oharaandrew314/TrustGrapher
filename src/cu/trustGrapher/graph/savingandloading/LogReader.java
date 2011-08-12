@@ -82,7 +82,7 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
     /**
      * Reads the logFile and parses it into a list of TrustLogEvents
      * @return The list of TrustLogEvents
-     * @throws Exception The reader may throw an exception if it reads a null line
+     * @throws Exception The reader may throw an exception if an I/O error occurs
      */
     @Override
     protected ArrayList<TrustLogEvent> doInBackground() throws Exception {
@@ -93,11 +93,10 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         BufferedReader logReader = new BufferedReader(new FileReader(logFile));
         skipToData(logReader);
 
-        //reading log logFile.  Does an extra iteration to create null event so
-        //that non feedback full graphs recieve their construction event
-        logEvents.add(null); //Adding an empty event the start.  This is to signify that no feedback has been given yet.
+        logEvents.add(null); //Adding an empty event the start.  This is to signify that no feedback has been given yet
+        //reading logFile
         for (int i = 0; i < totalLines; i++) {
-            event = new TrustLogEvent(logReader.readLine());
+            event = new TrustLogEvent(logReader.readLine()); //Read the next line in the 
             logEvents.add(event); //add this log event to the list
             applet.getGraphManager().handleConstructionEvent(event); //Build any necessary entities referenced by the event
             publish("progress");

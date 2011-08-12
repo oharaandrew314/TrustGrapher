@@ -6,7 +6,7 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
-import cu.trustGrapher.graph.savingandloading.Algorithm;
+import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class SimTrustGraph extends SimGraph {
     /**
      * Creates a Trust Graph. The edges on this graph signify that one peers trust the other
      */
-    public SimTrustGraph(GraphManager graphManager, int type, Algorithm algConfig) {
+    public SimTrustGraph(GraphManager graphManager, int type, AlgorithmConfig algConfig) {
         super(graphManager, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), type, algConfig);
         alg = (TrustAlgorithm) algConfig.getAlgorithm();
     }

@@ -16,6 +16,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.util.List;
 
 import java.util.ArrayList;
 
@@ -54,7 +55,7 @@ public final class TrustGrapher extends JFrame {
     //It saves all of the configurations to TrustPropertyManager config
     public final AlgorithmLoader options;
     private PropertyManager config; //The Property Manager that contains all of the saved options for the applet and algorithm loader
-    private ArrayList<TrustLogEvent> events;  // The List of Trust Log Events
+    private List<TrustLogEvent> events;  // The List of Trust Log Events
     private JCheckBoxMenuItem toggleLogTable; //A check box which is used to show the log table
     private JSplitPane mainPane; //The JSplitPane which is to contain the graphsPanel and playbackPanel
     private Container graphsPanel; //This container contains all of the TrustGrapgViewers as components
@@ -87,7 +88,11 @@ public final class TrustGrapher extends JFrame {
      * @return The currently selected TrustGraphViewer
      */
     public TrustGraphViewer getCurrentViewer() {
-        return currentViewer;
+        if (graphsPanel instanceof JTabbedPane){
+            return (TrustGraphViewer) ((JTabbedPane) graphsPanel).getSelectedComponent();
+        }else{
+            return currentViewer;
+        }
     }
 
     /**
@@ -96,9 +101,9 @@ public final class TrustGrapher extends JFrame {
      * If the view type is grid, then the current graph is the one contained in the viewer that the mouse clicked last
      * @return The currently selected graph
      */
-    public SimGraph getCurrentGraph(){
-        for (int i = 0 ; i < viewers.size() ; i++){
-            if (viewers.get(i) == currentViewer){
+    public SimGraph getCurrentGraph() {
+        for (int i = 0; i < viewers.size(); i++) {
+            if (viewers.get(i) == currentViewer) {
                 return displayedGraphs.get(i);
             }
         }
@@ -106,7 +111,7 @@ public final class TrustGrapher extends JFrame {
         return null;
     }
 
-    public GraphManager getGraphManager(){
+    public GraphManager getGraphManager() {
         return graphs;
     }
 
@@ -120,7 +125,7 @@ public final class TrustGrapher extends JFrame {
         if (config.containsKey(AlgorithmLoader.LOG_PATH)) {
             if (events != null) {
                 events.clear();
-                playbackPanel.eventThread.stopPlayback();
+                playbackPanel.eventThread.pause();
                 playbackPanel.disableButtons();
             }
 
@@ -128,7 +133,7 @@ public final class TrustGrapher extends JFrame {
             java.io.File logFile = new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH));
             LogReader logReader = new LogReader(this, logFile, loadingBar);
             logReader.execute(); //After the log reader thread is complete, startGraph() will be called
-        }else{
+        } else {
             ChatterBox.alert("No log was loaded, so no action will be taken.");
         }
     }
@@ -148,7 +153,7 @@ public final class TrustGrapher extends JFrame {
         loadingBar = new AreWeThereYet(this);
 
         //Create the Menu Bar
-        MenuBarListener listener = new MenuBarListener();        
+        MenuBarListener listener = new MenuBarListener();
         JMenuItem optionsButton = new JMenuItem("Load Algorithms");
         optionsButton.addActionListener(listener);
         JMenuItem exportButton = new JMenuItem("Export Results");
@@ -161,6 +166,13 @@ public final class TrustGrapher extends JFrame {
         gridView.addActionListener(listener);
         toggleLogTable = new JCheckBoxMenuItem("Toggle Log Table");
         toggleLogTable.addActionListener(listener);
+        String checked = config.getProperty("logTable");
+        if (checked == null) {
+            checked = "true";
+            config.setProperty("logTable", checked);
+            config.save();
+        }
+        toggleLogTable.setSelected(Boolean.parseBoolean(checked));
 
         //Set view type from value in config
         try {
@@ -175,7 +187,7 @@ public final class TrustGrapher extends JFrame {
         } else {
             tabbedView.setSelected(true);
         }
-        
+
         //Create the file menu
         JMenu file = new JMenu("File");
         file.add(optionsButton);
@@ -199,41 +211,33 @@ public final class TrustGrapher extends JFrame {
         bar.add(view);
         bar.setVisible(true);
         setJMenuBar(bar);
-
-        //Create the frame panels
-        mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        mainPane.add(new JPanel());
-        mainPane.setResizeWeight(1);
-        mainPane.setDividerSize(3);
-        add(mainPane);
-        pack();
     }
-    
+
     /**
      * Called by the log reader thread upon completion.
      * This method rebuilds the main pane, and adds new TrustGraphViewers to the graphsPanel, then starts the graph
      * @param events The event list returned by the log reader thread
      */
-    public void startGraph(ArrayList<TrustLogEvent> events) {
+    public void startGraph(List<TrustLogEvent> events) {
         this.events = events;
 
-        //Rebuild the main pane
+        //build the components of the main pane (includes viewers and playbackPanel
         graphsPanel = (viewType == GRID) ? new JPanel(new GridLayout(2, 3)) : new JTabbedPane(JTabbedPane.TOP);
-        if (graphsPanel instanceof JTabbedPane){
-            ((JTabbedPane)graphsPanel).addChangeListener(new TabChangeListener());
-        }
         graphsPanel.setBackground(Color.LIGHT_GRAY);
         playbackPanel = new PlaybackPanel(this, events);
-        
-        mainPane.removeAll();
-        mainPane.add(graphsPanel);
-        mainPane.add(playbackPanel);
+
+        //Create the mainPane and add it to the content pane
         getContentPane().removeAll();
-        getContentPane().add(mainPane);      
+        mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, graphsPanel, playbackPanel);
+        mainPane.setResizeWeight(1);
+        mainPane.setDividerSize(3);
+        getContentPane().add(mainPane);
+
+        //Create viewer listeners and popup menu
         DefaultModalGraphMouse<Agent, TestbedEdge> gm = new DefaultModalGraphMouse<Agent, TestbedEdge>();
         MouseClickListener listener = new MouseClickListener();
         popupMenu = new TrustPopupMenu(this, gm, listener);
-        
+
         //Create the Visualization Viewers
         viewers = new ArrayList<TrustGraphViewer>();
         displayedGraphs = new ArrayList<SimGraph>();
@@ -241,7 +245,7 @@ public final class TrustGrapher extends JFrame {
             if (graph[FULL].isDisplayed()) {
                 displayedGraphs.add(graph[FULL]);
                 AbstractLayout<Agent, TestbedEdge> layout = new FRLayout2<Agent, TestbedEdge>(graph[FULL]);
-                layout.setInitializer(new P2PVertexPlacer(layout, new Dimension(DEFWIDTH / 3, DEFHEIGHT / 2)));
+                layout.setInitializer(new VertexPlacer(layout, new Dimension(DEFWIDTH / 3, DEFHEIGHT / 2)));
                 TrustGraphViewer viewer = new TrustGraphViewer(layout, DEFWIDTH / 3, DEFHEIGHT / 2, gm, listener, graph);
 
                 if (viewType == GRID) {  //This assumes that the graphsPanel is already in GridFormat
@@ -253,10 +257,10 @@ public final class TrustGrapher extends JFrame {
                 layout.lock(true);
                 viewers.add(viewer);
             }
-        }        
-        
-        playbackPanel.eventThread.run();
-        if (toggleLogTable.isSelected()) {
+        }
+
+        playbackPanel.eventThread.run(); //Start the eventThread
+        if (toggleLogTable.isSelected()) { //If the toggle log table check box is selected, reset the log table
             toggleLogTable.setSelected(false);
             toggleLogTable.doClick();
         }
@@ -264,24 +268,13 @@ public final class TrustGrapher extends JFrame {
     }
 
 ////////////////////////////////////Listeners///////////////////////////////////
-    /**
-     * If the graphsPanel is a JTabbedPane, updates the current viewer when it is changed
-     * so that the playbackPanel knows which viewer to repaint
-     */
-    public class TabChangeListener implements ChangeListener{
-
-        public void stateChanged(ChangeEvent e) {
-            currentViewer = (TrustGraphViewer) ((JTabbedPane) graphsPanel).getSelectedComponent();
-        }
-
-    }
 
     /**
      * Listens for events related to the TrustGraphViewer right-click popup menu
      * If a right-click (e.isPopupTrigeer()) is detected, tells the TrustPopupMenu to show itself
      * If a button on that menu is clicked, then it notifies the popup menu
      */
-    public class MouseClickListener extends MouseAdapter implements ActionListener{
+    public class MouseClickListener extends MouseAdapter implements ActionListener {
 
         @Override
         public void mousePressed(MouseEvent e) {
@@ -292,27 +285,27 @@ public final class TrustGrapher extends JFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            popupMenu.popupMenuEvent(((AbstractButton)e.getSource()).getText());
+            popupMenu.popupMenuEvent(((AbstractButton) e.getSource()).getText());
         }
     }
 
     /**
      * Listens for menu bar button events and deals with them accordingly
      */
-    private class MenuBarListener implements ActionListener{
+    private class MenuBarListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
-            String buttonText = ((AbstractButton)e.getSource()).getText();
-            if (buttonText.equals("Load Algorithms")){
+            String buttonText = ((AbstractButton) e.getSource()).getText();
+            if (buttonText.equals("Load Algorithms")) {
                 if (!options.isVisible()) {
-                    if (playbackPanel != null){
+                    if (playbackPanel != null) {
                         playbackPanel.pauseButton.doClick();
                     }
                     options.run();
                 }
-            }else if (buttonText.equals("Export Results")){
+            } else if (buttonText.equals("Export Results")) {
                 ChatterBox.alert("Export results.");
-            }else if(buttonText.equals("Exit")){
+            } else if (buttonText.equals("Exit")) {
                 try {
                     playbackPanel.pauseButton.doClick();
                 } catch (NullPointerException ex) {
@@ -320,7 +313,7 @@ public final class TrustGrapher extends JFrame {
                 if (ChatterBox.yesNoDialog("Are you sure you want to exit?")) {
                     System.exit(0);
                 }
-            }else if (buttonText.equals("Tabbed View")){
+            } else if (buttonText.equals("Tabbed View")) {
                 config.setProperty("viewType", "" + TABBED);
                 config.save();
                 //If there are graphs running, and the view was changed from something else, reset the graph
@@ -330,7 +323,7 @@ public final class TrustGrapher extends JFrame {
                 } else {
                     viewType = TABBED;
                 }
-            }else if (buttonText.equals("Grid View")){
+            } else if (buttonText.equals("Grid View")) {
                 config.setProperty("viewType", "" + GRID);
                 config.save();
                 //If there are graphs running, and the view was changed from something else, reset the graph
@@ -340,16 +333,14 @@ public final class TrustGrapher extends JFrame {
                 } else {
                     viewType = GRID;
                 }
-            }else if (buttonText.equals("Toggle Log Table")){
+            } else if (buttonText.equals("Toggle Log Table")) {
+                config.setProperty("logTable", "" + toggleLogTable.isSelected());
+                config.save();
                 if (events != null) { //graph has been initialized
-                    JCheckBoxMenuItem button = (JCheckBoxMenuItem) e.getSource();
-                    if (button.isSelected()) { //Add the log table
-                        JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+                    if (toggleLogTable.isSelected()) { //Add the log table
+                        JSplitPane p = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainPane, playbackPanel.getLogPanel());
                         p.setResizeWeight(1);
-                        p.add(mainPane);
-                        p.add(playbackPanel.getLogPanel());
                         p.setDividerSize(3);
-
                         getContentPane().add(p);
                         validate();
                     } else { //Remove the log table
