@@ -12,7 +12,7 @@ import utilities.PropertyManager;
  */
 public class AlgorithmConfig {
 
-    public static String NO_BASE = "noBase", NO_CONFIG = "noConfig";
+    public static String NO_BASE = "noBase", NO_CONFIG = "noConfig", NO_CLASS = "noClass";
     public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm";
     private String type;
     private File classFile;
@@ -51,9 +51,10 @@ public class AlgorithmConfig {
 
     @Override
     public String toString() {
-        String baseIndex = (base != -1) ? "" + base : NO_BASE;
+        String baseString = (base != -1) ? "" + base : NO_BASE;
+        String  classString = (classIndex != -1) ? "" + classIndex : NO_CLASS;
         String configString = (properties != null) ? properties.getPropertyFile().getPath() : NO_CONFIG;
-        return display + "," + baseIndex + "," + classIndex + "," + configString;
+        return display + "," + baseString + "," + classString + "," + configString;
     }
 
     /**

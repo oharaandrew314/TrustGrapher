@@ -1,11 +1,12 @@
 ////////////////////////////////PlaybackPanel//////////////////////////////////
-package cu.trustGrapher;
+package cu.trustGrapher.visualizer.eventplayer;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.visualizer.eventplayer.*;
+import cu.trustGrapher.TrustGrapher;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -27,7 +28,7 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
     private JPanel tablePanel;
     public JSlider fastSpeedSlider, playbackSlider;
     private TrustGrapher applet;
-    public TrustEventPlayer eventThread;
+    public EventPlayer eventThread;
     private JTable logList;
     private JPopupMenu menu;
 
@@ -39,20 +40,9 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
      */
     public PlaybackPanel(TrustGrapher applet, List<TrustLogEvent> events) {
         this.applet = applet;
-        initComponents();
-        
-        playbackSlider.setMinimum(0);
-        eventThread = new TrustEventPlayer(applet, events, this); // create the event player
-        playbackSlider.setMaximum((events.size()-1) * TrustEventPlayer.DELAY);
+        eventThread = new EventPlayer(applet, events, this); // create the event player
+        initComponents(events);
         initializeLogList(events);
-        
-        SliderListener s = new SliderListener();
-        playbackSlider.addChangeListener(s);
-        playbackSlider.addMouseListener(s);
-        
-        playbackSlider.setEnabled(true);
-        fastSpeedSlider.setEnabled(true);
-        playbackPause();
     }
     
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -68,16 +58,16 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
     /**
      * Creates all the components of the playback panel
      */
-    private void initComponents() {
-        fastSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 25);
+    private void initComponents(List<TrustLogEvent> events) {
+        fastSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, EventPlayer.DEFAULT_DELAY, EventPlayer.DEFAULT_DELAY);
         fastSpeedSlider.addChangeListener(new SpeedSliderListener());
         fastSpeedSlider.setMajorTickSpacing((fastSpeedSlider.getMaximum() - fastSpeedSlider.getMinimum()) / 4);
         fastSpeedSlider.setFont(new Font("Arial", Font.PLAIN, 8));
         fastSpeedSlider.setPaintTicks(false);
         fastSpeedSlider.setPaintLabels(true);
         fastSpeedSlider.setForeground(java.awt.Color.BLACK);
-        fastSpeedSlider.setBorder(BorderFactory.createTitledBorder("Quick Playback Speed"));
-        fastSpeedSlider.setEnabled(false);
+        fastSpeedSlider.setBorder(BorderFactory.createTitledBorder("FastForward Delay"));
+        fastSpeedSlider.setEnabled(true);
 
         ActionListener listener = new PlaybackButtonListener();
 
@@ -103,12 +93,20 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
         fastForwardButton.addActionListener(listener);
         fastForwardButton.setEnabled(false);
 
-        playbackSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+        playbackSlider = new JSlider(JSlider.HORIZONTAL, 0, events.size() - 1, 0);
         playbackSlider.setEnabled(false);
+        playbackSlider.setMinimum(0);
+        playbackSlider.setPaintTicks(true);
+        playbackSlider.setMajorTickSpacing( (events.size() > 20) ? events.size() / 20 : 1);
+        playbackSlider.setPaintLabels(true);
+        playbackSlider.setSnapToTicks(true);
+        SliderListener s = new SliderListener();
+        playbackSlider.addChangeListener(s);
+        playbackSlider.addMouseListener(s);        
+        playbackSlider.setEnabled(true);       
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
-
         buttonPanel.add(fastReverseButton);
         buttonPanel.add(reverseButton);
         buttonPanel.add(pauseButton);
@@ -119,7 +117,8 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
         setLayout(new java.awt.GridLayout(2, 1));
         setBorder(BorderFactory.createTitledBorder("Playback Panel"));
         add(buttonPanel);
-        add(playbackSlider);
+        add(playbackSlider);        
+        playbackPause();
     }
 
     /**
@@ -129,7 +128,7 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
      */
     private void initializeLogList(List<TrustLogEvent> logEvents) {
         Object[][] table = new Object[logEvents.size()][3];
-        table[0] = new Object[] {"","empty",""};
+        table[0] = new Object[] {"","",""};
         int i = 1;
         for (TrustLogEvent evt : logEvents) {
             if (evt != null){
@@ -142,7 +141,7 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
         logList = new JTable(table, titles);
         logList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         logList.setBackground(Color.LIGHT_GRAY);
-        logList.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        logList.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         logList.setColumnSelectionAllowed(false);
         logList.setRowSelectionAllowed(true);
         ListListener listener = new ListListener();
@@ -158,7 +157,8 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
         tablePanel.add(listScroller);
         tablePanel.setName("Log Events");
         tablePanel.setBorder(BorderFactory.createTitledBorder(tablePanel.getName()));
-        tablePanel.setMaximumSize(new java.awt.Dimension(200, 100));
+        Dimension listSize = logList.getPreferredSize();
+        tablePanel.setPreferredSize(new Dimension(listSize.width + 15, listSize.height));
         createPopupMenu(listener);
     }
 
@@ -311,10 +311,14 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
     class SliderListener extends MouseAdapter implements ChangeListener {
 
         int prevState;
+        boolean scrubbing;
         
         @Override
         public void stateChanged(ChangeEvent ce) {
             if (logList != null) { //if log list is initialized and showing
+                if (scrubbing){
+                    eventThread.goToEvent(playbackSlider.getValue());
+                }
                 if (logList.isVisible()) {
                     logList.clearSelection();
                     logList.addRowSelectionInterval(0, eventThread.getCurrentEventIndex());
@@ -326,6 +330,7 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
         @Override
         public void mousePressed(MouseEvent e) {
             if (playbackSlider.isEnabled()) {
+                scrubbing = true;
                 prevState = eventThread.getPlayState();
                 eventThread.pause();
             }
@@ -335,22 +340,23 @@ public final class PlaybackPanel extends javax.swing.JPanel implements EventPlay
         public void mouseReleased(MouseEvent e) {
             if (playbackSlider.isEnabled()) {
                 switch (prevState) {
-                    case TrustEventPlayer.FASTREVERSE:
+                    case EventPlayer.FASTREVERSE:
                         eventThread.fastReverse();
                         break;
-                    case TrustEventPlayer.REVERSE:
+                    case EventPlayer.REVERSE:
                         eventThread.reverse();
                         break;
-                    case TrustEventPlayer.PAUSE:
+                    case EventPlayer.PAUSE:
                         eventThread.pause();
                         break;
-                    case TrustEventPlayer.FORWARD:
+                    case EventPlayer.FORWARD:
                         eventThread.forward();
                         break;
-                    case TrustEventPlayer.FASTFORWARD:
+                    case EventPlayer.FASTFORWARD:
                         eventThread.fastForward();
                         break;
                 }
+                scrubbing = false;
             }
         }
     }

@@ -1,6 +1,8 @@
 /////////////////////////////////////TrustGrapher///////////////////////////////
 package cu.trustGrapher;
 
+import cu.trustGrapher.visualizer.TrustPopupMenu;
+import cu.trustGrapher.visualizer.eventplayer.PlaybackPanel;
 import cu.trustGrapher.graph.*;
 import cu.trustGrapher.visualizer.*;
 import cu.trustGrapher.graph.savingandloading.*;
@@ -342,12 +344,11 @@ public final class TrustGrapher extends JFrame {
                         p.setResizeWeight(1);
                         p.setDividerSize(3);
                         getContentPane().add(p);
-                        validate();
                     } else { //Remove the log table
                         getContentPane().removeAll();
                         getContentPane().add(mainPane);
-                        validate();
                     }
+                    validate();
                 }
             }
         }

@@ -2,7 +2,6 @@ package cu.trustGrapher.visualizer.eventplayer;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import utilities.ChatterBox;
 
 public class TimeCounter implements ActionListener {
 	

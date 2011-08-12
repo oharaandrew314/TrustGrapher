@@ -1,8 +1,7 @@
-////////////////////////////////EventInjector//////////////////////////////////
-package cu.trustGrapher;
 
-import cu.trustGrapher.visualizer.eventplayer.TrustEventPlayer;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+////////////////////////////////EventInjector//////////////////////////////////
+package cu.trustGrapher.visualizer.eventplayer;
+
 import utilities.ChatterBox;
 
 /**
@@ -11,10 +10,10 @@ import utilities.ChatterBox;
  */
 public final class EventInjector extends javax.swing.JFrame {
     private TrustLogEvent event = null;
-    private TrustEventPlayer eventThread;
+    private EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public EventInjector(TrustEventPlayer eventThread) {
+    public EventInjector(EventPlayer eventThread) {
         initComponents();
         this.eventThread = eventThread;
     }
@@ -43,7 +42,7 @@ public final class EventInjector extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void getNewEvent(TrustEventPlayer eventThread) {
+    public static void getNewEvent(EventPlayer eventThread) {
         EventInjector injector = new EventInjector(eventThread);
         injector.setVisible(true);
     }

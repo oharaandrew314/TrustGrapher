@@ -22,7 +22,7 @@ public class TrustClassLoader extends utilities.MyClassLoader {
         if ((o instanceof ReputationAlgorithm) || (o instanceof TrustAlgorithm) || classPath.endsWith(".jar")) {
             return o;
         }
-        ChatterBox.error("TrustClassLoader", "newAlgorithm()", "The file was not a recognized algorithm.\n" + classPath);
+        ChatterBox.error("TrustClassLoader", "newAlgorithm()", "The file was invalid, no longer exists, or is not a recognized algorithm.\n" + classPath);
         return null;
     }
 

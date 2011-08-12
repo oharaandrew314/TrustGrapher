@@ -88,10 +88,13 @@ public class AlgorithmConfigManager {
      */
     public boolean newAlgFromProperty(int index, String[] property) {
         int baseIndex = -1;
+        int classIndex = -1;
         try{
             baseIndex = Integer.parseInt(property[1]);
         }catch (NumberFormatException ex){}
-        int classIndex = Integer.parseInt(property[2]);
+        try{
+            classIndex = Integer.parseInt(property[2]);
+        }catch (NumberFormatException ex){}
         String classPath = (classIndex == -1) ? null : config.getProperty(AlgorithmLoader.CLASS + classIndex);
         //Algorithm property format                     display                    base    classIndex  classPath      properties
         AlgorithmConfig alg = new AlgorithmConfig(index, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3]));

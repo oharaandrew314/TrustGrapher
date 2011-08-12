@@ -1,8 +1,9 @@
 ////////////////////////////////TrustPopupMenu//////////////////////////////////
-package cu.trustGrapher;
+package cu.trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
+import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.visualizer.TrustGraphViewer;
 
 import edu.uci.ics.jung.algorithms.layout.*;

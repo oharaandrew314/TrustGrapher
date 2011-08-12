@@ -327,12 +327,20 @@ Event injector almost working
 
     Revision 44
 Event injection and removal works
-The log table now shows by defualt, and its setting is saved in the TrustGrapher properties file
+The log table now shows by default, and its setting is saved in the TrustGrapher properties file
 PlaybackPanel buttons now update properly after selecting event in log table
 Increased stability of log table
 Simulation is paused after the graph is started or reset
 You can no longer remove the start event from the log table
-Fixed a new bug where the playbackPanel would dissapear after chaging viewer tabs
+Fixed a new bug where the playbackPanel would disappear after changing viewer tabs
+
+    Revision 45
+The log list panel is now sized appropriately
+Fixed a bug where a new event was not added to the correct spot in the timeline
+Fixed a bug where the algortihm check box did not work as intended.  This was only noticable when existing algorithms were loaded
+FastForward works again
+Scrubbing the playbackSlider works again
+The playbackSlider now shows tick marks and labels
 
 --------------------------------------------------------------------------------
 
@@ -342,17 +350,17 @@ Fixed a new bug where the playbackPanel would dissapear after chaging viewer tab
 
     -------------------
     4.1.0 High Priority
-    -------------------    
-    Export results at the current time
-    Fix fast forward
+    -------------------
+    Add new Javadocs
+    Update instructions
 
     ------------------
     4.2.0 Low Priority
     ------------------
+    Options for playbackSlider to scrub or be drag & drop
+    Change custom delay to event skip
     Seperate log table into its own class
     skip algorithm checks (when speed is set to high or user selects option maybe)
-    New Speed slider (change speed value, make default value)
-    try to make it so that log table  isn't in a split pane and takes up a reasonable space
     Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar

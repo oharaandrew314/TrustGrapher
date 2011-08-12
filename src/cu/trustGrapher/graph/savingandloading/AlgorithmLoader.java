@@ -47,17 +47,17 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         }
         return null;
     }
-    
-    public AlgorithmConfigManager getAlgorithms(){
+
+    public AlgorithmConfigManager getAlgorithms() {
         return algorithms;
     }
-    
-    private int getBaseIndex(){
-        return Integer.parseInt(((String)baseField.getSelectedItem()).split("-")[0]);
+
+    private int getBaseIndex() {
+        return Integer.parseInt(((String) baseField.getSelectedItem()).split("-")[0]);
     }
-    
-    private AlgorithmConfig getSelectedAlg(){
-        String temp = ((String)algList.getSelectedValue()).split("-")[0];
+
+    private AlgorithmConfig getSelectedAlg() {
+        String temp = ((String) algList.getSelectedValue()).split("-")[0];
         return algorithms.getAlg(Integer.parseInt(temp));
     }
 
@@ -90,7 +90,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                 for (AlgorithmConfig a : algorithms.getAlgs()) { //Add All reputation algs to the base list
                     if (a.isReputationAlg()) {
                         baseField.addItem(a.getDisplayName());
-                        if (alg.getBase() != -1){
+                        if (alg.getBase() != -1) {
                             if (alg.getBase() == a.getIndex()) { //If this alg is the alg's base, select it
                                 baseField.setSelectedItem(a.getDisplayName());
                             }
@@ -98,9 +98,9 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                     }
                 }
             }
-            if (((String)baseField.getSelectedItem()).equals(AlgorithmConfig.NO_BASE)){
-                 alg.setBase(-1);
-            }else{
+            if (((String) baseField.getSelectedItem()).equals(AlgorithmConfig.NO_BASE)) {
+                alg.setBase(-1);
+            } else {
                 alg.setBase(getBaseIndex());
             }
             //If the selected algorithm is a trust algrithm, enable the base field
@@ -124,15 +124,15 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     public void run() {
         algorithms = new AlgorithmConfigManager(config);
         AlgorithmConfigManager.ALG_COUNT = 0;
-        AlgorithmConfigManager.VISIBLE_COUNT = 0;        
+        AlgorithmConfigManager.VISIBLE_COUNT = 0;
         config.loadPropertyFile();
-        
-        if (!config.containsKey(ALG + 0)){ //If the feedbackHistory graph does not exist in the properties, add it
+
+        if (!config.containsKey(ALG + 0)) { //If the feedbackHistory graph does not exist in the properties, add it
             algorithms.newAlg(0, true, -1);
         }
         //Add the rest of the algorithms
-        for (int i = 0; i <= AlgorithmConfigManager.MAX_ALGS; i++) {
-            if (config.containsKey(ALG + i)){
+        for (int i = 0; i <= config.keySet().size(); i++) {
+            if (config.containsKey(ALG + i)) {
                 algorithms.newAlgFromProperty(i, config.getProperty(ALG + i).split(","));
             }
         }
@@ -146,6 +146,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         algList.setSelectedIndex(0);
         updateFields();
         setVisible(true);
+        ChatterBox.print("" + AlgorithmConfigManager.VISIBLE_COUNT);
     }
 
 /////////////////////////////////GUI Components/////////////////////////////////
@@ -476,14 +477,14 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         //Generate array of algorithms to load
         ArrayList<String> classPaths = new ArrayList<String>();
-        for (int i = 0 ; i <= AlgorithmConfigManager.MAX_ALGS ; i++){
-            if (config.containsKey(CLASS + i)){
+        for (int i = 0; i <= AlgorithmConfigManager.MAX_ALGS; i++) {
+            if (config.containsKey(CLASS + i)) {
                 classPaths.add(TrustClassLoader.formatClassName(i, config.getProperty(CLASS + i)));
             }
         }
         //Ask which algorithm to load
-        String selectedClassName = ChatterBox.selectionPane("Question", "Which class would you like to load?", classPaths.toArray());        
-        if (selectedClassName != null){
+        String selectedClassName = ChatterBox.selectionPane("Question", "Which class would you like to load?", classPaths.toArray());
+        if (selectedClassName != null) {
             int newKey = getNewKey(ALG);
             algorithms.newAlg(newKey, false, classPaths.indexOf((Object) selectedClassName));
             config.setProperty(ALG + newKey, algorithms.getAlg(newKey).toString());
@@ -500,9 +501,9 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             ChatterBox.alert("You cannot remove the FeedbackHistory.");
         } else if (index != -1) {
             //Check if this algorithm is being used by another
-            for (AlgorithmConfig alg : algorithms.getAlgs()){
+            for (AlgorithmConfig alg : algorithms.getAlgs()) {
                 if (alg.getBase() != -1) {
-                    if (alg.getBase() == index){
+                    if (alg.getBase() == index) {
                         ChatterBox.alert("You cannot remove an algorithm that is used by another.");
                         return;
                     }
@@ -540,14 +541,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                     displayField.setSelected(false);
                     ChatterBox.alert("You cannot have more than " + AlgorithmConfigManager.MAX_VISIBLE + " visible graphs at one time.");
                 } else {
-                    AlgorithmConfigManager.VISIBLE_COUNT++;
+                    AlgorithmConfig alg = getSelectedAlg();
+                    alg.setDisplay(displayField.isSelected());
+                    config.setProperty(alg.getKey(), alg.toString());
                 }
-            } else {
-                AlgorithmConfigManager.VISIBLE_COUNT--;
             }
-            AlgorithmConfig alg = getSelectedAlg();
-            alg.setDisplay(displayField.isSelected());
-            config.setProperty(alg.getKey(), alg.toString());
         }
     }//GEN-LAST:event_displayFieldActionPerformed
 
@@ -596,11 +594,11 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         if (classList.getSelectedItem() == null) {
             return;
         }
-        int index = Integer.parseInt(((String) classList.getSelectedItem()).split("-")[0].replace(CLASS,""));
+        int index = Integer.parseInt(((String) classList.getSelectedItem()).split("-")[0].replace(CLASS, ""));
 
         //see if any algorithms depend on this class.  If so, the class cannot be deleted
-        for (AlgorithmConfig alg : algorithms.getAlgs()){
-            if (alg.getClassFile() != null){
+        for (AlgorithmConfig alg : algorithms.getAlgs()) {
+            if (alg.getClassFile() != null) {
                 if (alg.getClassFile().getPath().equals(config.getProperty(CLASS + index))) {
                     ChatterBox.alert("This class cannot be removed since it has algorithms that depend on it.");
                     return;
@@ -637,19 +635,15 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     }//GEN-LAST:event_removePropertyButtonActionPerformed
 
 private void helpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpButtonActionPerformed
-    String message = "To use this configuration window:\n\n" +
-            
-            "You must first add a class path to the classes combo box.\nClick the 'Add' Button next to it to do so.\n\n" +
-            
-            "Then you can add an algorithm to the simulator with the 'Add' Button below the 'Algorithms' list.\n" +
-            "You can only add algorithms who have had their class path added already.\n\n"+
-            
-            "You can then select an individual algorithm from the list and change their properties in the panel to the right.\n" +
-            "The 'Depends on' combo box means that the currently selected algorithm will listen to the graph connected to the\n" +
-            "algorithm that is selected in the combo box.\n\n";
+    String message = "To use this configuration window:\n\n"
+            + "You must first add a class path to the classes combo box.\nClick the 'Add' Button next to it to do so.\n\n"
+            + "Then you can add an algorithm to the simulator with the 'Add' Button below the 'Algorithms' list.\n"
+            + "You can only add algorithms who have had their class path added already.\n\n"
+            + "You can then select an individual algorithm from the list and change their properties in the panel to the right.\n"
+            + "The 'Depends on' combo box means that the currently selected algorithm will listen to the graph connected to the\n"
+            + "algorithm that is selected in the combo box.\n\n";
     ChatterBox.alert(message);
 }//GEN-LAST:event_helpButtonActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JButton addClassButton;
