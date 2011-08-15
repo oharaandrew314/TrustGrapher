@@ -1,6 +1,6 @@
 
 ////////////////////////////////EventInjector//////////////////////////////////
-package cu.trustGrapher.visualizer.eventplayer;
+package cu.trustGrapher.eventplayer;
 
 import utilities.ChatterBox;
 
@@ -10,12 +10,25 @@ import utilities.ChatterBox;
  */
 public final class EventInjector extends javax.swing.JFrame {
     private TrustLogEvent event = null;
+    private static final int CREATE = 0, MODIFY = 1;
+    private int mode;
     private EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public EventInjector(EventPlayer eventThread) {
+    public EventInjector(EventPlayer eventThread, int mode) {
         initComponents();
         this.eventThread = eventThread;
+        this.mode = mode;
+        if (mode == CREATE){
+            label.setText(label.getText() + "create.");
+        }else{
+            label.setText(label.getText() + "modify.");
+            TrustLogEvent currentEvent = eventThread.getEvents().get(eventThread.getCurrentEventIndex());
+            assessorField.setText("" + currentEvent.getAssessor());
+            assesseeField.setText("" + currentEvent.getAssessee());
+            feedbackField.setText("" + currentEvent.getFeedback());            
+        }
+        setVisible(true);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -39,12 +52,12 @@ public final class EventInjector extends javax.swing.JFrame {
     }
     
 ////////////////////////////////Static Methods//////////////////////////////////
-    /**
-     * @param args the command line arguments
-     */
     public static void getNewEvent(EventPlayer eventThread) {
-        EventInjector injector = new EventInjector(eventThread);
-        injector.setVisible(true);
+        EventInjector injector = new EventInjector(eventThread, CREATE);
+    }
+    
+    public static void modifyEvent(EventPlayer eventThread){
+        EventInjector injector = new EventInjector(eventThread, MODIFY);
     }
     
 /////////////////////////////////GUI Components/////////////////////////////////
@@ -64,7 +77,7 @@ public final class EventInjector extends javax.swing.JFrame {
         assessorField = new javax.swing.JTextField();
         assesseeField = new javax.swing.JTextField();
         feedbackField = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
+        label = new javax.swing.JLabel();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
 
@@ -83,8 +96,8 @@ public final class EventInjector extends javax.swing.JFrame {
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel4.setText("Feedback value:");
 
-        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel5.setText(" that you wish to insert.");
+        label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label.setText(" that you wish to ");
 
         okButton.setText("OK");
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -120,7 +133,7 @@ public final class EventInjector extends javax.swing.JFrame {
                             .addComponent(assesseeField, javax.swing.GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
                             .addComponent(assessorField, javax.swing.GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
                             .addComponent(cancelButton)))
-                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 245, Short.MAX_VALUE)
+                    .addComponent(label, javax.swing.GroupLayout.DEFAULT_SIZE, 245, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 245, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -130,7 +143,7 @@ public final class EventInjector extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel5)
+                .addComponent(label)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
@@ -157,7 +170,11 @@ private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     createEvent();
     if (event != null){
         dispose();
-        eventThread.insertEvent(event);
+        if (mode == CREATE){
+            eventThread.insertEvent(event);
+        }else{
+            eventThread.modifyEvent(event);
+        }
     }
 }//GEN-LAST:event_okButtonActionPerformed
 
@@ -174,7 +191,7 @@ private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel label;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables
 }

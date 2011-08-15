@@ -7,20 +7,26 @@ import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.ReputationGraph;
 import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
 import cu.trustGrapher.graph.savingandloading.AlgorithmConfigManager;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
+import java.util.List;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import utilities.ChatterBox;
 
 /**
- * Description
+ * Wrapper for the list of graphs.  Builds, retrieves, and passes them the necessary events
+ * This is created by TrustGrapher after the AlgorithmLoader 'ok' button is pressed.
  * @author Andrew O'Hara
  */
 public class GraphManager {
     public static final int DYNAMIC = 0, FULL = 1, FEEDBACK = 0;
-    private ArrayList<SimGraph[]> graphs;
+    private List<SimGraph[]> graphs;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Creates a new GraphManager, and builds all the graphs required by the given AlgorithmConfigManager
+     * @param algorithms The AlgorithmConfigManager which has all the algorithms and their configurations
+     */
     public GraphManager(AlgorithmConfigManager algorithms) {
         graphs = new ArrayList<SimGraph[]>();
         ArrayList<AlgorithmConfig> trustAlgs = new ArrayList<AlgorithmConfig>();
@@ -37,17 +43,28 @@ public class GraphManager {
                 }
             }
         }
-        for (AlgorithmConfig alg : trustAlgs){ //Trust graphs are made last because their base graph might not be made yet
+        //Trust graphs are made last because their base graph might not have been made before
+        for (AlgorithmConfig alg : trustAlgs){
             addTrustGraph(alg);
         }        
     }
 //////////////////////////////////Accessors/////////////////////////////////////
     
+    /**
+     * Gets the graph with the given index and type
+     * @param index The index corresponding to the the order that the graphs were added to the GraphManager in
+     * @param type The type of the graph (FULL, DYNAMIC)
+     * @return The graph with the given index and type
+     */
     public SimGraph get(int index, int type){
         return graphs.get(index)[type];
     }
     
-    public ArrayList<SimGraph[]> getGraphs(){
+    /**
+     * Gets the List of graphs held by this GraphManager
+     * @return The list of graphs
+     */
+    public List<SimGraph[]> getGraphs(){
         return graphs;
     }
     
@@ -76,12 +93,23 @@ public class GraphManager {
     
 ///////////////////////////////////Methods//////////////////////////////////////
     
+    /**
+     * Whenever a graph event is processed by the EventPlayer, 
+     * this method passes that event on to the dynamic graphs contained within.
+     * @param event The TrustLogEvent that is being processed
+     * @param isForward Whether the simulator is being played forward or not
+     */
     public void handleGraphEvent(TrustLogEvent event, boolean isForward){
         for (SimGraph[] graphSet : graphs){
             graphSet[DYNAMIC].graphEvent(event, isForward, graphSet[FULL]);
         }
     }
     
+    /**
+     * Whenvever a graph construction event is processed by the EventPlayer, 
+     * this method passes that event on to the full graphs contained within.
+     * @param event The TrustLogEvent that is being processed
+     */
     public void handleConstructionEvent(TrustLogEvent event){
         for (SimGraph[] graphSet : graphs){
             graphSet[FULL].graphConstructionEvent(event);
@@ -89,7 +117,8 @@ public class GraphManager {
     }
     
     /**
-     * Creats a new feedback history graph
+     * Creats a new feedback history graph and adds it to the graph list
+     * @param algConfig The class containing all of the configuration proeprties of an algorithm
      */
     private void addFeedbackGraph(AlgorithmConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
@@ -99,7 +128,8 @@ public class GraphManager {
     }
 
     /**
-     * Creates a new Reputation Graph
+     * Creates a new Reputation Graph and adds it to the graph list
+     * @param algConfig The class containing all of the configuration proeprties of an algorithm
      */
     private void addReputationGraph(AlgorithmConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
@@ -113,7 +143,8 @@ public class GraphManager {
     }
 
     /**
-     * Creates a new Trust Graph
+     * Creates a new Trust Graph and adds it to the graph list
+     * @param algConfig The class containing all of the configuration proeprties of an algorithm
      */
     private void addTrustGraph(AlgorithmConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
@@ -125,6 +156,5 @@ public class GraphManager {
         graphSet[DYNAMIC] = new SimTrustGraph(this, DYNAMIC, algConfig);
         graphs.add(graphSet.clone());
     }
-////////////////////////////////Static Methods//////////////////////////////////
 }
 ////////////////////////////////////////////////////////////////////////////////

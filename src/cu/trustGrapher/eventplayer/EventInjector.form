@@ -43,7 +43,7 @@
                           <Component id="cancelButton" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <Component id="jLabel5" alignment="0" pref="245" max="32767" attributes="0"/>
+                  <Component id="label" alignment="0" pref="245" max="32767" attributes="0"/>
                   <Component id="jLabel1" alignment="0" pref="245" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -56,7 +56,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
+              <Component id="label" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -113,10 +113,10 @@
     </Component>
     <Component class="javax.swing.JTextField" name="feedbackField">
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel5">
+    <Component class="javax.swing.JLabel" name="label">
       <Properties>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value=" that you wish to insert."/>
+        <Property name="text" type="java.lang.String" value=" that you wish to "/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okButton">

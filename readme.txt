@@ -342,6 +342,20 @@ FastForward works again
 Scrubbing the playbackSlider works again
 The playbackSlider now shows tick marks and labels
 
+    Revision 46
+Added 'Modify Event' button to log panel right-click menu
+Added custom event delay option to file menu
+You can now scrub the log panel
+Removed fast forwarding and replaced it with "events per tick"
+Removed tick marks and labels from playbackSlider
+You can now edit events from the new edit menu
+Added user confirmation for event removal
+Added 'about' menu item
+The log Panel now has a minimum size
+The highlighted event in the event panel scroll pane is now always kept in view
+Got rid of some unnecessary code and did some refactoring
+Added some more documentation
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -351,16 +365,15 @@ The playbackSlider now shows tick marks and labels
     -------------------
     4.1.0 High Priority
     -------------------
+    get Layouts working again
     Add new Javadocs
     Update instructions
 
     ------------------
     4.2.0 Low Priority
     ------------------
+    Move predicate back into graphs
     Options for playbackSlider to scrub or be drag & drop
-    Change custom delay to event skip
-    Seperate log table into its own class
-    skip algorithm checks (when speed is set to high or user selects option maybe)
     Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
     Have the properties file save next to the jar
     Add graphic buttons for the playback bar

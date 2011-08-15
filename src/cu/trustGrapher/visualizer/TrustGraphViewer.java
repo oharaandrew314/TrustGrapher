@@ -3,6 +3,7 @@ package cu.trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
+import cu.trustGrapher.graph.GraphManager;
 import cu.trustGrapher.graph.SimGraph;
 
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -17,15 +18,17 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 
 /**
- * This is a TrustGraphViewer component
+ * This is a TrustGraphViewer component.  The viewers are created in TrustGrapher after the events have been loaded
  * It displays the graph passed to it from inside the layout parameter
  * @author Andrew O'Hara
  */
 public class TrustGraphViewer extends edu.uci.ics.jung.visualization.VisualizationViewer {
+    private SimGraph graph;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustGraphViewer(final Layout layout, int width, int height, DefaultModalGraphMouse<Agent, TestbedEdge> gm, MouseAdapter mouseClickListener, SimGraph[] graph) {
         super(layout, new Dimension(width, height));
+        this.graph = graph[GraphManager.FULL];
         // the default mouse makes the mouse usable as a picking tool (pick, drag vertices & edges) or as a transforming tool (pan, zoom)
         setGraphMouse(gm);
 
@@ -54,6 +57,10 @@ public class TrustGraphViewer extends edu.uci.ics.jung.visualization.Visualizati
                 super.componentResized(arg0);
             }
         });
+    }
+    
+    public SimGraph getFullGraph(){
+        return graph;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

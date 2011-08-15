@@ -1,5 +1,5 @@
 ///////////////////////////////////////TrustLogEvent/////////////////////////////////
-package cu.trustGrapher.visualizer.eventplayer;
+package cu.trustGrapher.eventplayer;
 
 import utilities.ChatterBox;
 

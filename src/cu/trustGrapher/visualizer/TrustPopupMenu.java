@@ -4,7 +4,6 @@ package cu.trustGrapher.visualizer;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.trustGrapher.TrustGrapher;
-import cu.trustGrapher.visualizer.TrustGraphViewer;
 
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
@@ -23,10 +22,9 @@ import utilities.ChatterBox;
 public class TrustPopupMenu extends JPopupMenu {
 
     private DefaultModalGraphMouse<Agent, TestbedEdge> gm;
-    private TrustGrapher applet;
+    private TrustGraphViewer currentViewer;
 
-    public TrustPopupMenu(TrustGrapher applet, final DefaultModalGraphMouse<Agent, TestbedEdge> gm, ActionListener listener) {
-        this.applet = applet;
+    public TrustPopupMenu(final DefaultModalGraphMouse<Agent, TestbedEdge> gm, ActionListener listener) {
         this.gm = gm;
         JMenuItem picking = new JMenuItem("Picking");
         JMenuItem transforming = new JMenuItem("Transforming");
@@ -56,9 +54,9 @@ public class TrustPopupMenu extends JPopupMenu {
     /**
      * Shows the popup menu on the current viewer
      */
-    public void showPopupMenu() {
+    public void showPopupMenu(TrustGraphViewer newViewer) {
+        currentViewer = newViewer;
         setEnabled(true);
-        TrustGraphViewer currentViewer = applet.getCurrentViewer();
         show(currentViewer, currentViewer.getMousePosition().x, currentViewer.getMousePosition().y);
     }
 
@@ -68,16 +66,15 @@ public class TrustPopupMenu extends JPopupMenu {
      */
     public void popupMenuEvent(String text) {
         if (text.contains(("Layout"))) {
-            TrustGraphViewer currentViewer = applet.getCurrentViewer();
             AbstractLayout<Agent, TestbedEdge> graphLayout = null;
             if (text.equals("FR Layout")) {
-                graphLayout = new FRLayout<Agent, TestbedEdge>(applet.getCurrentGraph(), currentViewer.getSize());
+                graphLayout = new FRLayout<Agent, TestbedEdge>(currentViewer.getFullGraph(), currentViewer.getSize());
             } else if (text.equals("ISOM Layout")) {
-                graphLayout = new ISOMLayout<Agent, TestbedEdge>(applet.getCurrentGraph());
+                graphLayout = new ISOMLayout<Agent, TestbedEdge>(currentViewer.getFullGraph());
             } else if (text.equals("KK Layout")) {
-                graphLayout = new KKLayout<Agent, TestbedEdge>(applet.getCurrentGraph());
+                graphLayout = new KKLayout<Agent, TestbedEdge>(currentViewer.getFullGraph());
             } else {
-                graphLayout = new CircleLayout<Agent, TestbedEdge>(applet.getCurrentGraph());
+                graphLayout = new CircleLayout<Agent, TestbedEdge>(currentViewer.getFullGraph());
             }
             currentViewer.getModel().setGraphLayout(graphLayout);
             graphLayout.lock(true);

@@ -2,7 +2,7 @@
 package cu.trustGrapher.graph.savingandloading;
 
 import cu.trustGrapher.TrustGrapher;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

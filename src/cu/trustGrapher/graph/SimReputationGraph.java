@@ -2,7 +2,7 @@
 package cu.trustGrapher.graph;
 
 import cu.trustGrapher.graph.edges.SimReputationEdge;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 
 import cu.repsystestbed.algorithms.EigenTrust;
 import cu.repsystestbed.algorithms.ReputationAlgorithm;

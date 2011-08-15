@@ -8,7 +8,7 @@ import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
 import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
 import org.jgrapht.graph.SimpleDirectedGraph;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
 import java.util.Set;
 import utilities.ChatterBox;

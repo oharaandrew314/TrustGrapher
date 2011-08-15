@@ -7,7 +7,7 @@ import cu.trustGrapher.graph.edges.SimFeedbackEdge;
 import cu.trustGrapher.graph.edges.SimReputationEdge;
 import cu.trustGrapher.graph.edges.SimTrustEdge;
 import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
 

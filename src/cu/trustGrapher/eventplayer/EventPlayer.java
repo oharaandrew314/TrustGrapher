@@ -1,8 +1,9 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
-package cu.trustGrapher.visualizer.eventplayer;
+package cu.trustGrapher.eventplayer;
 
 import cu.trustGrapher.TrustGrapher;
 
+import cu.trustGrapher.visualizer.TrustGraphViewer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
@@ -19,24 +20,30 @@ import utilities.ChatterBox;
  */
 public final class EventPlayer implements ActionListener {
 
-    public static final int FASTREVERSE = -2, REVERSE = -1, PAUSE = 0, FORWARD = 1, FASTFORWARD = 2;
-    public static final int DEFAULT_DELAY = 250; // This many milliseconds between events while playing regularly
-    private int state, currentEventIndex;
+    public static final int REVERSE = -1, PAUSE = 0, FORWARD = 1;
+    public static final int DEFAULT_DELAY = 250, DEFUALT_EVENTS_PER_TICK = 1; // This many milliseconds between events while playing regularly
+    private int state, currentEventIndex, eventsPerTick;
     private Timer schedule;
-    private List<TrustLogEvent> logEvents;
-    private PlaybackPanel playbackPanel;
-    private TrustGrapher applet;
+    private List<TrustLogEvent> events;
+    private List<EventPlayerListener> listeners;
+    private TrustGrapher trustGrapher;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public EventPlayer(TrustGrapher applet, List<TrustLogEvent> eventlist, PlaybackPanel playbackPanel) {
-        this.applet = applet;
-        this.playbackPanel = playbackPanel;
-        logEvents = eventlist;
+    public EventPlayer(TrustGrapher trustGrapher, List<TrustLogEvent> events) {
+        this.trustGrapher = trustGrapher;
+        this.events = events;
+        listeners = new LinkedList<EventPlayerListener>();
         currentEventIndex = 0;
+        eventsPerTick = DEFUALT_EVENTS_PER_TICK;
         state = PAUSE;
+        schedule = new Timer(DEFAULT_DELAY, this);
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+    public List<TrustLogEvent> getEvents() {
+        return events;
+    }
+
     public int getPlayState() {
         return state;
     }
@@ -50,7 +57,7 @@ public final class EventPlayer implements ActionListener {
      * @return <code>true</code> if the Play State is forward or fast forward.
      */
     public boolean isForward() {
-        return ((state == FASTFORWARD) || (state == FORWARD));
+        return (state == FORWARD);
     }
 
     public boolean atFront() {
@@ -58,39 +65,37 @@ public final class EventPlayer implements ActionListener {
     }
 
     public boolean atBack() {
-        return currentEventIndex == logEvents.size() - 1;
+        return currentEventIndex == events.size() - 1;
 
     }
 
     public boolean atAnEnd() {
         return atFront() || atBack();
     }
-    
-    public int getDelay(){
-        try{
+
+    public int getDelay() {
+        try {
             return schedule.getDelay();
-        }catch(NullPointerException ex){
+        } catch (NullPointerException ex) {
             return DEFAULT_DELAY;
         }
     }
-    
+
 ///////////////////////////////////Methods//////////////////////////////////////
-    
-    public void setFastSpeed(int value) {
+    public void addEventPlayerListener(EventPlayerListener listener) {
+        listeners.add(listener);
+        listener.addEventPlayer(this);
+    }
+
+    public void setDelay(int value) {
         schedule.setDelay(value);
     }
 
-    public void fastReverse() {
-        playbackPanel.playbackFastReverse();
-        if (state != FASTREVERSE) {
-            int prevState = state;
-            state = FASTREVERSE;
-            wakeup(prevState);
-        }
+    public void setEventsPerTick(int value) {
+        eventsPerTick = value;
     }
 
     public void reverse() {
-        playbackPanel.playbackReverse();
         if (state != REVERSE) {
             int prevState = state;
             state = REVERSE;
@@ -98,17 +103,7 @@ public final class EventPlayer implements ActionListener {
         }
     }
 
-    public void fastForward() {
-        playbackPanel.playbackFastForward();
-        if (state != FASTFORWARD) {
-            int prevState = state;
-            state = FASTFORWARD;
-            wakeup(prevState);
-        }
-    }
-
     public void forward() {
-        playbackPanel.playbackForward();
         if (state != FORWARD) {
             int prevState = state;
             state = FORWARD;
@@ -118,15 +113,12 @@ public final class EventPlayer implements ActionListener {
 
     private synchronized void wakeup(int previousState) {
         if (previousState == PAUSE) {
-            if (atAnEnd()) {
-            }
             schedule.start();
             notify();
         }
     }
 
     public synchronized void pause() {
-        playbackPanel.playbackPause();
         if (state != PAUSE) {
             state = PAUSE;
             notify();
@@ -134,9 +126,7 @@ public final class EventPlayer implements ActionListener {
     }
 
     public void run() {
-        schedule = new Timer(DEFAULT_DELAY, this);
         schedule.start();
-
     }
 
     /**
@@ -146,59 +136,80 @@ public final class EventPlayer implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent arg0) {
         if (state != PAUSE) {
-            goToEvent( currentEventIndex + ((isForward()) ? 1 : -1));
+            goToEvent(currentEventIndex + ((isForward()) ? eventsPerTick : -eventsPerTick));
         }
     }
-    
+
     /**
      * If the newEventIndex is several events away, the EventPlayer will process those events, and then update the viewer
      * @param newEventIndex 
      */
     public void goToEvent(int newEventIndex) {
-        if (currentEventIndex != newEventIndex){
-            LinkedList<TrustLogEvent> events = new LinkedList<TrustLogEvent>();
+        if (currentEventIndex != newEventIndex) {
+            if (newEventIndex < 0) {
+                newEventIndex = 0;
+            } else if (newEventIndex > events.size() - 1) {
+                newEventIndex = events.size() - 1;
+            }
+            LinkedList<TrustLogEvent> eventsToProcess = new LinkedList<TrustLogEvent>();
             boolean isForward = currentEventIndex < newEventIndex;
             if (isForward) { //Forward
                 while (currentEventIndex < newEventIndex) {
                     currentEventIndex++;
-                    events.add(logEvents.get(currentEventIndex));
+                    eventsToProcess.add(events.get(currentEventIndex));
                 }
-            } else{ //Backward
+            } else { //Backward
                 while (currentEventIndex > newEventIndex) {
-                    events.add(logEvents.get(currentEventIndex));
+                    eventsToProcess.add(events.get(currentEventIndex));
                     currentEventIndex--;
                 }
             }
-            if (!events.isEmpty()){
-                for (TrustLogEvent event : events){
-                    applet.getGraphManager().handleGraphEvent(event, isForward);
+            if (!eventsToProcess.isEmpty()) {
+                for (TrustLogEvent event : eventsToProcess) {
+                    trustGrapher.getGraphManager().handleGraphEvent(event, isForward);
+                }
+                for (EventPlayerListener listener : listeners) {
+                    listener.goToIndex(currentEventIndex);
+                }
+                for (TrustGraphViewer viewer : trustGrapher.getVisibleViewers()) {
+                    viewer.repaint();
                 }
             }
-            playbackPanel.getSlider().setValue(currentEventIndex);
-            playbackPanel.doRepaint();
-            if (state == PAUSE || atAnEnd()){
+            if (state == PAUSE || atAnEnd()) {
                 pause();
             }
         }
     }
-    
-    public void insertEvent(TrustLogEvent event){
-        ArrayList<TrustLogEvent> newEvents = new ArrayList<TrustLogEvent>(logEvents.subList(0, currentEventIndex + 1));
+
+    public void insertEvent(TrustLogEvent event) {
+        ArrayList<TrustLogEvent> newEvents = new ArrayList<TrustLogEvent>(events.subList(0, currentEventIndex + 1));
         newEvents.add(event);
-        newEvents.addAll(logEvents.subList(currentEventIndex + 1, logEvents.size()));
+        newEvents.addAll(events.subList(currentEventIndex + 1, events.size()));
         goToEvent(0);
-        applet.startGraph(newEvents);
+        trustGrapher.startGraph(newEvents);
     }
-    
-    public void removeEvent(){
-        if (currentEventIndex != 0){ //Make sure you don't remove the start event
+
+    public void removeEvent() {
+        if (currentEventIndex != 0 && ChatterBox.yesNoDialog("Are you sure you want to remove this event?")) { //Make sure you don't remove the start event
             int indexToRemove = currentEventIndex;
             goToEvent(0); //It is necessary to go back to event 0 then remove the event so that the backwardEvent for that event is handled
-            logEvents.remove(indexToRemove);
-            applet.startGraph(logEvents);
-        }else{
+            events.remove(indexToRemove);
+            trustGrapher.startGraph(events);
+        } else {
             ChatterBox.alert("You cannot remove the start event.");
         }
+    }
+
+    public void modifyEvent(TrustLogEvent event) {
+        if (currentEventIndex != 0) {
+            int indexToModify = currentEventIndex;
+            goToEvent(0);
+            events.set(indexToModify, event);
+            trustGrapher.startGraph(events);
+        } else {
+            ChatterBox.alert("You cannot modify the start event.");
+        }
+
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

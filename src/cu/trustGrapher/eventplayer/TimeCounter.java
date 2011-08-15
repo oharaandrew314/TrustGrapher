@@ -1,4 +1,4 @@
-package cu.trustGrapher.visualizer.eventplayer;
+package cu.trustGrapher.eventplayer;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

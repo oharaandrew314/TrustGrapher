@@ -1,7 +1,7 @@
 ///////////////////////////////SimFeedbackGraph/////////////////////////////
 package cu.trustGrapher.graph;
 
-import cu.trustGrapher.visualizer.eventplayer.TrustLogEvent;
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
 
