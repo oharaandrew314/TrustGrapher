@@ -13,22 +13,22 @@ import utilities.PropertyManager;
 public class AlgorithmConfigManager {
 
     public static int ALG_COUNT = 0, VISIBLE_COUNT = 0, MAX_ALGS = 13, MAX_VISIBLE = 6;
-    private ArrayList<AlgorithmConfig> algorithms;
+    private ArrayList<GraphConfig> algorithms;
     private PropertyManager config;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public AlgorithmConfigManager(PropertyManager config) {
-        algorithms = new ArrayList<AlgorithmConfig>(MAX_ALGS);
+        algorithms = new ArrayList<GraphConfig>(MAX_ALGS);
         this.config = config;
     }
 //////////////////////////////////Accessors/////////////////////////////////////
     
-    public ArrayList<AlgorithmConfig> getAlgs(){
+    public ArrayList<GraphConfig> getAlgs(){
         return algorithms;
     }
 
-    public AlgorithmConfig getAlg(int i) {
-        for (AlgorithmConfig alg : algorithms){
+    public GraphConfig getAlg(int i) {
+        for (GraphConfig alg : algorithms){
             if (i == alg.getIndex()){
                 return alg;
             }
@@ -38,16 +38,16 @@ public class AlgorithmConfigManager {
 
     public Object[] getAlgDisplayNames() {
         ArrayList<String> names = new ArrayList<String>(MAX_ALGS);
-        for (AlgorithmConfig alg : algorithms) {
+        for (GraphConfig alg : algorithms) {
             names.add(alg.getDisplayName());
         }
         return names.toArray();
     }
     
     public boolean hasReputationAlgorithm(){
-        for (AlgorithmConfig alg : algorithms){
+        for (GraphConfig alg : algorithms){
             if (alg != null){
-                if (alg.getType().equals(AlgorithmConfig.REP)){
+                if (alg.getType().equals(GraphConfig.REP)){
                     return true;
                 }
             }
@@ -60,7 +60,7 @@ public class AlgorithmConfigManager {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////    
-    public boolean addAlgorithm(AlgorithmConfig alg) {
+    public boolean addAlgorithm(GraphConfig alg) {
         if (size() == MAX_ALGS) {
             ChatterBox.alert("Cannot have more than " + MAX_ALGS + " algorithms at one time.");
             return false;
@@ -72,7 +72,7 @@ public class AlgorithmConfigManager {
 
     public boolean newAlg(int index, boolean display, int classIndex) {
         String classPath = (classIndex != -1) ? config.getProperty(AlgorithmLoader.CLASS + classIndex) : null;
-        AlgorithmConfig alg = new AlgorithmConfig(index, display, -1, classIndex, classPath, null);
+        GraphConfig alg = new GraphConfig(index, display, -1, classIndex, classPath, null);
         if (alg.isTrustAlg() && !hasReputationAlgorithm()){
             ChatterBox.alert("There must be an existing Reputation Algorithm\nbefore you can add a Trust Algorithm.");
             return false;
@@ -97,7 +97,7 @@ public class AlgorithmConfigManager {
         }catch (NumberFormatException ex){}
         String classPath = (classIndex == -1) ? null : config.getProperty(AlgorithmLoader.CLASS + classIndex);
         //Algorithm property format                     display                    base    classIndex  classPath      properties
-        AlgorithmConfig alg = new AlgorithmConfig(index, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3]));
+        GraphConfig alg = new GraphConfig(index, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3]));
         return addAlgorithm(alg);
     }
     

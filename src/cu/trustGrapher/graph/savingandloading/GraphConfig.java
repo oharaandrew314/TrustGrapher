@@ -10,7 +10,7 @@ import utilities.PropertyManager;
  * Description
  * @author Andrew O'Hara
  */
-public class AlgorithmConfig {
+public class GraphConfig {
 
     public static String NO_BASE = "noBase", NO_CONFIG = "noConfig", NO_CLASS = "noClass";
     public static final String FB = "FeedbackHistory", REP = "ReputationAlgorithm", TRUST = "TrustAlgorithm";
@@ -31,7 +31,7 @@ public class AlgorithmConfig {
      * @param classFile
      * @param propertyFile
      */
-    public AlgorithmConfig(int index, boolean display, int base, int classIndex, String classPath, File propertyFile){
+    public GraphConfig(int index, boolean display, int base, int classIndex, String classPath, File propertyFile){
         this.index = index;
         setDisplay(display, true);
         this.base = base;

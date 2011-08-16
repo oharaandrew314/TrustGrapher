@@ -11,7 +11,7 @@ import cu.repsystestbed.graphs.ReputationEdgeFactory;
 import cu.repsystestbed.graphs.ReputationGraph;
 
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
+import cu.trustGrapher.graph.savingandloading.GraphConfig;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -30,7 +30,7 @@ public class SimReputationGraph extends SimGraph {
     /**
      * Creates a Reputation Graph.  The edges on this graph display the reputation that Agents have towards others
      */
-    public SimReputationGraph(GraphManager graphManager, int type, AlgorithmConfig algConfig) {
+    public SimReputationGraph(GraphManager graphManager, int type, GraphConfig algConfig) {
         super(graphManager, (SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()), type, algConfig);
         alg = (ReputationAlgorithm) algConfig.getAlgorithm();
     }

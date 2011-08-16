@@ -27,6 +27,9 @@ public class LogPanel extends JPanel implements EventPlayerListener {
         initComponents(logEvents);
     }
 //////////////////////////////////Accessors/////////////////////////////////////
+    public EventPlayer getEventPlayer(){
+        return eventThread;
+    }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     private void initComponents(List<TrustLogEvent> logEvents) {

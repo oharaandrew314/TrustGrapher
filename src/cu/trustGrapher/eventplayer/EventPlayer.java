@@ -40,6 +40,10 @@ public final class EventPlayer implements ActionListener {
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+    public TrustGrapher getTrustGrapher(){
+        return trustGrapher;
+    }
+    
     public List<TrustLogEvent> getEvents() {
         return events;
     }

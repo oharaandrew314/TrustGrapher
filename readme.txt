@@ -356,6 +356,11 @@ The highlighted event in the event panel scroll pane is now always kept in view
 Got rid of some unnecessary code and did some refactoring
 Added some more documentation
 
+    Revision 47
+A new bug where the graph had no layout when it was loaded should be fixed
+The events per tick slider value is now saved as a property
+Added revision number to frame title
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -365,13 +370,14 @@ Added some more documentation
     -------------------
     4.1.0 High Priority
     -------------------
-    get Layouts working again
     Add new Javadocs
     Update instructions
 
     ------------------
     4.2.0 Low Priority
     ------------------
+	Remove BitStylus dependency for PropertyManager
+	Make event skip a property
     Move predicate back into graphs
     Options for playbackSlider to scrub or be drag & drop
     Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet

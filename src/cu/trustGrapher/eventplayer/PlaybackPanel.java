@@ -15,19 +15,26 @@ import javax.swing.event.ChangeListener;
  */
 public final class PlaybackPanel extends JPanel implements EventPlayerListener {
 
-    public JButton pauseButton;
-    private JButton forwardButton, reverseButton;
+    private static final String SPEED = "speed";
+    private JButton forwardButton, reverseButton, pauseButton;
     private JSlider speedSlider, playbackSlider;
     private EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Creates a JPanel which contains the controls for the event player
-     * @param applet The main TrustGrapher object
-     * @param logList The east log panel if it exists
      */
     public PlaybackPanel(List<TrustLogEvent> events) {
         initComponents(events);
+    }
+    
+//////////////////////////////////Accessors/////////////////////////////////////
+    public JButton getPauseButton(){
+        return pauseButton;
+    }
+    
+    public EventPlayer getEventPlayer(){
+        return eventThread;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -99,6 +106,9 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
     @Override
     public void addEventPlayer(EventPlayer eventThread) {
         this.eventThread = eventThread;
+        try{
+            speedSlider.setValue(Integer.parseInt(eventThread.getTrustGrapher().getPropertyManager().getProperty(SPEED)));
+        }catch (NumberFormatException ex){}
     }
 
     public void playbackPause() {
@@ -136,6 +146,8 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
         @Override
         public void stateChanged(ChangeEvent arg0) {
             eventThread.setEventsPerTick(((JSlider) arg0.getSource()).getValue());
+            eventThread.getTrustGrapher().getPropertyManager().setProperty(SPEED, "" + speedSlider.getValue());
+            eventThread.getTrustGrapher().getPropertyManager().save();
         }
     }
 

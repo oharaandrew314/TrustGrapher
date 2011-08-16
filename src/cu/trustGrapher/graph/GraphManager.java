@@ -5,7 +5,7 @@ import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
 import cu.repsystestbed.graphs.ReputationGraph;
-import cu.trustGrapher.graph.savingandloading.AlgorithmConfig;
+import cu.trustGrapher.graph.savingandloading.GraphConfig;
 import cu.trustGrapher.graph.savingandloading.AlgorithmConfigManager;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
@@ -29,8 +29,8 @@ public class GraphManager {
      */
     public GraphManager(AlgorithmConfigManager algorithms) {
         graphs = new ArrayList<SimGraph[]>();
-        ArrayList<AlgorithmConfig> trustAlgs = new ArrayList<AlgorithmConfig>();
-        for (AlgorithmConfig alg : algorithms.getAlgs()){
+        ArrayList<GraphConfig> trustAlgs = new ArrayList<GraphConfig>();
+        for (GraphConfig alg : algorithms.getAlgs()){
             if (alg != null){                
                 if (alg.isFeedbackHistory()){
                     addFeedbackGraph(alg);
@@ -44,7 +44,7 @@ public class GraphManager {
             }
         }
         //Trust graphs are made last because their base graph might not have been made before
-        for (AlgorithmConfig alg : trustAlgs){
+        for (GraphConfig alg : trustAlgs){
             addTrustGraph(alg);
         }        
     }
@@ -120,7 +120,7 @@ public class GraphManager {
      * Creats a new feedback history graph and adds it to the graph list
      * @param algConfig The class containing all of the configuration proeprties of an algorithm
      */
-    private void addFeedbackGraph(AlgorithmConfig algConfig){
+    private void addFeedbackGraph(GraphConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
         graphSet[DYNAMIC] = new SimFeedbackGraph(this, DYNAMIC, algConfig);
         graphSet[FULL] = new SimFeedbackGraph(this, FULL, algConfig);
@@ -131,7 +131,7 @@ public class GraphManager {
      * Creates a new Reputation Graph and adds it to the graph list
      * @param algConfig The class containing all of the configuration proeprties of an algorithm
      */
-    private void addReputationGraph(AlgorithmConfig algConfig){
+    private void addReputationGraph(GraphConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
         
         ReputationAlgorithm alg = (ReputationAlgorithm) algConfig.getAlgorithm();
@@ -146,7 +146,7 @@ public class GraphManager {
      * Creates a new Trust Graph and adds it to the graph list
      * @param algConfig The class containing all of the configuration proeprties of an algorithm
      */
-    private void addTrustGraph(AlgorithmConfig algConfig){
+    private void addTrustGraph(GraphConfig algConfig){
         SimGraph[] graphSet = new SimGraph[2];
 
         TrustAlgorithm alg = (TrustAlgorithm) algConfig.getAlgorithm();
