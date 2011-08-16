@@ -2,41 +2,50 @@
 package cu.trustGrapher;
 
 import cu.trustGrapher.eventplayer.EventPlayer;
+import cu.trustGrapher.eventplayer.PlaybackPanel;
 import utilities.ChatterBox;
 import utilities.PropertyManager;
 
 /**
- * Description
+ * This window lets you select options that pertain to the simulator itself, and not the algorithms.
+ * All otpions will be saved to the TrustGrapher properties file, and if the objects that the options pertains to exists,
+ * the options will be applied to them.  Otherwise, they will be applied when they are created since they check the properties file.
  * @author Andrew O'Hara
  */
 public class OptionsWindow extends javax.swing.JFrame {
-    public static final String DELAY = "delay";
-    private EventPlayer eventThread;
-    private PropertyManager config;
+
+    public static final String DELAY = "delay", SCRUB_MODE = "scrubMode";
+    private final TrustGrapher trustGrapher;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public OptionsWindow(PropertyManager config, EventPlayer eventThread) {
-        config.loadPropertyFile();
-        this.config = config;        
-        this.eventThread = eventThread;
+    public OptionsWindow(TrustGrapher trustGrapher) {
+        this.trustGrapher = trustGrapher;
         initComponents();
-        setVisible(false);
-    }
 
-///////////////////////////////////Methods//////////////////////////////////////
-    public void showWindow(){
-        if (!config.containsKey(DELAY)){
-            config.setProperty(DELAY, "" + EventPlayer.DEFAULT_DELAY);
-            config.save();
+        PropertyManager config = trustGrapher.getPropertyManager();
+
+        if (config.containsKey(DELAY)) { //Load current delay from properties
+            if (config.getProperty(DELAY).equals("" + EventPlayer.DEFAULT_DELAY)) { //If the current delay is the default delay
+                defaultDelayButton.doClick();
+                delayField.setText("");
+            } else { //Otherwise, the delay is custom
+                customDelayButton.doClick();
+                delayField.setText(config.getProperty(DELAY));
+            }
         }
-        if (config.getProperty(DELAY).equals("" + EventPlayer.DEFAULT_DELAY)){
-            defaultDelayButton.doClick();
-            delayField.setText("");
-        }else{
-            customDelayButton.doClick();
-            delayField.setText(config.getProperty(DELAY));
+        if (config.containsKey(SCRUB_MODE)) { //Load current playbackSlider mode from properties
+            if (Boolean.parseBoolean(config.getProperty(SCRUB_MODE))) { //If the mode is set to scrub
+                scrubButton.doClick();
+            } else { //Othwerise, it must be set to drag & drop
+                dragDropButton.doClick();
+            }
         }
         setVisible(true);
+    }
+
+////////////////////////////////Static Methods//////////////////////////////////
+    public static void run(TrustGrapher trustGrapher) {
+        OptionsWindow optionsWindow = new OptionsWindow(trustGrapher);
     }
 
 /////////////////////////////////GUI Components/////////////////////////////////
@@ -50,14 +59,18 @@ public class OptionsWindow extends javax.swing.JFrame {
     private void initComponents() {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         defaultDelayButton = new javax.swing.JRadioButton();
         customDelayButton = new javax.swing.JRadioButton();
         delayLabel = new javax.swing.JLabel();
         delayField = new javax.swing.JTextField();
         msLabel = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        scrubButton = new javax.swing.JRadioButton();
+        dragDropButton = new javax.swing.JRadioButton();
 
         setTitle("TrustGrapher Options");
 
@@ -88,7 +101,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         msLabel.setText("ms");
         msLabel.setEnabled(false);
 
-        jLabel1.setText("Modify delay between each tick:");
+        jLabel1.setText("Delay between each Event Player tick:");
 
         okButton.setText("OK");
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -104,36 +117,57 @@ public class OptionsWindow extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setText("Playback Slider mode:");
+
+        buttonGroup2.add(scrubButton);
+        scrubButton.setSelected(true);
+        scrubButton.setText("Scrub");
+        scrubButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                scrubButtonActionPerformed(evt);
+            }
+        });
+
+        buttonGroup2.add(dragDropButton);
+        dragDropButton.setText("Drag & Drop");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(39, 39, 39)
-                .addComponent(delayLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(delayField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(msLabel)
-                .addContainerGap(56, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(customDelayButton)
-                .addContainerGap(113, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(defaultDelayButton)
-                .addContainerGap(54, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(12, Short.MAX_VALUE)
-                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(12, 12, 12))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(72, 72, 72)
-                .addComponent(okButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cancelButton)
-                .addContainerGap(76, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(39, 39, 39)
+                        .addComponent(delayLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(delayField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(msLabel))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(customDelayButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(defaultDelayButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(79, 79, 79)
+                        .addComponent(okButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cancelButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(scrubButton)
+                            .addComponent(dragDropButton))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 167, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -149,10 +183,16 @@ public class OptionsWindow extends javax.swing.JFrame {
                     .addComponent(delayLabel)
                     .addComponent(delayField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(msLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cancelButton)
-                    .addComponent(okButton))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(scrubButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(dragDropButton)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(okButton)
+                    .addComponent(cancelButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -160,51 +200,66 @@ public class OptionsWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
 private void defaultDelayButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_defaultDelayButtonActionPerformed
+    //If the defaultDelayButton is pressed, disable the custom delay field and text
     delayLabel.setEnabled(false);
     delayField.setEnabled(false);
     msLabel.setEnabled(false);
 }//GEN-LAST:event_defaultDelayButtonActionPerformed
 
 private void customDelayButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customDelayButtonActionPerformed
+    //Id the customDelayButton is pressed, enable the custom delay field and text
     delayLabel.setEnabled(true);
     delayField.setEnabled(true);
     msLabel.setEnabled(true);
 }//GEN-LAST:event_customDelayButtonActionPerformed
 
 private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-    try{
+    try {
         int delay = EventPlayer.DEFAULT_DELAY;
-        if (customDelayButton.isSelected()){
+        if (customDelayButton.isSelected()) { //Try to parse the custom delay into an int
             delay = Integer.parseInt(delayField.getText());
-            if (delay < 1 || delay > 9000){
+            if (delay < 1 || delay > 9000) {
                 throw new NumberFormatException();
             }
         }
-        if (eventThread != null){
-            eventThread.setDelay(delay);
+        EventPlayer eventThread = trustGrapher.getEventPlayer();
+        if (eventThread != null) { //If the eventThread exists
+            eventThread.setDelay(delay); //Set the new delay
+            PlaybackPanel playbackPanel = eventThread.getPlaybackPanel();
+            if (playbackPanel != null) { //If the playbackPanel exists too
+                playbackPanel.setScrubMode(scrubButton.isSelected()); //Set the scrub mode
+            }
         }
+        PropertyManager config = trustGrapher.getPropertyManager(); //Set the properties
         config.setProperty(DELAY, "" + delay);
+        config.setProperty(SCRUB_MODE, scrubButton.isSelected() ? "true" : "false");
         config.save();
-        setVisible(false);
-    }catch (NumberFormatException ex){
+        dispose();
+        //If there is an error with the customDelayField, give an error message, but don't do anything
+    } catch (NumberFormatException ex) {
         ChatterBox.alert("You must enter an integer between 1 and 9 000");
     }
 }//GEN-LAST:event_okButtonActionPerformed
 
 private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-    setVisible(false);
+    dispose();
 }//GEN-LAST:event_cancelButtonActionPerformed
 
+private void scrubButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scrubButtonActionPerformed
+// TODO add your handling code here:
+}//GEN-LAST:event_scrubButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton cancelButton;
     private javax.swing.JRadioButton customDelayButton;
     private javax.swing.JRadioButton defaultDelayButton;
     private javax.swing.JTextField delayField;
     private javax.swing.JLabel delayLabel;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JRadioButton dragDropButton;
     private javax.swing.JLabel msLabel;
     private javax.swing.JButton okButton;
+    private javax.swing.JRadioButton scrubButton;
     // End of variables declaration//GEN-END:variables
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -19,12 +19,12 @@ import utilities.ChatterBox;
  * Initializes the right-click menu components and event handlers (Does not contain the listeners)
  * @author Andrew O'Hara
  */
-public class TrustPopupMenu extends JPopupMenu {
+public class ViewerPopupMenu extends JPopupMenu {
 
     private DefaultModalGraphMouse<Agent, TestbedEdge> gm;
-    private TrustGraphViewer currentViewer;
+    private GraphViewer currentViewer;
 
-    public TrustPopupMenu(final DefaultModalGraphMouse<Agent, TestbedEdge> gm, ActionListener listener) {
+    public ViewerPopupMenu(final DefaultModalGraphMouse<Agent, TestbedEdge> gm, ActionListener listener) {
         this.gm = gm;
         JMenuItem picking = new JMenuItem("Picking");
         JMenuItem transforming = new JMenuItem("Transforming");
@@ -54,7 +54,7 @@ public class TrustPopupMenu extends JPopupMenu {
     /**
      * Shows the popup menu on the current viewer
      */
-    public void showPopupMenu(TrustGraphViewer newViewer) {
+    public void showPopupMenu(GraphViewer newViewer) {
         currentViewer = newViewer;
         setEnabled(true);
         show(currentViewer, currentViewer.getMousePosition().x, currentViewer.getMousePosition().y);

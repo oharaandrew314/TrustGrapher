@@ -361,6 +361,17 @@ A new bug where the graph had no layout when it was loaded should be fixed
 The events per tick slider value is now saved as a property
 Added revision number to frame title
 
+	Revision 48
+Replaced the GraphManager with a list of SimGraphPairs
+Added option to TrustGrapher Options window to change playback slider mode between scrub and drag & drop
+Moved the entity display predicates to the GraphPair class
+The Algorithm Loader window now runs on startup and the menu bar is disabled until it is loaded
+When the view mode is changed, the log no longer needs to be reread
+The playbackPanel buttons will now update after the playbackSlider has been released
+If the program is run from a jar, it will now save the properties file next to it.  Otherwise, is will just be saved in the project root directory
+Removed several unnecessary fields from TrustGrapher and simplified the initialization of the EventPlayerListeners
+Javadocs
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -377,11 +388,6 @@ Added revision number to frame title
     4.2.0 Low Priority
     ------------------
 	Remove BitStylus dependency for PropertyManager
-	Make event skip a property
-    Move predicate back into graphs
-    Options for playbackSlider to scrub or be drag & drop
-    Move the algorithm loader content pane to the graphsPanel when no graphs are loaded yet
-    Have the properties file save next to the jar
     Add graphic buttons for the playback bar
     Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
 

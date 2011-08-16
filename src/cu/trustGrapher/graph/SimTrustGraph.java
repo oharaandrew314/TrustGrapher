@@ -6,7 +6,6 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
-import cu.trustGrapher.graph.savingandloading.GraphConfig;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
 import java.util.ArrayList;
@@ -18,15 +17,13 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class SimTrustGraph extends SimGraph {
-    private TrustAlgorithm alg;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Creates a Trust Graph. The edges on this graph signify that one peers trust the other
      */
-    public SimTrustGraph(GraphManager graphManager, int type, GraphConfig algConfig) {
-        super(graphManager, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()), type, algConfig);
-        alg = (TrustAlgorithm) algConfig.getAlgorithm();
+    public SimTrustGraph(GraphPair graphPair) {
+        super(graphPair, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()));
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -36,11 +33,7 @@ public class SimTrustGraph extends SimGraph {
      * This can only be called on a DYNAMIC graph because it is the only one with the algorithm
      */
     public String getDisplayName(){
-        if (type != DYNAMIC){
-            ChatterBox.error(this, "getDisplayName()", "This graph is not a dynamic graph.  Illegal method call.");
-            return null;
-        }
-        return graphID + "-" + alg.getClass().getSimpleName();
+        return graphPair.getID() + "-" + graphPair.getAlgorithm().getClass().getSimpleName();
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -52,6 +45,7 @@ public class SimTrustGraph extends SimGraph {
      */
     @Override
     protected void forwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
+        TrustAlgorithm alg = (TrustAlgorithm) graphPair.getAlgorithm();
         ensureAgentExists(gev.getAssessor());
         ensureAgentExists(gev.getAssessee());
         Set<Agent> vertices = alg.getReputationGraph().vertexSet();
@@ -76,15 +70,16 @@ public class SimTrustGraph extends SimGraph {
      * @param fullGraph Any new edges will be added to this graph
      */
     @Override
-    protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {        
-        java.util.Collection<Agent> vertices = graphManager.get(GraphManager.FEEDBACK, DYNAMIC).getVertices();
+    protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
+        TrustAlgorithm alg = (TrustAlgorithm) graphPair.getAlgorithm();
+        Set<Agent> vertices = alg.getReputationGraph().vertexSet();
         for (Agent src : vertices){
             for (Agent sink : vertices){
                 try{
                     alg.trusts(src, sink);
                 }catch(ArrayIndexOutOfBoundsException ex){ //One of the agents doesn't exist in the feedback graph anymore, so remove the edge between the two agents
                     removeEdgeAndVertices(findEdge(src, sink));
-                    vertices = getVertices();
+                    vertices = alg.getReputationGraph().vertexSet();
                 }catch (Exception ex){
                     ChatterBox.debug(this, "backwardEvent()", ex.getMessage());
                 }

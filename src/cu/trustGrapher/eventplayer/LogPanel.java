@@ -23,8 +23,9 @@ public class LogPanel extends JPanel implements EventPlayerListener {
     private EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public LogPanel(List<TrustLogEvent> logEvents) {
-        initComponents(logEvents);
+    public LogPanel(EventPlayer eventThread) {
+        this.eventThread = eventThread;
+        initComponents();
     }
 //////////////////////////////////Accessors/////////////////////////////////////
     public EventPlayer getEventPlayer(){
@@ -32,7 +33,8 @@ public class LogPanel extends JPanel implements EventPlayerListener {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    private void initComponents(List<TrustLogEvent> logEvents) {
+    private void initComponents() {
+        List<TrustLogEvent> logEvents = eventThread.getEvents();
         Object[][] table = new Object[logEvents.size()][3];
         table[0] = new Object[]{"", "", ""};
         int i = 1;
@@ -88,11 +90,6 @@ public class LogPanel extends JPanel implements EventPlayerListener {
     public void goToIndex(int eventIndex) {
         logList.setRowSelectionInterval(0, eventIndex);
         logList.scrollRectToVisible(logList.getCellRect(eventThread.getCurrentEventIndex() , 0, true));
-    }
-
-    @Override
-    public void addEventPlayer(EventPlayer eventThread) {
-        this.eventThread = eventThread;
     }
 
 ////////////////////////////////////Listeners///////////////////////////////////

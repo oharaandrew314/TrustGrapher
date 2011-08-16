@@ -2,8 +2,6 @@ package cu.trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
-import cu.trustGrapher.graph.SimGraph;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 
@@ -19,18 +17,11 @@ import edu.uci.ics.jung.algorithms.layout.Layout;
  */
 public class VertexPlacer implements Transformer<Agent, Point2D> {
 
-    private Layout<Agent, TestbedEdge> existinglayout;
     private RandomLocationTransformer<Agent> rt;
 
     public VertexPlacer(Layout<Agent, TestbedEdge> l, Dimension d) {
-        existinglayout = l;
         rt = new RandomLocationTransformer<Agent>(d);
     }
-
-//    public VertexPlacer(AbstractLayout<Agent, TestbedEdge> l, Dimension d) {
-//        existinglayout = l;
-//        rt = new RandomLocationTransformer<Agent>(d);
-//    }
 
     @Override
     public Point2D transform(Agent v) {

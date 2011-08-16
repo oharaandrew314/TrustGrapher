@@ -6,7 +6,6 @@ import cu.repsystestbed.graphs.TestbedEdge;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
 import cu.trustGrapher.graph.edges.SimReputationEdge;
 import cu.trustGrapher.graph.edges.SimTrustEdge;
-import cu.trustGrapher.graph.savingandloading.GraphConfig;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -20,52 +19,25 @@ import utilities.ChatterBox;
  */
 public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
-    public static final int DYNAMIC = GraphManager.DYNAMIC, FULL = GraphManager.FULL;
-    protected int type;
-    protected int graphID; //The index of the algorithm that was given to the graph
-    protected boolean display;
-    protected GraphManager graphManager;
+    protected GraphPair graphPair;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Calls superclass and initializes some fields
-     * @param graph This graph is given to the superclass.  It is the graph this graph will be built on
+     * @param innerGraph This graph is given to the superclass.  It is the graph this graph will be built on
      * @param type The graph type (full or dynamic)
      * @param graphID The graphID number of this graph
      * @param display Whether or not this graph will have a viewer built for it
      */
-    public SimGraph(GraphManager graphManager, SimpleDirectedGraph<Agent, TestbedEdge> graph, int type, GraphConfig algConfig) {
-        super(graph);
-        this.graphManager = graphManager;
-        this.type = type;
-        graphID = algConfig.getIndex();
-        display = algConfig.isDisplayed();
+    public SimGraph(GraphPair graphPair, SimpleDirectedGraph innerGraph) {
+        super(innerGraph);
+        this.graphPair = graphPair;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    /**
-     * Returns the graph type (full or dynamic)
-     * Refer to the SimGraph static field definitions to find what graph type the int representation refers to
-     * @return The int representation of the graph type
-     */
-    public int getType() {
-        return type;
-    }
-
-    /**
-     * Returns the id of this graph.  It is currently used to generate the name of the graph
-     * @return The graph id
-     */
-    public int getID() {
-        return graphID;
-    }
-
-    /**
-     * Whether or not this graph will have a viewer built for it
-     * @return the displayed boolean
-     */
-    public boolean isDisplayed() {
-        return display;
+    
+    public GraphPair getGraphPair(){
+        return graphPair;
     }
 
     /**
@@ -169,10 +141,6 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param fullGraph The full graph paired to this dynamic graph
      */
     public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph fullGraph) {
-        if (type != DYNAMIC) {
-            ChatterBox.error(this, "graphEvent()", "This graph is not a dynamic graph.  Illegal method call");
-            return;
-        }
         if (gev != null){
             if (forward) {
                 forwardEvent(gev, fullGraph);
@@ -188,10 +156,6 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param event The TrustLogEvent that has just occured
      */
     public void graphConstructionEvent(TrustLogEvent event) {
-        if (type != FULL) {
-            ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a full graph.  Illegal method call.");
-            return;
-        }
         if (event == null) {  //A null event is passed to signal that there are no more evetns.  Add all edges to the graph
             for (Agent src : getVertices()) {
                 for (Agent sink : getVertices()) {

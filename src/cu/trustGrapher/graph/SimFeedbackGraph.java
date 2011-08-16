@@ -2,7 +2,6 @@
 package cu.trustGrapher.graph;
 
 import cu.trustGrapher.eventplayer.TrustLogEvent;
-import cu.trustGrapher.graph.savingandloading.GraphConfig;
 import cu.trustGrapher.graph.edges.SimFeedbackEdge;
 
 import cu.repsystestbed.entities.Agent;
@@ -25,8 +24,8 @@ public class SimFeedbackGraph extends SimGraph {
      * @param type The graph type (full or dynamic)
      * @param display Whether or not this graph will have a viewer built for it.  This is only necessary for full graphs
      */
-    public SimFeedbackGraph(GraphManager graphManager, int type, GraphConfig algConfig) {
-        super(graphManager, (SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()), type, algConfig);
+    public SimFeedbackGraph(GraphPair graphPair) {
+        super(graphPair, (SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()));
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -37,12 +36,6 @@ public class SimFeedbackGraph extends SimGraph {
     public String getDisplayName() {
         return "0-FeedbackHistory";
     }
-    
-//    public boolean evaluate(Context<Graph<Agent, TestbedEdge>, Object> context){
-//        if (context.element instanceof Agent){
-//            return 
-//        }
-//    }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     /**
@@ -82,11 +75,11 @@ public class SimFeedbackGraph extends SimGraph {
         double feedback = gev.getFeedback();
 
         SimFeedbackEdge fullEdge = ((SimFeedbackEdge) fullGraph.findEdge(src, sink));
-        SimFeedbackEdge dynEdge = ((SimFeedbackEdge) findEdge(src,sink));
+        SimFeedbackEdge dynEdge = ((SimFeedbackEdge) findEdge(src, sink));
         if (fullEdge == null) {
             ChatterBox.error(this, "backwardEvent()", "fullEdge " + src + " " + sink + " wasn't found when it should have existed!");
             return;
-        }else if (dynEdge == null){
+        } else if (dynEdge == null) {
             ChatterBox.error(this, "backwardEvent()", "dynEdge " + src + " " + sink + " wasn't found when it should have existed!");
             return;
         }
@@ -102,10 +95,7 @@ public class SimFeedbackGraph extends SimGraph {
      */
     @Override
     public void graphConstructionEvent(TrustLogEvent event) {
-        if (type != FULL) {
-            ChatterBox.error(this, "graphConstructionEvent()", "This graph is not a full graph.  Illegal method call");
-            return;
-        }if (event != null){
+        if (event != null) {
             Agent src = ensureAgentExists(event.getAssessor());
             Agent sink = ensureAgentExists(event.getAssessee());
             ensureEdgeExists(src, sink, this);

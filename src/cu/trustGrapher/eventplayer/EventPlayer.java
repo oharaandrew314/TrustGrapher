@@ -1,9 +1,11 @@
 /////////////////////////////////////TrustEventPlayer////////////////////////////////
 package cu.trustGrapher.eventplayer;
 
+import cu.trustGrapher.OptionsWindow;
 import cu.trustGrapher.TrustGrapher;
 
-import cu.trustGrapher.visualizer.TrustGraphViewer;
+import cu.trustGrapher.graph.GraphPair;
+import cu.trustGrapher.visualizer.GraphViewer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
@@ -37,13 +39,21 @@ public final class EventPlayer implements ActionListener {
         eventsPerTick = DEFUALT_EVENTS_PER_TICK;
         state = PAUSE;
         schedule = new Timer(DEFAULT_DELAY, this);
+        if (trustGrapher.getPropertyManager().containsKey(OptionsWindow.DELAY)) {
+            try{
+                int delay = Integer.parseInt(trustGrapher.getPropertyManager().getProperty(OptionsWindow.DELAY));
+                setDelay(delay);
+            }catch (NumberFormatException ex){
+                ChatterBox.alert("Invalid event delay property.  Will continue and set delay to defualt.");
+            }
+        }
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public TrustGrapher getTrustGrapher(){
+    public TrustGrapher getTrustGrapher() {
         return trustGrapher;
     }
-    
+
     public List<TrustLogEvent> getEvents() {
         return events;
     }
@@ -85,10 +95,27 @@ public final class EventPlayer implements ActionListener {
         }
     }
 
+    public PlaybackPanel getPlaybackPanel() {
+        for (EventPlayerListener listener : listeners) {
+            if (listener instanceof PlaybackPanel) {
+                return (PlaybackPanel) listener;
+            }
+        }
+        return null;
+    }
+
+    public LogPanel getLogPanel() {
+        for (EventPlayerListener listener : listeners) {
+            if (listener instanceof LogPanel) {
+                return (LogPanel) listener;
+            }
+        }
+        return null;
+    }
+
 ///////////////////////////////////Methods//////////////////////////////////////
     public void addEventPlayerListener(EventPlayerListener listener) {
         listeners.add(listener);
-        listener.addEventPlayer(this);
     }
 
     public void setDelay(int value) {
@@ -170,12 +197,14 @@ public final class EventPlayer implements ActionListener {
             }
             if (!eventsToProcess.isEmpty()) {
                 for (TrustLogEvent event : eventsToProcess) {
-                    trustGrapher.getGraphManager().handleGraphEvent(event, isForward);
+                    for (GraphPair graphPair : trustGrapher.getGraphs()) {
+                        graphPair.handleGraphEvent(event, isForward);
+                    }
                 }
                 for (EventPlayerListener listener : listeners) {
                     listener.goToIndex(currentEventIndex);
                 }
-                for (TrustGraphViewer viewer : trustGrapher.getVisibleViewers()) {
+                for (GraphViewer viewer : trustGrapher.getVisibleViewers()) {
                     viewer.repaint();
                 }
             }

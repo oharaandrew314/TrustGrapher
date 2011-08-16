@@ -10,25 +10,25 @@ import utilities.PropertyManager;
  * Description
  * @author Andrew O'Hara
  */
-public class AlgorithmConfigManager {
+public class GraphConfigManager {
 
     public static int ALG_COUNT = 0, VISIBLE_COUNT = 0, MAX_ALGS = 13, MAX_VISIBLE = 6;
-    private ArrayList<GraphConfig> algorithms;
+    private ArrayList<GraphConfig> graphConfigs;
     private PropertyManager config;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public AlgorithmConfigManager(PropertyManager config) {
-        algorithms = new ArrayList<GraphConfig>(MAX_ALGS);
+    public GraphConfigManager(PropertyManager config) {
+        graphConfigs = new ArrayList<GraphConfig>(MAX_ALGS);
         this.config = config;
     }
 //////////////////////////////////Accessors/////////////////////////////////////
     
-    public ArrayList<GraphConfig> getAlgs(){
-        return algorithms;
+    public ArrayList<GraphConfig> getList(){
+        return graphConfigs;
     }
 
     public GraphConfig getAlg(int i) {
-        for (GraphConfig alg : algorithms){
+        for (GraphConfig alg : graphConfigs){
             if (i == alg.getIndex()){
                 return alg;
             }
@@ -38,14 +38,14 @@ public class AlgorithmConfigManager {
 
     public Object[] getAlgDisplayNames() {
         ArrayList<String> names = new ArrayList<String>(MAX_ALGS);
-        for (GraphConfig alg : algorithms) {
+        for (GraphConfig alg : graphConfigs) {
             names.add(alg.getDisplayName());
         }
         return names.toArray();
     }
     
     public boolean hasReputationAlgorithm(){
-        for (GraphConfig alg : algorithms){
+        for (GraphConfig alg : graphConfigs){
             if (alg != null){
                 if (alg.getType().equals(GraphConfig.REP)){
                     return true;
@@ -56,7 +56,7 @@ public class AlgorithmConfigManager {
     }
     
     public int size(){
-        return algorithms.size();
+        return graphConfigs.size();
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////    
@@ -65,7 +65,7 @@ public class AlgorithmConfigManager {
             ChatterBox.alert("Cannot have more than " + MAX_ALGS + " algorithms at one time.");
             return false;
         }
-        algorithms.add(alg);
+        graphConfigs.add(alg);
         ALG_COUNT++;
         return true;
     }
@@ -108,7 +108,7 @@ public class AlgorithmConfigManager {
         ALG_COUNT--;
         
         config.remove(AlgorithmLoader.ALG + index);
-        algorithms.remove(index);
+        graphConfigs.remove(index);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

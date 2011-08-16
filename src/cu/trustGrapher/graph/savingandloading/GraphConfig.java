@@ -150,14 +150,14 @@ public class GraphConfig {
      * @param display the display to set
      */
     private void setDisplay(boolean display, boolean constructing) {
-        if (AlgorithmConfigManager.VISIBLE_COUNT >= AlgorithmConfigManager.MAX_VISIBLE) {
-            ChatterBox.alert("You cannot have more than " + AlgorithmConfigManager.MAX_VISIBLE + " graphs shown at one time.");
+        if (GraphConfigManager.VISIBLE_COUNT >= GraphConfigManager.MAX_VISIBLE) {
+            ChatterBox.alert("You cannot have more than " + GraphConfigManager.MAX_VISIBLE + " graphs shown at one time.");
         } else {
             this.display = display;
             if (display) {
-                AlgorithmConfigManager.VISIBLE_COUNT++;
+                GraphConfigManager.VISIBLE_COUNT++;
             } else if (!constructing){ //It is not necessary to decrement the visible count if called from the constructor
-                AlgorithmConfigManager.VISIBLE_COUNT--;
+                GraphConfigManager.VISIBLE_COUNT--;
             }
         }
     }

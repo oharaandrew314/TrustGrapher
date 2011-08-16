@@ -1,9 +1,9 @@
 ////////////////////////////////PlaybackPanel//////////////////////////////////
 package cu.trustGrapher.eventplayer;
 
+import cu.trustGrapher.OptionsWindow;
 import java.awt.GridBagLayout;
 import java.awt.event.*;
-import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -15,7 +15,8 @@ import javax.swing.event.ChangeListener;
  */
 public final class PlaybackPanel extends JPanel implements EventPlayerListener {
 
-    private static final String SPEED = "speed";
+    private static final String EVENTS_PER_TICK = "eventsPerTick";
+    private boolean scrubMode = true;
     private JButton forwardButton, reverseButton, pauseButton;
     private JSlider speedSlider, playbackSlider;
     private EventPlayer eventThread;
@@ -24,24 +25,41 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
     /**
      * Creates a JPanel which contains the controls for the event player
      */
-    public PlaybackPanel(List<TrustLogEvent> events) {
-        initComponents(events);
+    public PlaybackPanel(EventPlayer eventThread) {
+        this.eventThread = eventThread;
+        initComponents();
+        utilities.PropertyManager config = eventThread.getTrustGrapher().getPropertyManager();
+        if (config.containsKey(EVENTS_PER_TICK)) {
+            try {
+                speedSlider.setValue(Integer.parseInt(config.getProperty(EVENTS_PER_TICK)));
+            } catch (NumberFormatException ex) {
+                utilities.ChatterBox.alert("Invalid eventsPerTick property.  Can continue.  Will set to defualt.");
+            }
+        }
+
+        if (config.containsKey(OptionsWindow.SCRUB_MODE)) {
+            scrubMode = Boolean.parseBoolean(config.getProperty(OptionsWindow.SCRUB_MODE));
+        }
     }
-    
+
 //////////////////////////////////Accessors/////////////////////////////////////
-    public JButton getPauseButton(){
+    public JButton getPauseButton() {
         return pauseButton;
     }
-    
-    public EventPlayer getEventPlayer(){
+
+    public EventPlayer getEventPlayer() {
         return eventThread;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
+    public void setScrubMode(boolean scrub) {
+        scrubMode = scrub;
+    }
+
     /**
      * Creates all the components of the playback panel
      */
-    private void initComponents(List<TrustLogEvent> events) {
+    private void initComponents() {
         ActionListener buttonListener = new PlaybackButtonListener();
         PlaybackSliderListener playbackSliderListener = new PlaybackSliderListener();
 
@@ -65,7 +83,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
         //forwardButton.setIcon(new ImageIcon(getClass().getResource("/trustGrapher/resources/forward.png")));
         //forwardButton.setSize(48,25);
 
-        playbackSlider = new JSlider(JSlider.HORIZONTAL, 0, events.size() - 1, 0);
+        playbackSlider = new JSlider(JSlider.HORIZONTAL, 0, eventThread.getEvents().size() - 1, 0);
         playbackSlider.setEnabled(false);
         playbackSlider.setSnapToTicks(true);
 
@@ -91,7 +109,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
         if (eventIndex > playbackSlider.getValue()) {
             reverseButton.setEnabled(true);
             pauseButton.setEnabled(true);
-            forwardButton.setEnabled (eventThread.getPlayState() != EventPlayer.FORWARD);
+            forwardButton.setEnabled(eventThread.getPlayState() != EventPlayer.FORWARD);
         } else if (eventIndex < playbackSlider.getValue()) {
             reverseButton.setEnabled(eventThread.getPlayState() != EventPlayer.REVERSE);
             pauseButton.setEnabled(true);
@@ -101,14 +119,6 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
         if (playbackSlider.getValue() == 0 || playbackSlider.getValue() == eventThread.getEvents().size() - 1) {
             playbackPause();
         }
-    }
-
-    @Override
-    public void addEventPlayer(EventPlayer eventThread) {
-        this.eventThread = eventThread;
-        try{
-            speedSlider.setValue(Integer.parseInt(eventThread.getTrustGrapher().getPropertyManager().getProperty(SPEED)));
-        }catch (NumberFormatException ex){}
     }
 
     public void playbackPause() {
@@ -146,7 +156,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
         @Override
         public void stateChanged(ChangeEvent arg0) {
             eventThread.setEventsPerTick(((JSlider) arg0.getSource()).getValue());
-            eventThread.getTrustGrapher().getPropertyManager().setProperty(SPEED, "" + speedSlider.getValue());
+            eventThread.getTrustGrapher().getPropertyManager().setProperty(EVENTS_PER_TICK, "" + speedSlider.getValue());
             eventThread.getTrustGrapher().getPropertyManager().save();
         }
     }
@@ -161,7 +171,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
 
         @Override
         public void stateChanged(ChangeEvent ce) {
-            if (scrubbing) {
+            if (scrubbing && scrubMode) {
                 eventThread.goToEvent(playbackSlider.getValue());
             }
         }
@@ -177,6 +187,9 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            if (!scrubMode) {
+                eventThread.goToEvent(playbackSlider.getValue());
+            }
             if (playbackSlider.isEnabled()) {
                 switch (prevState) {
                     case EventPlayer.REVERSE:
@@ -184,6 +197,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
                         break;
                     case EventPlayer.PAUSE:
                         eventThread.pause();
+                        playbackPause();
                         break;
                     case EventPlayer.FORWARD:
                         eventThread.forward();

@@ -3,13 +3,17 @@ package cu.trustGrapher.graph.savingandloading;
 
 import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
+import cu.trustGrapher.graph.GraphPair;
 import java.io.BufferedReader;
+
+import javax.swing.SwingWorker;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.SwingWorker;
+
 import utilities.ChatterBox;
 import utilities.AreWeThereYet;
 
@@ -19,19 +23,17 @@ import utilities.AreWeThereYet;
  */
 public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
 
+    private TrustGrapher trustGrapher;
     private AreWeThereYet loadingBar;
     private File logFile;
-    private TrustGrapher applet;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public LogReader(TrustGrapher applet, File logFile, AreWeThereYet loadingBar) {
+    public LogReader(TrustGrapher trustGrapher, File logFile, AreWeThereYet loadingBar) {
         this.loadingBar = loadingBar;
-        this.applet = applet;
+        this.trustGrapher = trustGrapher;
         this.logFile = logFile;
         //Disable the menu bars to stop user from messing up background thread
-        for (java.awt.Component menu : applet.getJMenuBar().getComponents()) {
-            menu.setEnabled(false);
-        }
+        trustGrapher.enableMenu(false);
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -67,16 +69,14 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         loadingBar.loadingComplete();
         try {
             if (isDone()) {
-                applet.startGraph(get());
+                trustGrapher.startGraph(get());
             } else {
                 ChatterBox.error(this, "done()", "Attempted to load the trust log events when they were not done loading");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        for (java.awt.Component menu : applet.getJMenuBar().getComponents()) { //Re-enable menu bars
-            menu.setEnabled(true);
-        }
+        trustGrapher.enableMenu(true);
     }
 
     /**
@@ -98,14 +98,18 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         for (int i = 0; i < totalLines; i++) {
             event = new TrustLogEvent(logReader.readLine()); //Read the next line in the 
             logEvents.add(event); //add this log event to the list
-            applet.getGraphManager().handleConstructionEvent(event); //Build any necessary entities referenced by the event
+            for (GraphPair graphPair : trustGrapher.getGraphs()) {
+                graphPair.handleConstructionEvent(event); //Build any necessary entities referenced by the event
+            }
             publish("progress");
         }
-        
+
         //An empty event is not added to the event list, this is just to get the non-feedback graphs to do a construction event
         //since they will only construct their edges when passed a null event.  During regular events, they only add vertices if needed
         //If they were to constuct edges after every event, it would severely slow the loading of long logs
-        applet.getGraphManager().handleConstructionEvent(null);
+        for (GraphPair graphPair : trustGrapher.getGraphs()) {
+            graphPair.handleConstructionEvent(null);
+        }
         return logEvents;
     }
 
