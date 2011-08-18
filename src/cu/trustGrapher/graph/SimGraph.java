@@ -3,9 +3,7 @@ package cu.trustGrapher.graph;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.graph.edges.SimFeedbackEdge;
-import cu.trustGrapher.graph.edges.SimReputationEdge;
-import cu.trustGrapher.graph.edges.SimTrustEdge;
+import cu.trustGrapher.graph.edges.*;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -24,10 +22,8 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Calls superclass and initializes some fields
-     * @param innerGraph This graph is given to the superclass.  It is the graph this graph will be built on
-     * @param type The graph type (full or dynamic)
-     * @param graphID The graphID number of this graph
-     * @param display Whether or not this graph will have a viewer built for it
+     * @param graphPair The graphPair that is to hold this graph
+     * @param innerGraph The TrustTestBed graph that is to be a base graph for this graph
      */
     public SimGraph(GraphPair graphPair, SimpleDirectedGraph innerGraph) {
         super(innerGraph);
@@ -36,17 +32,17 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
 //////////////////////////////////Accessors/////////////////////////////////////
     
+    /**
+     * @return Gets the GraphPair that contains this graph
+     */
     public GraphPair getGraphPair(){
         return graphPair;
     }
 
     /**
-     * Gets an Agent already in the graph that has the given peerID
-     * to be used when adding edges; the edge should relate two Agents actually in the graph, not copies of these vertices
-     *
+     * Gets an Agent already in the graph that has the given peerID.
      * Returns null if the agent doesn't exist
-     * @param graphID The ID of the Agent to find
-     * @return The Agent with the given ID
+     * @return An agent with the same ID to search for among the agents in the graph
      */
     protected Agent findAgent(Agent agent) {
         for (Agent v : getVertices()) {
@@ -62,8 +58,8 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     /**
      * Ensures that an Agent with the given ID exists in the graph
      * If it doesn't, then it is added
-     * @param graphID the ID of the agent that must exist
-     * @return An instance of the Agent that was to exist in the graph
+     * @param id the ID of the agent that must exist
+     * @return An instance of the Agent that is to exist in the graph
      */
     protected Agent ensureAgentExists(int id) {
         Agent agent = new Agent(id);
@@ -74,12 +70,11 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     /**
-     * Ensures that the edge with the given agents and id exists in the graph.
-     * If it doesn't exist, create it and it to the graph.
-     * Then return the edge
+     * Ensures that the edge with the given agents exists in the graph.
+     * If it doesn't exist, create it and add it to the graph.
+     * Then return the edge.
      * @param src The Agent that the edge originates from
      * @param sink The Agent that the edge goes to
-     * @param id The id of the edge
      * @param caller The graph that is calling, so that if an edge must be created, it knows what type to make
      * @return The edge that is assured to be in the graph
      */
@@ -90,13 +85,12 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     /**
-     * Create an edge with the given agents and id.
+     * Create an edge between the given agents.
      * The edge will be of the class appropriate for the caller.
      * For example, a SimFeedbackEdge will be created for a caller of class SimFeedbackGraph
      * If the caller isn't valid, then this returns null;
      * @param src The Agent that the edge is to originate from
      * @param sink The Agent that the edge is to go to
-     * @param edgeID The id that the edge is to have
      * @param caller The graph that the new edge is to be returned to
      * @return The new Edge
      */
@@ -120,7 +114,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
     /**
      * Removes the given edge from the graph and and the Agents connected to it if they
-     * would no longer have any edges after removing the given edge
+     * no longer have any edges after removing the given edge.
      * @param edge The edge to be removed
      */
     protected void removeEdgeAndVertices(TestbedEdge edge) {
@@ -134,29 +128,29 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     /**
-     * Called by the EventPlayer whenever a TrustLogEvent occurs.  This graph must be a dynamic graph in order to call this method.
-     * If the graph is playing forward, call the forwardEvent method, otherwise, call backwardEvent
-     * @param gev The TrustLogEvent that has just occured
+     * Called by this graph's GraphPair whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
+     * If the graph is playing forward, call the forwardEvent method, otherwise, calls backwardEvent
+     * @param event The TrustLogEvent that is being processed
      * @param forward Whether or not the graph is being played forward
      * @param fullGraph The full graph paired to this dynamic graph
      */
-    public void graphEvent(TrustLogEvent gev, boolean forward, SimGraph fullGraph) {
-        if (gev != null){
+    public void graphEvent(TrustLogEvent event, boolean forward, SimGraph fullGraph) {
+        if (event != null){
             if (forward) {
-                forwardEvent(gev, fullGraph);
+                forwardEvent(event, fullGraph);
             } else {
-                backwardEvent(gev, fullGraph);
+                backwardEvent(event, fullGraph);
             }
         }
     }
 
     /**
-     * Called by the EventPlayer whenever a TrustLogEvent occurs.  This graph must be a full graph in order to call this method.
-     * Adds any new Agents to the full graph referred to by the TrustLogevent and all edges that might possibly exist
+     * Called by the EventPlayer whenever a TrustLogEvent occurs.  It is assumed that this is a full graph.
+     * Adds any new Agents to the full graph referred to by the TrustLogevent and all edges that might possibly exist.
      * @param event The TrustLogEvent that has just occured
      */
     public void graphConstructionEvent(TrustLogEvent event) {
-        if (event == null) {  //A null event is passed to signal that there are no more evetns.  Add all edges to the graph
+        if (event == null) {  //A null event is passed to signal that there are no more events.  Add all edges to the graph
             for (Agent src : getVertices()) {
                 for (Agent sink : getVertices()) {
                     if (!src.equals(sink)) {

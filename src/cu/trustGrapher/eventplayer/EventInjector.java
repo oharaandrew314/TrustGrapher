@@ -1,65 +1,58 @@
-
 ////////////////////////////////EventInjector//////////////////////////////////
 package cu.trustGrapher.eventplayer;
 
 import utilities.ChatterBox;
 
 /**
- * Description
+ * This window is used to create a new or modified TrustLogEvent to modify the logEvents.  It is 
+ * meant to be run statically through the getNewEvent and modifyEvent static methods.  After the 
+ * user has entered valid info and clicked ok, the window will be disposed, then the appropriate 
+ * eventThread method will be called, and will handle the rest of the work.
  * @author Andrew O'Hara
  */
 public final class EventInjector extends javax.swing.JFrame {
-    private TrustLogEvent event = null;
+
     private static final int CREATE = 0, MODIFY = 1;
     private int mode;
     private EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Initializes the components and then updates the controls to reflect the current settings
+     * @param eventThread The EventPlayer is needed so that the appropriate handler method can be called to modify the logEvents
+     * @param mode Whether this window is in create or modify mode.
+     */
     public EventInjector(EventPlayer eventThread, int mode) {
         initComponents();
         this.eventThread = eventThread;
         this.mode = mode;
-        if (mode == CREATE){
+        if (mode == CREATE) {
+            //If in create mode, have the instructions text reflect this
             label.setText(label.getText() + "create.");
-        }else{
+        } else {
+            //If in modify mode, set the text fields to the values of the event to be modified
             label.setText(label.getText() + "modify.");
             TrustLogEvent currentEvent = eventThread.getEvents().get(eventThread.getCurrentEventIndex());
             assessorField.setText("" + currentEvent.getAssessor());
             assesseeField.setText("" + currentEvent.getAssessee());
-            feedbackField.setText("" + currentEvent.getFeedback());            
+            feedbackField.setText("" + currentEvent.getFeedback());
         }
         setVisible(true);
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    private void createEvent(){
-        try{
-            int src = Integer.parseInt(assessorField.getText());
-            int sink = Integer.parseInt(assesseeField.getText());
-            if (src == sink || src < 0 || sink < 0){
-                ChatterBox.alert("The assessor and assesse must be greater than or equal to zero\nand not be equal to eachother.");
-                return;
-            }
-            double feedback = Double.parseDouble(feedbackField.getText());
-            if (feedback > 1.0 || feedback < 0.0){
-                ChatterBox.alert("The feedback must be in the range [0.0 , 1.0]");
-                return;
-            }
-            event = new TrustLogEvent(src + "," + sink + "," + feedback);
-        }catch (NumberFormatException ex){
-            ChatterBox.alert("The assessor and assessee must be valid integers\nand the feedback must be a valid decimal.");
-        }
+    private void createEvent() {
     }
-    
+
 ////////////////////////////////Static Methods//////////////////////////////////
     public static void getNewEvent(EventPlayer eventThread) {
         EventInjector injector = new EventInjector(eventThread, CREATE);
     }
-    
-    public static void modifyEvent(EventPlayer eventThread){
+
+    public static void modifyEvent(EventPlayer eventThread) {
         EventInjector injector = new EventInjector(eventThread, MODIFY);
     }
-    
+
 /////////////////////////////////GUI Components/////////////////////////////////
     /** This method is called from within the constructor to
      * initialize the form.
@@ -70,10 +63,10 @@ public final class EventInjector extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel4 = new javax.swing.JLabel();
         assessorField = new javax.swing.JTextField();
         assesseeField = new javax.swing.JTextField();
         feedbackField = new javax.swing.JTextField();
@@ -167,30 +160,40 @@ public final class EventInjector extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
 private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-    createEvent();
-    if (event != null){
+    try { //Try to parse the field values into intes and doubles.  if any of them doesn't parse, do nothing
+        int src = Integer.parseInt(assessorField.getText());
+        int sink = Integer.parseInt(assesseeField.getText());
+        if (src == sink || src < 0 || sink < 0) { //Check if the assessor and assessee are not equal and are >= 0
+            throw new Exception("The assessor and assesse must be greater than or equal to zero\nand not be equal to eachother.");
+        }
+        double feedback = Double.parseDouble(feedbackField.getText());
+        if (feedback > 1.0 || feedback < 0.0) { //Check is feedback is in the correct range [0,1]
+            throw new Exception("The feedback must be in the range [0.0 , 1.0]");
+        }
+        TrustLogEvent event = new TrustLogEvent(src + "," + sink + "," + feedback); //Create a new TrustLogEvent
         dispose();
-        if (mode == CREATE){
+        if (mode == CREATE) { //Then call the appropriate EventPlayer method to handle the change
             eventThread.insertEvent(event);
-        }else{
+        } else {
             eventThread.modifyEvent(event);
         }
+    } catch (NumberFormatException ex) {
+        ChatterBox.alert("The assessor and assessee must be valid integers\nand the feedback must be a valid decimal.");
+    }catch (NullPointerException ex){
+        ex.printStackTrace();
+    } catch (Exception ex) {
+        ChatterBox.alert(ex.getMessage());
     }
 }//GEN-LAST:event_okButtonActionPerformed
 
 private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
     dispose();
 }//GEN-LAST:event_cancelButtonActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField assesseeField;
     private javax.swing.JTextField assessorField;
     private javax.swing.JButton cancelButton;
     private javax.swing.JTextField feedbackField;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel label;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables

@@ -30,7 +30,7 @@ import utilities.*;
  */
 public final class TrustGrapher extends JFrame {
 
-    public static final int CURRENT_REVISION = 48;
+    public static final int CURRENT_REVISION = 49;
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
     private List<GraphViewer> viewers; //Each of the viewers is a component which displays a graph
     private List<GraphPair> graphs;  //A list of the the graph pairs attached to the viewers
@@ -332,7 +332,6 @@ public final class TrustGrapher extends JFrame {
             toggleEventPanel.setSelected(false);
             toggleEventPanel.doClick();
         }
-        eventThread.run(); //Start the eventThread
         validate();
     }
 

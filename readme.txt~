@@ -389,7 +389,7 @@ More Documentation
 	Save log file
 	Find that print statement that is always printing at startup and remove it!
     	Add new Javadocs
-	Update instructions
+	    Update instructions
 	Add option to toggle playbackPanel
 	Create a toggle panel method to try to remove toggleLogPanelButton field
 

@@ -25,15 +25,16 @@ import utilities.ChatterBox;
  * The dynamic graph is not shown, but components in the full graph will only be displayed if they exist in the dynamic graph.
  * As events occur, they are added to the dynamic graphs through their graphEvent() method.
  * 
- * The full graph is the one that is shown, but all vertices and edges that are ever shown must be on the graph before the events start playing
- * Their graphConstructionEvent() method is used as the events are parsed to add all components to the graph
+ * The full graph is the one that is shown in the GraphViewer, but all vertices and edges that are ever shown must be on the 
+ * graph before the events start playing.  Their graphConstructionEvent() method is used as the events are parsed to add 
+ * all components to the graph.
  * @author Andrew O'Hara
  */
 public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, Object>>{
 
     private SimGraph fullGraph, dynamicGraph;
-    private GraphConfig graphConfig;
-    private static List<GraphPair> graphs;
+    private GraphConfig graphConfig; //The Object containing all of the configuration information for the graphs in this pair
+    private static List<GraphPair> graphs; //Refers to the list of GraphPairs.  I don't like having to use this.  Find another way
 
 //////////////////////////////////Constructor///////////////////////////////////
     public GraphPair(GraphConfig graphConfig, List<GraphPair> graphs) {
@@ -58,6 +59,10 @@ public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, O
     }
 //////////////////////////////////Accessors/////////////////////////////////////
 
+    /**
+     * Gets the list of GraphPairs so that other GraphPairs can be found
+     * @return the list of GraphPairs
+     */
     public List<GraphPair> getGraphs() {
         return graphs;
     }
@@ -70,6 +75,11 @@ public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, O
         return dynamicGraph;
     }
 
+    /**
+     * Gets the display name for this graph.
+     * The Display name consits of the graphID and the name of the algorithm attached to it.
+     * @return The display name
+     */
     public String getDisplayName() {
         return dynamicGraph.getDisplayName();
     }
@@ -94,6 +104,13 @@ public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, O
         return graphConfig.isDisplayed();
     }
     
+    /**
+     * This is the predicate for whether to show the graph entities in the GraphViewer.
+     * It is called by the GraphViewer during every repaint for every entity.
+     * If the entity exists in the dynamicGraph, return true.  Otherwise false.
+     * @param context The fullGraph and element that is being checked
+     * @return Whether to display the element in the context for the current repaint
+     */
     public boolean evaluate(Context<Graph<Agent, TestbedEdge>, Object> context) {
         if (context.element instanceof TestbedEdge){
             return dynamicGraph.containsEdge((TestbedEdge) context.element);
@@ -128,8 +145,7 @@ public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, O
 
     /**
      * Searches the existing graphs for the graph with the correct ID and then returns that graphs inner jGrapht graph.
-     * This is needed since the trustTestBed algorithms require trustTestBed graphs to be attached to them
-     * @param type Whether the inner graph is to be a DYNAMIC or FULL graph
+     * This is needed since the trustTestBed algorithms require trustTestBed graphs to be attached to them.
      * @param graphID The ID of the graph pair that contains the inner graph to return
      * @return The jGraphT SimpleDirectedGraph inside of the specified JungAdapterGraph
      */

@@ -5,14 +5,14 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdge;
 
 /**
- * A ReputationEdge extension that adds a id field and other useful methods
+ * A ReputationEdge extension that shows the degree of trust an agent has for another.
  * @author Andrew O'Hara
  */
 public class SimReputationEdge extends ReputationEdge {
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
-     * Creates a new SimReputationEdge
+     * Creates a new SimReputationEdge.
      * @param src The Agent that this edge originates from
      * @param sink The Agent that this edge ends at
      */
@@ -23,7 +23,7 @@ public class SimReputationEdge extends ReputationEdge {
 ///////////////////////////////////Methods//////////////////////////////////////
     /**
      * Returns a string representation of this edge.  This string is displayed by the edge in the TrustGraphViewer.
-     * This String contains the reputation of this edge
+     * This String contains the reputation of this edge.
      * @return A string representation of this edge
      */
     @Override

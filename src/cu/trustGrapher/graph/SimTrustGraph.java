@@ -1,15 +1,18 @@
 ////////////////////////////////SimTrustGraph//////////////////////////////////
 package cu.trustGrapher.graph;
 
+import cu.trustGrapher.eventplayer.TrustLogEvent;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 import cu.repsystestbed.graphs.TrustEdgeFactory;
 import cu.repsystestbed.graphs.TrustGraph;
+
 import org.jgrapht.graph.SimpleDirectedGraph;
-import cu.trustGrapher.eventplayer.TrustLogEvent;
+
 import java.util.ArrayList;
 import java.util.Set;
+
 import utilities.ChatterBox;
 
 /**
@@ -20,7 +23,8 @@ public class SimTrustGraph extends SimGraph {
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
-     * Creates a Trust Graph. The edges on this graph signify that one peers trust the other
+     * Creates a Trust Graph.
+     * @param graphPair The graphPair that is to hold this graph
      */
     public SimTrustGraph(GraphPair graphPair) {
         super(graphPair, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()));
@@ -30,7 +34,6 @@ public class SimTrustGraph extends SimGraph {
 
     /**
      * This String returned by this is the String displayed on the viewer border
-     * This can only be called on a DYNAMIC graph because it is the only one with the algorithm
      */
     public String getDisplayName(){
         return graphPair.getID() + "-" + graphPair.getAlgorithm().getClass().getSimpleName();
@@ -40,14 +43,14 @@ public class SimTrustGraph extends SimGraph {
     /**
      * Adds any necessary agents to the graph and then checks if every agent trusts the other.
      * If the agents trust eachother, then this ensures that there is a Trust Edge between them.
-     * @param gev The TrustLogEvent that is being processed
+     * @param event The TrustLogEvent that is being processed
      * @param fullGraph Any new edges will be added to this graph
      */
     @Override
-    protected void forwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
+    protected void forwardEvent(TrustLogEvent event, SimGraph fullGraph) {
         TrustAlgorithm alg = (TrustAlgorithm) graphPair.getAlgorithm();
-        ensureAgentExists(gev.getAssessor());
-        ensureAgentExists(gev.getAssessee());
+        ensureAgentExists(event.getAssessor());
+        ensureAgentExists(event.getAssessee());
         Set<Agent> vertices = alg.getReputationGraph().vertexSet();
         for (Agent src : vertices){
             for (Agent sink : vertices){
@@ -63,23 +66,19 @@ public class SimTrustGraph extends SimGraph {
     }
 
     /**
-     * Checks all the vertices in this graph.
-     * If the algorithm freaks out because one of those vertices don't exist in the reputation graph,
-     * the edge between them is removed.
-     * @param gev The TrustLogEvent that is being processed
+     * Checks all the vertices in this graph if they trust eachother, and removes
+     * the edge between them if they don't.
+     * @param event The TrustLogEvent that is being processed
      * @param fullGraph Any new edges will be added to this graph
      */
     @Override
-    protected void backwardEvent(TrustLogEvent gev, SimGraph fullGraph) {
+    protected void backwardEvent(TrustLogEvent event, SimGraph fullGraph) {
         TrustAlgorithm alg = (TrustAlgorithm) graphPair.getAlgorithm();
         Set<Agent> vertices = alg.getReputationGraph().vertexSet();
         for (Agent src : vertices){
             for (Agent sink : vertices){
                 try{
                     alg.trusts(src, sink);
-                }catch(ArrayIndexOutOfBoundsException ex){ //One of the agents doesn't exist in the feedback graph anymore, so remove the edge between the two agents
-                    removeEdgeAndVertices(findEdge(src, sink));
-                    vertices = alg.getReputationGraph().vertexSet();
                 }catch (Exception ex){
                     ChatterBox.debug(this, "backwardEvent()", ex.getMessage());
                 }

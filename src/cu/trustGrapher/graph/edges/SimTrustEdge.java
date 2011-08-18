@@ -13,7 +13,7 @@ public class SimTrustEdge extends TrustEdge{
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
-     * Creates a new SimTrustEdge
+     * Creates a new SimTrustEdge.
      * @param src The Agent that this edge originates from
      * @param sink The Agent that this edge ends at
      */

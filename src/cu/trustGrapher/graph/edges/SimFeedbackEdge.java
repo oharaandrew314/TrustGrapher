@@ -17,10 +17,10 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
 //////////////////////////////////Constructor///////////////////////////////////
 
     /**
-     * Creates a SimFeedbackEdge
+     * Creates a SimFeedbackEdge.
      * @param src The Agent that this edge originates from
      * @param sink The Agent that this edge ends at
-     * @throws Exception If the superclass constructor cries, because it's stupid since I didn't write it
+     * @throws Exception If the superclass constructor whines for some reason
      */
     public SimFeedbackEdge(Agent src, Agent sink) throws Exception{
         super(src, sink);
@@ -30,7 +30,8 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
 //////////////////////////////////Accessors/////////////////////////////////////
     /**
      * Returns a string representation of this edge.  This string is displayed by the edge in the TrustGraphViewer.
-     * This String contains all of the feedback values that this edge has
+     * This String contains all of the feedback values that this edge has.
+     * If the stringBuffer has already been built, returns a string of it instead.
      * @return A string representation of this edge
      */
     @Override
@@ -48,7 +49,7 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
     }
 ///////////////////////////////////Methods//////////////////////////////////////
     /**
-     * Adds feedback to this edge's list of feedbacks
+     * Adds feedback to this edge's list of feedbacks.  Resets the label StringBuffer.
      * @param assessor The agent that gave the feedback
      * @param assessee The agent that is receiving the feedback
      * @param feedback The value of the feedback
@@ -64,7 +65,8 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
     }
 
     /**
-     * Removes a feedback with the specified parameters form the edge
+     * Removes a feedback with the specified parameters form the edge.
+     * Resets the label StringBuffer.
      * @param feedback The value of the feedback to remove
      */
     public void removeFeedback(double feedback) {

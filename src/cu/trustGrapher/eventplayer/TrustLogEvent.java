@@ -15,8 +15,9 @@ public class TrustLogEvent {
     private double feedback;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    /**constructor for an event as represented by a line in a (processed) log file*/
-
+    /**
+     * constructor for an event as represented by a line in a (processed) log file
+     */
     public TrustLogEvent(String str) {
         //Line format: assessor,assessee,feedback
         try{

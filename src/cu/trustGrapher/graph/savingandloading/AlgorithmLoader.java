@@ -1,14 +1,13 @@
 ////////////////////////////////AlgorithmLoader//////////////////////////////////
 package cu.trustGrapher.graph.savingandloading;
 
-import java.io.File;
-
 import cu.trustGrapher.TrustGrapher;
+import java.io.File;
 import java.util.ArrayList;
 import utilities.*;
 
 /**
- * An options frame which allows the user to choose which algorithms to load, and which ones to display
+ * An options window which allows the user to choose which algorithms to load, and which ones to display.
  * @author Andrew O'Hara
  */
 public class AlgorithmLoader extends javax.swing.JFrame {
@@ -22,20 +21,20 @@ public class AlgorithmLoader extends javax.swing.JFrame {
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Initializes the algorithm loader components
-     * @param applet The main class.  Needed to inform it that the algorithms have been loaded
+     * @param trustGrapher The main class.  Needed to inform it that the algorithms have been loaded
      * @param config The properties manager to load all of the class and algorithm properties
      */
-    public AlgorithmLoader(TrustGrapher applet, PropertyManager config) {
-        this.trustGrapher = applet;
+    public AlgorithmLoader(TrustGrapher trustGrapher, PropertyManager config) {
+        this.trustGrapher = trustGrapher;
         this.config = config;
         initComponents();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
     /**
-     * Gets an unused property key that can be used to store a new algorithm or class
+     * Gets an unused property key that can be used to store a new algorithm or class.
      * This is useful to ensure that keys do not conflict.
-     * If a key was deleted, this will return an old key to be reused
+     * If a key was deleted, this will return an old key to be reused.
      * @param type A String which contains the type of key to generate.  Ex: "alg" , "class"
      * @return An unused property key that is of the specified type
      */
@@ -52,10 +51,16 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         return graphConfigs;
     }
 
+    /**
+     * @return  Returns the index of the selected algorithm in the baseField
+     */
     private int getBaseIndex() {
         return Integer.parseInt(((String) baseField.getSelectedItem()).split("-")[0]);
     }
 
+    /**
+     * @return Returns the GraphConfig of the selected algorithm selected in the algorithm list
+     */
     private GraphConfig getSelectedAlg() {
         String temp = ((String) algList.getSelectedValue()).split("-")[0];
         return graphConfigs.getAlg(Integer.parseInt(temp));
@@ -169,27 +174,27 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         applyButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         algList = new javax.swing.JList();
-        jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
         displayField = new javax.swing.JCheckBox();
         baseField = new javax.swing.JComboBox();
-        jLabel2 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         jSeparator3 = new javax.swing.JSeparator();
         addButton = new javax.swing.JButton();
         removeButton = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel6 = new javax.swing.JLabel();
         pathField = new javax.swing.JTextField();
         loadButton = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         classList = new javax.swing.JComboBox();
         addClassButton = new javax.swing.JButton();
         removeClassButton = new javax.swing.JButton();
-        graphLabel = new javax.swing.JLabel();
+        javax.swing.JLabel graphLabel = new javax.swing.JLabel();
         nameField = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel4 = new javax.swing.JLabel();
         propertiesField = new javax.swing.JTextField();
         choosePropertiesButton = new javax.swing.JButton();
         removePropertyButton = new javax.swing.JButton();
@@ -300,7 +305,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             }
         });
 
-        graphLabel.setFont(new java.awt.Font("Ubuntu", 1, 15));
+        graphLabel.setFont(new java.awt.Font("Ubuntu", 1, 15)); // NOI18N
         graphLabel.setText("Algorithm:");
 
         nameField.setEditable(false);
@@ -660,15 +665,7 @@ private void helpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
     private javax.swing.JButton choosePropertiesButton;
     private javax.swing.JComboBox classList;
     private javax.swing.JCheckBox displayField;
-    private javax.swing.JLabel graphLabel;
     private javax.swing.JButton helpButton;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
