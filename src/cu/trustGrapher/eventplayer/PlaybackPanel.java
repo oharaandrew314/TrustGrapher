@@ -2,6 +2,7 @@
 package cu.trustGrapher.eventplayer;
 
 import cu.trustGrapher.OptionsWindow;
+import cu.trustGrapher.TrustGrapher;
 import java.awt.GridBagLayout;
 import java.awt.event.*;
 import javax.swing.*;
@@ -52,6 +53,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
                         OptionsWindow.SCRUB_MODE + " property was invalid.");                
             }
         }
+        setVisible(eventThread.getTrustGrapher().togglePlaybackPanel.isSelected());
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////

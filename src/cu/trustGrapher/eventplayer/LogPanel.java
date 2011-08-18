@@ -32,6 +32,7 @@ public final class LogPanel extends JPanel implements EventPlayerListener {
     public LogPanel(EventPlayer eventThread) {
         this.eventThread = eventThread;
         initComponents();
+        setVisible(eventThread.getTrustGrapher().toggleEventPanel.isSelected());
     }
 //////////////////////////////////Accessors/////////////////////////////////////
     /**

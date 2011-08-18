@@ -3,9 +3,9 @@ package cu.trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.graph.SimGraph;
+import cu.trustGrapher.graphs.SimAbstractGraph;
 
-import cu.trustGrapher.graph.GraphPair;
+import cu.trustGrapher.graphs.GraphPair;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
@@ -23,7 +23,7 @@ import java.awt.event.MouseAdapter;
  * @author Andrew O'Hara
  */
 public class GraphViewer extends edu.uci.ics.jung.visualization.VisualizationViewer {
-    private SimGraph fullGraph;
+    private SimAbstractGraph fullGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public GraphViewer(final Layout layout, int width, int height, DefaultModalGraphMouse<Agent, TestbedEdge> gm, MouseAdapter mouseClickListener, GraphPair graphPair) {
@@ -59,7 +59,7 @@ public class GraphViewer extends edu.uci.ics.jung.visualization.VisualizationVie
         });
     }
     
-    public SimGraph getFullGraph(){
+    public SimAbstractGraph getFullGraph(){
         return fullGraph;
     }
 }

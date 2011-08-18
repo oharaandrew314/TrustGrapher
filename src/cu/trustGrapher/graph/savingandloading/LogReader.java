@@ -3,7 +3,7 @@ package cu.trustGrapher.graph.savingandloading;
 
 import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
-import cu.trustGrapher.graph.GraphPair;
+import cu.trustGrapher.graphs.GraphPair;
 import java.io.BufferedReader;
 
 import javax.swing.SwingWorker;

@@ -1,5 +1,5 @@
 ////////////////////////////////SImGraphPair//////////////////////////////////
-package cu.trustGrapher.graph;
+package cu.trustGrapher.graphs;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
@@ -32,7 +32,7 @@ import utilities.ChatterBox;
  */
 public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, Object>>{
 
-    private SimGraph fullGraph, dynamicGraph;
+    private SimAbstractGraph fullGraph, dynamicGraph;
     private GraphConfig graphConfig; //The Object containing all of the configuration information for the graphs in this pair
     private static List<GraphPair> graphs; //Refers to the list of GraphPairs.  I don't like having to use this.  Find another way
 
@@ -67,11 +67,11 @@ public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, O
         return graphs;
     }
 
-    public SimGraph getFullGraph() {
+    public SimAbstractGraph getFullGraph() {
         return fullGraph;
     }
 
-    public SimGraph getDynamicGraph() {
+    public SimAbstractGraph getDynamicGraph() {
         return dynamicGraph;
     }
 
@@ -130,7 +130,9 @@ public class GraphPair implements Predicate<Context<Graph<Agent, TestbedEdge>, O
      * @param isForward Whether the simulator is being played forward or not
      */
     public void handleGraphEvent(TrustLogEvent event, boolean isForward) {
-        dynamicGraph.graphEvent(event, isForward, fullGraph);
+        if (event != null){
+            dynamicGraph.graphEvent(event, isForward);
+        }
     }
 
     /**

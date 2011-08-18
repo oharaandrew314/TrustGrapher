@@ -1,5 +1,5 @@
 //////////////////////////////////MyTrustEdge///////////////////////////////////
-package cu.trustGrapher.graph.edges;
+package cu.trustGrapher.graphs.edges;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TrustEdge;

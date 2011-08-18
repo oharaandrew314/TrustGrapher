@@ -4,13 +4,12 @@ package cu.trustGrapher.eventplayer;
 import cu.trustGrapher.OptionsWindow;
 import cu.trustGrapher.TrustGrapher;
 
-import cu.trustGrapher.graph.GraphPair;
+import cu.trustGrapher.graphs.GraphPair;
 import cu.trustGrapher.visualizer.GraphViewer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.Timer;
-import java.util.ArrayList;
 import java.util.LinkedList;
+import javax.swing.Timer;
 import java.util.List;
 import utilities.ChatterBox;
 
@@ -188,7 +187,7 @@ public final class EventPlayer implements ActionListener {
             notify();
         }
     }
-   
+
     /**
      * Sets the EventPlayer to pause.
      * Never modify the playState directly.  Always use this.
@@ -264,10 +263,14 @@ public final class EventPlayer implements ActionListener {
      * @param event The new event to add
      */
     public void insertEvent(TrustLogEvent event) {
-        ArrayList<TrustLogEvent> newEvents = new ArrayList<TrustLogEvent>(events.subList(0, currentEventIndex + 1));
+        List<TrustLogEvent> newEvents = new java.util.ArrayList<TrustLogEvent>(events.subList(0, currentEventIndex + 1));
         newEvents.add(event);
         newEvents.addAll(events.subList(currentEventIndex + 1, events.size()));
         goToEvent(0);
+        for (GraphPair graphPair : trustGrapher.getGraphs()) {
+            graphPair.handleConstructionEvent(event);
+            graphPair.handleConstructionEvent(null);
+        }
         trustGrapher.startGraph(newEvents);
     }
 
@@ -298,11 +301,15 @@ public final class EventPlayer implements ActionListener {
             int indexToModify = currentEventIndex;
             goToEvent(0);
             events.set(indexToModify, event);
+            for (GraphPair graphPair : trustGrapher.getGraphs()) {
+                graphPair.handleConstructionEvent(event);
+                graphPair.handleConstructionEvent(null);
+            }
             trustGrapher.startGraph(events);
         } else {
             ChatterBox.alert("You cannot modify the start event.");
         }
-
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+

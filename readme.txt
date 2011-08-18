@@ -376,6 +376,15 @@ Javadocs
 Fixed a bug where a NullPointerException was thrown if the mouse was scrubbing the log table, and was released outside of the table
 More Documentation
 
+	Revision 50
+New bug: I do not think the reputation values are accurate anymore.  I don't know how long this has been for
+New Feature: You can now save the simulator's current event list as an .arff file.  This includes changes from inside the simulator
+New Feature: There is not an option to toggle the playback panel in the view menu
+Feature fix: Should now show that Agents no longer trust eachother due to new low feeedback values (untested)
+Feature fix: You will no longer see Agents with no Edges in Trust Graphs.  An Agents will now only appear when it trusts another one
+Bug Fix: If you add a new Agent to the graph through the event injector, the simulator will no longer crash when it attempts to add it
+Refactor: Merged forward and backward events with graphEvent method for SimGraphs.  They were too similar to keep seperate
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -385,13 +394,8 @@ More Documentation
     -------------------
     4.1.0 High Priority
     -------------------
-	Adding feedback could cause agents to no longer trust eachother.  This must be included!  Vice versa too!
-	Save log file
-	Find that print statement that is always printing at startup and remove it!
-    	Add new Javadocs
+    Add new Javadocs
 	Update instructions
-	Add option to toggle playbackPanel
-	Create a toggle panel method to try to remove toggleLogPanelButton field
 
     ------------------
     4.2.0 Low Priority
@@ -400,6 +404,6 @@ More Documentation
 	Integrate the GraphViewer popupMenu and listener with GraphViewer
 	Remove BitStylus dependency for PropertyManager
     Add graphic buttons for the playback bar
-    Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
+	Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
 
 --------------------------------------------------------------------------------

@@ -1,14 +1,12 @@
-package cu.trustGrapher.graph;
+package cu.trustGrapher.graphs;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.jgrapht.EdgeFactory;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
-import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.graph.util.Pair;
 

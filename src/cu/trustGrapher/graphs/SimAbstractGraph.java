@@ -1,9 +1,9 @@
-////////////////////////////////////SimGraph////////////////////////////////////
-package cu.trustGrapher.graph;
+////////////////////////////////////SimAbstractGraph////////////////////////////////////
+package cu.trustGrapher.graphs;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.graph.edges.*;
+import cu.trustGrapher.graphs.edges.*;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -15,7 +15,7 @@ import utilities.ChatterBox;
  * This classs accepts a parameter of the jGraphT SimpleDirectedGraph that this graph is to be based on
  * @author Andrew O'Hara
  */
-public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEdge> {
 
     protected GraphPair graphPair;
 
@@ -25,17 +25,16 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param graphPair The graphPair that is to hold this graph
      * @param innerGraph The TrustTestBed graph that is to be a base graph for this graph
      */
-    public SimGraph(GraphPair graphPair, SimpleDirectedGraph innerGraph) {
+    public SimAbstractGraph(GraphPair graphPair, SimpleDirectedGraph innerGraph) {
         super(innerGraph);
         this.graphPair = graphPair;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    
     /**
      * @return Gets the GraphPair that contains this graph
      */
-    public GraphPair getGraphPair(){
+    public GraphPair getGraphPair() {
         return graphPair;
     }
 
@@ -47,14 +46,13 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     protected Agent findAgent(Agent agent) {
         for (Agent v : getVertices()) {
             if (v.equals(agent)) {
-                return (Agent) v;
+                return v;
             }
         }
         return null;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
-    
     /**
      * Ensures that an Agent with the given ID exists in the graph
      * If it doesn't, then it is added
@@ -62,11 +60,14 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @return An instance of the Agent that is to exist in the graph
      */
     protected Agent ensureAgentExists(int id) {
-        Agent agent = new Agent(id);
-        if (!containsVertex(agent)) {
-            addVertex(agent);
+        Agent tempAgent = new Agent(id);
+        Agent agent = findAgent(tempAgent);
+        if (agent == null){
+            addVertex(tempAgent);
+            return tempAgent;
+        }else{
+            return agent;
         }
-        return agent;
     }
 
     /**
@@ -78,9 +79,12 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param caller The graph that is calling, so that if an edge must be created, it knows what type to make
      * @return The edge that is assured to be in the graph
      */
-    protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, SimGraph caller) {
-        TestbedEdge edge = newEdge(src, sink, caller);
-        addEdge(edge, src, sink);
+    protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, SimAbstractGraph caller) {
+        TestbedEdge edge = findEdge(src, sink);
+        if (edge == null){
+            edge = newEdge(src, sink, caller);
+            addEdge(edge, src, sink);
+        }
         return edge;
     }
 
@@ -94,7 +98,7 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
      * @param caller The graph that the new edge is to be returned to
      * @return The new Edge
      */
-    private TestbedEdge newEdge(Agent src, Agent sink, SimGraph caller) {
+    private TestbedEdge newEdge(Agent src, Agent sink, SimAbstractGraph caller) {
         if (caller instanceof SimFeedbackGraph) {
             try {
                 return new SimFeedbackEdge(src, sink);
@@ -128,23 +132,6 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
     }
 
     /**
-     * Called by this graph's GraphPair whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
-     * If the graph is playing forward, call the forwardEvent method, otherwise, calls backwardEvent
-     * @param event The TrustLogEvent that is being processed
-     * @param forward Whether or not the graph is being played forward
-     * @param fullGraph The full graph paired to this dynamic graph
-     */
-    public void graphEvent(TrustLogEvent event, boolean forward, SimGraph fullGraph) {
-        if (event != null){
-            if (forward) {
-                forwardEvent(event, fullGraph);
-            } else {
-                backwardEvent(event, fullGraph);
-            }
-        }
-    }
-
-    /**
      * Called by the EventPlayer whenever a TrustLogEvent occurs.  It is assumed that this is a full graph.
      * Adds any new Agents to the full graph referred to by the TrustLogevent and all edges that might possibly exist.
      * @param event The TrustLogEvent that has just occured
@@ -159,15 +146,23 @@ public abstract class SimGraph extends JungAdapterGraph<Agent, TestbedEdge> {
                 }
             }
         } else { //Otherwise, just add any new Agents to the graph
-            ensureAgentExists(((TrustLogEvent) event).getAssessor());
-            ensureAgentExists(((TrustLogEvent) event).getAssessee());
+            ensureAgentExists(event.getAssessor());
+            ensureAgentExists(event.getAssessee());
         }
     }
 
+    /**
+     * Called by this graph's GraphPair whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
+     * If the graph is playing forward, call the forwardEvent method, otherwise, calls backwardEvent
+     * @param event The TrustLogEvent that is being processed
+     * @param forward Whether or not the graph is being played forward
+     */
+    public abstract void graphEvent(TrustLogEvent event, boolean forward);
+
+    /**
+     * This String returned by this is the String displayed on the viewer border
+     */
     public abstract String getDisplayName();
-
-    protected abstract void forwardEvent(TrustLogEvent gev, SimGraph fullGraph);
-
-    protected abstract void backwardEvent(TrustLogEvent gev, SimGraph fullGraph);
 }
 ////////////////////////////////////////////////////////////////////////////////
+

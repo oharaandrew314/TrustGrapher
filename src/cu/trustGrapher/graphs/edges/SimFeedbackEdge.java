@@ -1,5 +1,5 @@
 ////////////////////////////////FeedbackHistoryGraphEdge//////////////////////////////////
-package cu.trustGrapher.graph.edges;
+package cu.trustGrapher.graphs.edges;
 
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import cu.repsystestbed.data.Feedback;
@@ -12,17 +12,17 @@ import utilities.ChatterBox;
  * @author Andrew O'Hara
  */
 public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
+
     private StringBuffer label;
 
 //////////////////////////////////Constructor///////////////////////////////////
-
     /**
      * Creates a SimFeedbackEdge.
      * @param src The Agent that this edge originates from
      * @param sink The Agent that this edge ends at
      * @throws Exception If the superclass constructor whines for some reason
      */
-    public SimFeedbackEdge(Agent src, Agent sink) throws Exception{
+    public SimFeedbackEdge(Agent src, Agent sink) throws Exception {
         super(src, sink);
         label = new StringBuffer();
     }
@@ -35,19 +35,18 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
      * @return A string representation of this edge
      */
     @Override
-    public String toString(){
-        if (label.length() == 0){
-            if (!feedbacks.isEmpty()){
-                label.append(feedbacks.get(0).value);
-                for (int i=1 ; i<feedbacks.size() ; i++){
-                    label.append(", ");
-                    label.append(feedbacks.get(i).value);
-                }
+    public String toString() {
+        if (label.length() == 0 && !feedbacks.isEmpty()) {
+            label.append(feedbacks.get(0).value);
+            for (int i = 1; i < feedbacks.size(); i++) {
+                label.append(", ");
+                label.append(feedbacks.get(i).value);
             }
         }
         return label.toString();
     }
 ///////////////////////////////////Methods//////////////////////////////////////
+
     /**
      * Adds feedback to this edge's list of feedbacks.  Resets the label StringBuffer.
      * @param assessor The agent that gave the feedback
@@ -58,9 +57,13 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
         try {
             super.addFeedback(new Feedback(assessor, assessee, feedback));
             label = new StringBuffer();
+
+
         } catch (Exception ex) {
             ChatterBox.error(this, "addFeedback()", ex.getMessage());
             ex.printStackTrace();
+
+
         }
     }
 
@@ -70,28 +73,42 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
      * @param feedback The value of the feedback to remove
      */
     public void removeFeedback(double feedback) {
-        for (int i = 0; i < feedbacks.size(); i++) {
-            if (feedbacks.get(i).value == feedback) {
-                feedbacks.remove(i);
+        for (Feedback fb : feedbacks) {
+            if (fb.value == feedback) {
+                feedbacks.remove(fb);
                 label = new StringBuffer();
+
+
                 break;
+
+
             }
         }
     }
 
     @Override
-    public boolean equals(Object o){
-        if (o instanceof SimFeedbackEdge){
+    public boolean equals(Object o) {
+        if (o instanceof SimFeedbackEdge) {
             SimFeedbackEdge other = (SimFeedbackEdge) o;
+
+
             return (src.equals(other.src)) && (sink.equals(other.sink));
+
+
         }
         return false;
+
+
     }
 
     @Override
     public int hashCode() {
         int hash = 3;
+
+
         return hash;
+
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+

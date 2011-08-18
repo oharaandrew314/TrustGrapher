@@ -151,7 +151,6 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         algList.setSelectedIndex(0);
         updateFields();
         setVisible(true);
-        ChatterBox.print("" + GraphConfigManager.VISIBLE_COUNT);
     }
     
     public static void run(TrustGrapher trustGrapher, PropertyManager properties){

@@ -13,6 +13,7 @@ public class TrustLogEvent {
     private int assessor;
     private int assessee;
     private double feedback;
+    private String string;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -21,6 +22,7 @@ public class TrustLogEvent {
     public TrustLogEvent(String str) {
         //Line format: assessor,assessee,feedback
         try{
+            string = str;
             str.trim();
             String [] words = str.split(",");          
             assessor = Integer.parseInt(words[0]);
@@ -57,7 +59,7 @@ public class TrustLogEvent {
 
     @Override
     public String toString() {
-        return (assessor + ":" + assessee + ":" + feedback);
+        return string;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
