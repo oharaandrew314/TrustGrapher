@@ -8,48 +8,98 @@ import cu.trustGrapher.eventplayer.TrustLogEvent;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
 
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
+import cu.trustGrapher.loading.GraphConfig;
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.util.Context;
+import org.apache.commons.collections15.Predicate;
 
 /**
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
  * This classs accepts a parameter of the jGraphT SimpleDirectedGraph that this graph is to be based on
+ *
+ * This SimAbstractGraph acts as a dynamic graph.  It is not displayed, but components in the full graph will only be
+ * displayed if they exist in the dynamic graph.  As events occur, they are added to the dynamic graphs through their
+ * graphEvent() method.
+ *
+ * The full graph is a field in this graph.  It is shown in the GraphViewer, but all vertices and edges that are ever
+ * shown must be on the full graph before the events start playing.  Their graphConstructionEvent() method is used as
+ * the events are parsed to add all components to the graph.
  * @author Andrew O'Hara
  */
-public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEdge> {
+public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEdge> implements Predicate<Context<Graph<Agent, TestbedEdge>, Object>> {
 
-    protected GraphPair graphPair;
-
+    protected JungAdapterGraph<Agent, TestbedEdge> fullGraph;
+    private GraphConfig graphConfig;
+    
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Calls superclass and initializes some fields
      * @param graphPair The graphPair that is to hold this graph
      * @param innerGraph The TrustTestBed graph that is to be a base graph for this graph
      */
-    public SimAbstractGraph(GraphPair graphPair, SimpleDirectedGraph innerGraph) {
+    public SimAbstractGraph(GraphConfig graphConfig, SimpleDirectedGraph innerGraph) {
         super(innerGraph);
-        this.graphPair = graphPair;
+        fullGraph = new JungAdapterGraph<Agent, TestbedEdge>((SimpleDirectedGraph) innerGraph.clone());
+        this.graphConfig = graphConfig;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    /**
-     * @return Gets the GraphPair that contains this graph
-     */
-    public GraphPair getGraphPair() {
-        return graphPair;
+
+    public JungAdapterGraph getFullGraph(){
+        return fullGraph;
     }
 
     /**
-     * Gets an Agent already in the graph that has the given peerID.
-     * Returns null if the agent doesn't exist
-     * @return An agent with the same ID to search for among the agents in the graph
+     * Gets the display name for this graph.
+     * The Display name consits of the graphID and the name of the algorithm attached to it.
+     * @return The display name
      */
-    protected Agent findAgent(Agent agent) {
-        for (Agent v : getVertices()) {
-            if (v.equals(agent)) {
-                return v;
-            }
+    public String getDisplayName() {
+        return graphConfig.getDisplayName();
+    }
+
+    /**
+     *Returns the algorithm of this Graphpair.  If this GraphPair holds a
+     * SimFeedbackGraph, then it returns null.
+     * @return the algorithm of this GraphPair
+     */
+    public Object getAlgorithm() {
+        return graphConfig.getAlgorithm();
+    }
+
+    /**
+     * Returns the id of this graph.  It is currently used to generate the name of the graph
+     * @return The graph id
+     */
+    public int getID() {
+        return graphConfig.getIndex();
+    }
+
+    /**
+     * Whether or not this graph will have a viewer built for it
+     * @return the displayed boolean
+     */
+    public boolean isDisplayed() {
+        return graphConfig.isDisplayed();
+    }
+
+    /**
+     * This is the predicate for whether to show the graph entities in the GraphViewer.
+     * It is called by the GraphViewer during every repaint for every entity.
+     * If the entity exists in this dynamic Graph, return true.  Otherwise false.
+     * @param context The fullGraph and element that is being checked
+     * @return Whether to display the element given by the context for the current repaint
+     */
+    public boolean evaluate(Context<Graph<Agent, TestbedEdge>, Object> context) {
+        if (context.element instanceof TestbedEdge){
+            return containsEdge((TestbedEdge) context.element);
+        }else if (context.element instanceof Agent){
+            return containsVertex((Agent) context.element);
+        }else{
+            ChatterBox.criticalError(this, "evaluate()", "Uncaught predicate");
+            return false;
         }
-        return null;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -59,15 +109,15 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * @param id the ID of the agent that must exist
      * @return An instance of the Agent that is to exist in the graph
      */
-    protected Agent ensureAgentExists(int id) {
+    protected Agent ensureAgentExists(int id, JungAdapterGraph<Agent, TestbedEdge> caller) {
         Agent tempAgent = new Agent(id);
-        Agent agent = findAgent(tempAgent);
-        if (agent == null){
-            addVertex(tempAgent);
-            return tempAgent;
-        }else{
-            return agent;
+        for (Agent agent : caller.getVertices()){
+            if (agent.equals(tempAgent)){
+                return agent;
+            }
         }
+        caller.addVertex(tempAgent);
+        return tempAgent;
     }
 
     /**
@@ -79,11 +129,11 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * @param caller The graph that is calling, so that if an edge must be created, it knows what type to make
      * @return The edge that is assured to be in the graph
      */
-    protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, SimAbstractGraph caller) {
-        TestbedEdge edge = findEdge(src, sink);
+    protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, JungAdapterGraph<Agent, TestbedEdge> caller) {
+        TestbedEdge edge = caller.findEdge(src, sink);
         if (edge == null){
             edge = newEdge(src, sink, caller);
-            addEdge(edge, src, sink);
+            caller.addEdge(edge, src, sink);
         }
         return edge;
     }
@@ -98,17 +148,17 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * @param caller The graph that the new edge is to be returned to
      * @return The new Edge
      */
-    private TestbedEdge newEdge(Agent src, Agent sink, SimAbstractGraph caller) {
-        if (caller instanceof SimFeedbackGraph) {
+    private TestbedEdge newEdge(Agent src, Agent sink, JungAdapterGraph caller) {
+        if (caller.getInnerGraph() instanceof cu.repsystestbed.graphs.FeedbackHistoryGraph) {
             try {
                 return new SimFeedbackEdge(src, sink);
             } catch (Exception ex) {
                 ChatterBox.debug("MyFeedbackEdge", "MyFeedbackEdge()", ex.getMessage());
                 return null;
             }
-        } else if (caller instanceof SimReputationGraph) {
+        } else if (caller.getInnerGraph() instanceof cu.repsystestbed.graphs.ReputationGraph) {
             return new SimReputationEdge(src, sink);
-        } else if (caller instanceof SimTrustGraph) {
+        } else if (caller.getInnerGraph() instanceof cu.repsystestbed.graphs.TrustGraph) {
             return new SimTrustEdge(src, sink);
         } else {
             ChatterBox.debug(this, "newEdge()", "Unsupported caller");
@@ -138,16 +188,16 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      */
     public void graphConstructionEvent(TrustLogEvent event) {
         if (event == null) {  //A null event is passed to signal that there are no more events.  Add all edges to the graph
-            for (Agent src : getVertices()) {
-                for (Agent sink : getVertices()) {
+            for (Agent src : fullGraph.getVertices()) {
+                for (Agent sink : fullGraph.getVertices()) {
                     if (!src.equals(sink)) {
-                        ensureEdgeExists(src, sink, this);
+                        ensureEdgeExists(src, sink, fullGraph);
                     }
                 }
             }
         } else { //Otherwise, just add any new Agents to the graph
-            ensureAgentExists(event.getAssessor());
-            ensureAgentExists(event.getAssessee());
+            ensureAgentExists(event.getAssessor(), fullGraph);
+            ensureAgentExists(event.getAssessee(), fullGraph);
         }
     }
 
@@ -158,11 +208,6 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * @param forward Whether or not the graph is being played forward
      */
     public abstract void graphEvent(TrustLogEvent event, boolean forward);
-
-    /**
-     * This String returned by this is the String displayed on the viewer border
-     */
-    public abstract String getDisplayName();
 }
 ////////////////////////////////////////////////////////////////////////////////
 

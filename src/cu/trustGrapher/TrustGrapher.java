@@ -1,10 +1,9 @@
 /////////////////////////////////////TrustGrapher///////////////////////////////
 package cu.trustGrapher;
 
+import cu.trustGrapher.loading.*;
 import cu.trustGrapher.eventplayer.*;
-import cu.trustGrapher.graphs.*;
 import cu.trustGrapher.visualizer.*;
-import cu.trustGrapher.graph.savingandloading.*;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 
@@ -13,12 +12,14 @@ import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import javax.swing.*;
-import java.util.List;
 
+import java.util.List;
 import java.util.LinkedList;
-import utilities.*;
+
+import aohara.utilities.*;
+import cu.trustGrapher.loading.GraphLoader;
+import cu.trustGrapher.graphs.SimAbstractGraph;
 
 /**
  * An application that will display Trust Graphs generated from a series of feedback events.
@@ -30,17 +31,14 @@ import utilities.*;
  */
 public final class TrustGrapher extends JFrame {
 
-    public static final int CURRENT_REVISION = 50;
-    public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
-    public static final String SHOW_PLAYBACK_PANEL = "showPlaybackPanel", SHOW_EVENT_PANEL = "showEventPanel";
-    private List<GraphViewer> viewers; //Each of the viewers is a component which displays a graph
-    private List<GraphPair> graphs;  //A list of the the graph pairs attached to the viewers
+    public static final int CURRENT_REVISION = 51;
     public static final int TABBED = 0, GRID = 1; //View types
+    public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
+    private TrustMenuBar menuBar;
+    private List<GraphViewer> viewers; //Each of the viewers is a component which displays a graph
+    private List<SimAbstractGraph> graphs;  //A list of the the graph pairs attached to the viewers
     private ViewerPopupMenu popupMenu;  //The popup menu that is shown when a viewer is right-clicked
-    //This window is used to configure which algorithms to load, what graphs are using what algorithms, and what graphs to display.
-    //It saves all of the configurations to TrustPropertyManager config
     private PropertyManager config; //The Property Manager that contains all of the saved algorithmLoader for the applet and algorithm loader
-    public JCheckBoxMenuItem toggleEventPanel, togglePlaybackPanel; //A check box which is used to show the log table
     private Container graphsPanel; //This container contains all of the TrustGraphViewers as components
     private EventPlayer eventThread; //Plays through the list of events and updates the graphs and its' listeners
 
@@ -65,10 +63,14 @@ public final class TrustGrapher extends JFrame {
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+    public boolean graphsLoaded(){
+        return eventThread != null && viewers.get(0) != null && graphsPanel != null;
+    }
+
     /**
      * @return Returns the list of GraphPair objects
      */
-    public List<GraphPair> getGraphs() {
+    public List<SimAbstractGraph> getGraphs() {
         return graphs;
     }
 
@@ -95,7 +97,7 @@ public final class TrustGrapher extends JFrame {
      * @return The visible TrustGraphViewers
      */
     public List<GraphViewer> getVisibleViewers() {
-        if (getViewType() == TABBED) {
+        if (graphsPanel instanceof JTabbedPane){
             List<GraphViewer> visibleViewers = new java.util.LinkedList<GraphViewer>();
             visibleViewers.add((GraphViewer) ((JTabbedPane) graphsPanel).getSelectedComponent());
             return visibleViewers;
@@ -106,6 +108,10 @@ public final class TrustGrapher extends JFrame {
 
     public EventPlayer getEventPlayer() {
         return eventThread;
+    }
+
+    public TrustMenuBar getTrustMenuBar(){
+        return menuBar;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
@@ -119,24 +125,12 @@ public final class TrustGrapher extends JFrame {
         //If a log path has been selected by the Algortihm Loader
         if (config.containsKey(AlgorithmLoader.LOG_PATH)) {
             //If there are any events currently loaded, pause the simulator 
-            if (eventThread != null) {
+            if (graphsLoaded()) {
                 eventThread.pause();
             }
 
             //Build graphs based on graphConfigs
-            graphs = new ArrayList<GraphPair>();
-            ArrayList<GraphConfig> trustGraphs = new ArrayList<GraphConfig>();
-            for (GraphConfig graphConfig : graphConfigs) {
-                if (graphConfig.isTrustAlg()) { //Process Trust Graphs after
-                    trustGraphs.add(graphConfig);
-                } else { //Othwerise, create a new GraphPair, and add it to the graphs
-                    graphs.add(new GraphPair(graphConfig, graphs));
-                }
-            }
-            //Trust graphs are made last because their base graph might not have been made before
-            for (GraphConfig graphConfig : trustGraphs) {
-                graphs.add(new GraphPair(graphConfig, graphs));
-            }
+            graphs = GraphLoader.loadGraphs(graphConfigs);
 
             //Begin reading the log and performing graphConstructionEvents
             java.io.File logFile = new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH));
@@ -178,115 +172,8 @@ public final class TrustGrapher extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        //Create the Menu Bar
-
-        //File buttons
-        JMenuItem algLoaderButton = new JMenuItem("Load Algorithms");
-        JMenuItem saveLogButton = new JMenuItem("Save Log File");
-        JMenuItem exportButton = new JMenuItem("Export Results");
-        JMenuItem exit = new JMenuItem("Exit");
-        //Edit Buttons
-        JMenuItem insertEvent = new JMenuItem("Insert Event After");
-        JMenuItem removeEvent = new JMenuItem("Remove Event");
-        JMenuItem modifyEvent = new JMenuItem("Modify Event");
-        JMenuItem optionsButton = new JMenuItem("Options");
-        //View Buttons
-        JRadioButtonMenuItem tabbedView = new JRadioButtonMenuItem("Tabbed View");
-        JRadioButtonMenuItem gridView = new JRadioButtonMenuItem("Grid View");
-        toggleEventPanel = new JCheckBoxMenuItem("Toggle Log Table");
-        togglePlaybackPanel = new JCheckBoxMenuItem("Toggle Playback Panel");
-        //Help Buttons
-        JMenuItem about = new JMenuItem("About");
-        //Add Action Listeners
-        FileMenuListener fileListener = new FileMenuListener();
-        algLoaderButton.addActionListener(fileListener);
-        optionsButton.addActionListener(fileListener);
-        saveLogButton.addActionListener(fileListener);
-        exportButton.addActionListener(fileListener);
-        exit.addActionListener(fileListener);
-        EditMenuListener editListener = new EditMenuListener();
-        insertEvent.addActionListener(editListener);
-        removeEvent.addActionListener(editListener);
-        modifyEvent.addActionListener(editListener);
-        ViewMenuListener viewListener = new ViewMenuListener();
-        tabbedView.addActionListener(viewListener);
-        gridView.addActionListener(viewListener);
-        toggleEventPanel.addActionListener(viewListener);
-        togglePlaybackPanel.addActionListener(viewListener);
-        about.addActionListener(new HelpMenuListener());
-
-        //Set view type from value in config
-        if (getViewType() == GRID) {
-            gridView.setSelected(true);
-        } else {
-            tabbedView.setSelected(true);
-        }
-
-        //Sets the status of the display buttons based on the properties file
-        if (config.containsKey(SHOW_PLAYBACK_PANEL)){
-            togglePlaybackPanel.setSelected(Boolean.parseBoolean(config.getProperty(SHOW_PLAYBACK_PANEL)));
-        }else{
-            togglePlaybackPanel.setSelected(true);
-        }
-        if (config.containsKey(SHOW_EVENT_PANEL)){
-            toggleEventPanel.setSelected(Boolean.parseBoolean(config.getProperty(SHOW_EVENT_PANEL)));
-        }else{
-            toggleEventPanel.setSelected(true);
-        }
-        
-
-        //Create the file menu
-        JMenu file = new JMenu("File");
-        file.add(algLoaderButton);
-        file.add(saveLogButton);
-        file.add(exportButton);
-        file.addSeparator();
-        file.add(optionsButton);
-        file.addSeparator();
-        file.add(exit);
-
-        //Create the Edit Menu
-        JMenu edit = new JMenu("Edit");
-        edit.add(insertEvent);
-        edit.add(removeEvent);
-        edit.add(modifyEvent);
-
-        //Create the view menu
-        JMenu view = new JMenu("View");
-        ButtonGroup viewGroup = new ButtonGroup();
-        viewGroup.add(tabbedView);
-        viewGroup.add(gridView);
-        view.add(tabbedView);
-        view.add(gridView);
-        view.addSeparator();
-        view.add(toggleEventPanel);
-        view.add(togglePlaybackPanel);
-
-        //Create the Help Menu
-        JMenu help = new JMenu("Help");
-        help.add(about);
-
-        //Add the menus to the menu bar
-        JMenuBar bar = new JMenuBar();
-        bar.add(file);
-        bar.add(edit);
-        bar.add(view);
-        bar.add(help);
-        setJMenuBar(bar);
-    }
-
-    /**
-     * Builds and returns a new SplitPane which contains the graphsPanel and playbackPanel.
-     * @return A new mainpane containing the graphsPanel and playbackPanel
-     */
-    public JSplitPane buildMainPane() {
-        JSplitPane secondaryPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, graphsPanel, eventThread.getPlaybackPanel());
-        JSplitPane primaryPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, secondaryPane, eventThread.getLogPanel());
-        primaryPane.setResizeWeight(1);
-        secondaryPane.setResizeWeight(1); //Means the size of the playbackPanel will set the position of the divider
-        primaryPane.setDividerSize(3);
-        secondaryPane.setDividerSize(3);
-        return primaryPane;
+        this.menuBar = new TrustMenuBar(this);
+        setJMenuBar(menuBar.getJMenuBar());
     }
 
     /**
@@ -307,19 +194,18 @@ public final class TrustGrapher extends JFrame {
 
         //Create the Visualization Viewers
         viewers = new LinkedList<GraphViewer>();
-        for (GraphPair graphPair : graphs) {
-            if (graphPair.isDisplayed()) {
-                //Sets the initial (FRLayout) of the graph.  The graphs must have already had their construction events processed,
-                //or the graphs will have a random layout
-                AbstractLayout<Agent, TestbedEdge> layout = new FRLayout<Agent, TestbedEdge>(graphPair.getFullGraph());
+        for (SimAbstractGraph graph : graphs) {
+            if (graph.isDisplayed()) {
+                //Sets the initial layout of the graph.  The graphs must have already had their construction events processed, or the graphs will have a random layout
+                AbstractLayout<Agent, TestbedEdge> layout = new FRLayout<Agent, TestbedEdge>(graph.getFullGraph());
                 layout.setInitializer(new VertexPlacer(layout, new Dimension(DEFWIDTH / 3, DEFHEIGHT / 2)));
                 //Creates the new GraphViewer
-                GraphViewer viewer = new GraphViewer(layout, DEFWIDTH / 3, DEFHEIGHT / 2, gm, listener, graphPair);
+                GraphViewer viewer = new GraphViewer(layout, DEFWIDTH / 3, DEFHEIGHT / 2, gm, listener, graph);
                 if (graphsPanel instanceof JPanel) {  //If the graphsPanel is set for grid view
-                    viewer.setBorder(BorderFactory.createTitledBorder(graphPair.getDisplayName()));
+                    viewer.setBorder(BorderFactory.createTitledBorder(graph.getDisplayName()));
                     ((JPanel) graphsPanel).add(viewer);
                 } else { //Othwerwise, the graphsPanel is set for Tabbed view, which is the default.
-                    ((JTabbedPane) graphsPanel).addTab(graphPair.getDisplayName(), viewer);
+                    ((JTabbedPane) graphsPanel).addTab(graph.getDisplayName(), viewer);
                 }
                 layout.lock(true); //Locking the layout will prevent the graph entities from moving around
                 viewers.add(viewer);
@@ -333,8 +219,13 @@ public final class TrustGrapher extends JFrame {
 
         //Create the mainPane, add the graphsPanel and playbackPanel, and add the mainPane to the content pane
         getContentPane().removeAll();  //Necessary to removeAll since there might already be existing viewers present
-        getContentPane().add(buildMainPane()); //The main pane includes the graphsPanel and the playbackPanel
-
+        JSplitPane secondaryPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, graphsPanel, eventThread.getPlaybackPanel());
+        JSplitPane primaryPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, secondaryPane, eventThread.getLogPanel());
+        primaryPane.setResizeWeight(1);
+        secondaryPane.setResizeWeight(1); //Means the size of the playbackPanel will set the position of the divider
+        primaryPane.setDividerSize(3);
+        secondaryPane.setDividerSize(3);
+        getContentPane().add(primaryPane); //The main pane includes the graphsPanel and the playbackPanel
         validate();
     }
 
@@ -365,119 +256,6 @@ public final class TrustGrapher extends JFrame {
         }
     }
 
-    /**
-     * Listens for file menu button click events and deals with them accordingly
-     */
-    private class FileMenuListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            String buttonText = ((AbstractButton) e.getSource()).getText();
-            PlaybackPanel playbackPanel = (eventThread != null) ? eventThread.getPlaybackPanel() : null;
-            if (buttonText.equals("Load Algorithms")) {
-                if (playbackPanel != null) {
-                    playbackPanel.getPauseButton().doClick();
-                }
-                startAlgorithmLoader();
-            } else if (buttonText.equals("Export Results")) {
-                //Implement export results
-                ChatterBox.alert("Export results.  To implement this, go to cu.trustGrapher.TrustGrapher,\nthen search 'Implement export results'.");
-            } else if (buttonText.equals("Options")) {
-                OptionsWindow.run(TrustGrapher.this);
-            } else if (buttonText.equals("Save Log File")) {
-                if (eventThread != null) {
-                    LogGen.saveEventLog(eventThread.getEvents());
-                }
-            } else if (buttonText.equals("Exit")) {
-                if (playbackPanel != null) {
-                    playbackPanel.getPauseButton().doClick();
-                }
-                if (ChatterBox.yesNoDialog("Are you sure you want to exit?")) {
-                    System.exit(0);
-                }
-            } else {
-                ChatterBox.error(this, "actionPerformed()", "Uncaught button press:\n" + buttonText);
-            }
-        }
-    }
-
-    /**
-     * Listens for edit menu button click events and deals with them accordingly
-     */
-    private class EditMenuListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            if (eventThread != null) {
-                String buttonText = ((AbstractButton) e.getSource()).getText();
-                if (buttonText.equals("Insert Event After")) {
-                    EventInjector.getNewEvent(eventThread);
-                } else if (buttonText.equals("Remove Event")) {
-                    eventThread.removeEvent();
-                } else if (buttonText.equals("Modify Event")) {
-                    EventInjector.modifyEvent(eventThread);
-                } else {
-                    ChatterBox.error(this, "actionPerformed()", "Uncaught button press");
-                }
-            }
-        }
-    }
-
-    /**
-     * Listens for view menu button click events and deals with them accordingly
-     */
-    private class ViewMenuListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            String buttonText = ((AbstractButton) e.getSource()).getText();
-            if (buttonText.equals("Tabbed View")) {
-                config.setProperty("viewType", "" + TABBED);
-                if (graphsPanel != null) {
-                    eventThread.goToEvent(0);
-                    startGraph(eventThread.getEvents());
-                }
-            } else if (buttonText.equals("Grid View")) {
-                config.setProperty("viewType", "" + GRID);
-                if (graphsPanel != null) {
-                    eventThread.goToEvent(0);
-                    startGraph(eventThread.getEvents());
-                }
-            } else if (buttonText.equals("Toggle Log Table")) {
-                config.setProperty(SHOW_EVENT_PANEL, "" + toggleEventPanel.isSelected());
-                if (eventThread != null) { //If events have been loaded
-                    eventThread.getLogPanel().setVisible(toggleEventPanel.isSelected());
-                    if (toggleEventPanel.isSelected()) {
-                        pack();
-                    }
-                }
-            }else if (buttonText.equals("Toggle Playback Panel")){
-                config.setProperty(SHOW_PLAYBACK_PANEL, "" + togglePlaybackPanel.isSelected());
-                if (eventThread != null) { //If events have been loaded
-                    eventThread.getPlaybackPanel().setVisible(togglePlaybackPanel.isSelected());
-                    if (togglePlaybackPanel.isSelected()) {
-                        pack();
-                    }
-                }
-            } else {
-                ChatterBox.error(this, "actionPerformed()", "Uncaught button press:\n" + buttonText);
-            }
-            config.save();
-        }
-    }
-
-    /**
-     * Listens for help menu button click events and deals with them accordingly
-     */
-    private class HelpMenuListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            String buttonText = ((AbstractButton) e.getSource()).getText();
-            if (buttonText.equals("About")) {
-                ChatterBox.alert("TrustGrapher - Written by Andrew O'Hara\n\nRevision " + CURRENT_REVISION);
-            } else {
-                ChatterBox.error(this, "actionPerformed()", "Uncaught button press:\n" + buttonText);
-            }
-        }
-    }
-
 ////////////////////////////////Static Methods//////////////////////////////////
     /**
      * to start this program as a java application
@@ -487,4 +265,3 @@ public final class TrustGrapher extends JFrame {
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-

@@ -1,9 +1,8 @@
 ////////////////////////////////LogReader//////////////////////////////////
-package cu.trustGrapher.graph.savingandloading;
+package cu.trustGrapher.loading;
 
 import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
-import cu.trustGrapher.graphs.GraphPair;
 import java.io.BufferedReader;
 
 import javax.swing.SwingWorker;
@@ -14,8 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import utilities.ChatterBox;
-import utilities.AreWeThereYet;
+import aohara.utilities.ChatterBox;
+import aohara.utilities.AreWeThereYet;
+import cu.trustGrapher.graphs.SimAbstractGraph;
 
 /**
  * Description
@@ -98,8 +98,8 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         for (int i = 0; i < totalLines; i++) {
             event = new TrustLogEvent(logReader.readLine()); //Read the next line in the 
             logEvents.add(event); //add this log event to the list
-            for (GraphPair graphPair : trustGrapher.getGraphs()) {
-                graphPair.handleConstructionEvent(event); //Build any necessary entities referenced by the event
+            for (SimAbstractGraph graph : trustGrapher.getGraphs()) {
+                graph.graphConstructionEvent(event); //Build any necessary entities referenced by the event
             }
             publish("progress");
         }
@@ -107,8 +107,8 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
         //An empty event is not added to the event list, this is just to get the non-feedback graphs to do a construction event
         //since they will only construct their edges when passed a null event.  During regular events, they only add vertices if needed
         //If they were to constuct edges after every event, it would severely slow the loading of long logs
-        for (GraphPair graphPair : trustGrapher.getGraphs()) {
-            graphPair.handleConstructionEvent(null);
+        for (SimAbstractGraph graph : trustGrapher.getGraphs()) {
+            graph.graphConstructionEvent(null);
         }
         return logEvents;
     }

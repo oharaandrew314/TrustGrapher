@@ -3,7 +3,6 @@ package cu.trustGrapher.visualizer;
 
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
-import cu.trustGrapher.TrustGrapher;
 
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
@@ -13,7 +12,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
  * Initializes the right-click menu components and event handlers (Does not contain the listeners)

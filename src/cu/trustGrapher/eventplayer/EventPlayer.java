@@ -4,14 +4,15 @@ package cu.trustGrapher.eventplayer;
 import cu.trustGrapher.OptionsWindow;
 import cu.trustGrapher.TrustGrapher;
 
-import cu.trustGrapher.graphs.GraphPair;
+import cu.trustGrapher.loading.GraphLoader;
 import cu.trustGrapher.visualizer.GraphViewer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import javax.swing.Timer;
 import java.util.List;
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
+import cu.trustGrapher.graphs.SimAbstractGraph;
 
 /**
  * Plays through the list of TrustLogEvents.  After each tick, the events that occured
@@ -240,8 +241,8 @@ public final class EventPlayer implements ActionListener {
             }
             if (!eventsToProcess.isEmpty()) {
                 for (TrustLogEvent event : eventsToProcess) {
-                    for (GraphPair graphPair : trustGrapher.getGraphs()) {
-                        graphPair.handleGraphEvent(event, isForward);
+                    for (SimAbstractGraph graph : trustGrapher.getGraphs()) {
+                        graph.graphEvent(event, isForward);
                     }
                 }
                 for (EventPlayerListener listener : listeners) {
@@ -267,9 +268,9 @@ public final class EventPlayer implements ActionListener {
         newEvents.add(event);
         newEvents.addAll(events.subList(currentEventIndex + 1, events.size()));
         goToEvent(0);
-        for (GraphPair graphPair : trustGrapher.getGraphs()) {
-            graphPair.handleConstructionEvent(event);
-            graphPair.handleConstructionEvent(null);
+        for (SimAbstractGraph graph : trustGrapher.getGraphs()) {
+            graph.graphConstructionEvent(event);
+            graph.graphConstructionEvent(null);
         }
         trustGrapher.startGraph(newEvents);
     }
@@ -301,9 +302,9 @@ public final class EventPlayer implements ActionListener {
             int indexToModify = currentEventIndex;
             goToEvent(0);
             events.set(indexToModify, event);
-            for (GraphPair graphPair : trustGrapher.getGraphs()) {
-                graphPair.handleConstructionEvent(event);
-                graphPair.handleConstructionEvent(null);
+            for (SimAbstractGraph graph : trustGrapher.getGraphs()) {
+                graph.graphConstructionEvent(event);
+                graph.graphConstructionEvent(null);
             }
             trustGrapher.startGraph(events);
         } else {

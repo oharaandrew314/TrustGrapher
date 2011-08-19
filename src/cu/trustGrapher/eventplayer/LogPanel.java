@@ -10,7 +10,7 @@ import javax.swing.*;
 import java.util.List;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
  * The Log Panel always exists when graphs are loaded, but it is only displayed when the check box option for it is checked.
@@ -32,7 +32,7 @@ public final class LogPanel extends JPanel implements EventPlayerListener {
     public LogPanel(EventPlayer eventThread) {
         this.eventThread = eventThread;
         initComponents();
-        setVisible(eventThread.getTrustGrapher().toggleEventPanel.isSelected());
+        setVisible(eventThread.getTrustGrapher().getTrustMenuBar().toggleEventPanelButton.isSelected());
     }
 //////////////////////////////////Accessors/////////////////////////////////////
     /**

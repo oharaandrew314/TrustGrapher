@@ -4,7 +4,7 @@ package cu.trustGrapher.graphs.edges;
 import cu.repsystestbed.graphs.FeedbackHistoryGraphEdge;
 import cu.repsystestbed.data.Feedback;
 import cu.repsystestbed.entities.Agent;
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
  * An extension of FeedbackHistoryGraphEdge for use in the TrustGrapher trust simulator

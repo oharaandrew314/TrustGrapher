@@ -1,7 +1,7 @@
 ////////////////////////////////EventInjector//////////////////////////////////
 package cu.trustGrapher.eventplayer;
 
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
  * This window is used to create a new or modified TrustLogEvent to modify the logEvents.  It is 

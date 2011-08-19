@@ -9,6 +9,7 @@ import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.ReputationEdgeFactory;
 import cu.repsystestbed.graphs.ReputationGraph;
 import cu.repsystestbed.graphs.TestbedEdge;
+import cu.trustGrapher.loading.GraphConfig;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
 
@@ -20,31 +21,25 @@ import java.util.Collection;
  * @author Andrew O'Hara
  */
 public class SimReputationGraph extends SimAbstractGraph {
+    private SimFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Creates a Reputation Graph.
      * @param graphPair The graphPair that is to hold this graph
      */
-    public SimReputationGraph(GraphPair graphPair) {
-        super(graphPair, (SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()));
-    }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-    /**
-     * This String returned by this is the String displayed on the viewer border
-     */
-    public String getDisplayName() {
-        return graphPair.getID() + "-" + graphPair.getAlgorithm().getClass().getSimpleName();
+    public SimReputationGraph(GraphConfig graphConfig, SimFeedbackGraph feedbackGraph) {
+        super(graphConfig, (SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()));
+        this.feedbackGraph = feedbackGraph;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     @Override
     public void graphEvent(TrustLogEvent event, boolean forward) {
-        ReputationAlgorithm alg = (ReputationAlgorithm) graphPair.getAlgorithm();
+        ReputationAlgorithm alg = (ReputationAlgorithm) getAlgorithm();
         ((EigenTrust) alg).setMatrixFilled(false);
         ((EigenTrust) alg).setIterations(((EigenTrust) alg).getIterations() + (forward ? 1 : -1));
-        Collection<Agent> fbVertices = graphPair.getGraphs().get(0).getDynamicGraph().getVertices();
+        Collection<Agent> fbVertices = feedbackGraph.getVertices();
         ArrayList<Agent> toRemove = new ArrayList<Agent>();
         for (Agent src : fbVertices) {
             for (Agent sink : fbVertices) {
@@ -55,9 +50,9 @@ public class SimReputationGraph extends SimAbstractGraph {
                     } catch (Exception ex) {
                         continue;
                     }
-                    ensureAgentExists(src.id);
-                    ensureAgentExists(sink.id);
-                    ((SimReputationEdge) graphPair.getFullGraph().findEdge(src, sink)).setReputation(trustScore);
+                    ensureAgentExists(src.id, this);
+                    ensureAgentExists(sink.id, this);
+                    ((SimReputationEdge) fullGraph.findEdge(src, sink)).setReputation(trustScore);
                     ((SimReputationEdge) ensureEdgeExists(src, sink, this)).setReputation(trustScore);
                 }
             }

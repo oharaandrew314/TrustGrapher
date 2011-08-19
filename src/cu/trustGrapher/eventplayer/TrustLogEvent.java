@@ -1,11 +1,10 @@
 ///////////////////////////////////////TrustLogEvent/////////////////////////////////
 package cu.trustGrapher.eventplayer;
 
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
- * a simple class to encapsulate events to the graph as read from the
- * processed log file. 
+ * a simple class to encapsulate events to the graph as read from the processed log file.
  * @author adavoust
  * @author Andrew O'Hara
  */

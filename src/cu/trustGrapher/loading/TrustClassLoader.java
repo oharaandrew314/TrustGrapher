@@ -1,15 +1,15 @@
 ////////////////////////////////TrustClassLoader//////////////////////////////////
-package cu.trustGrapher.graph.savingandloading;
+package cu.trustGrapher.loading;
 
 import cu.repsystestbed.algorithms.ReputationAlgorithm;
 import cu.repsystestbed.algorithms.TrustAlgorithm;
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
  * An extension of MyClassLoader to include methods specific for TrustGrapher
  * @author Andrew O'Hara
  */
-public class TrustClassLoader extends utilities.MyClassLoader {
+public class TrustClassLoader extends aohara.utilities.MyClassLoader {
 
 ////////////////////////////////Static Methods//////////////////////////////////
     /**

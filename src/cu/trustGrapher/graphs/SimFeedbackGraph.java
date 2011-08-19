@@ -6,6 +6,7 @@ import cu.trustGrapher.graphs.edges.SimFeedbackEdge;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.FeedbackHistoryEdgeFactory;
 import cu.repsystestbed.graphs.FeedbackHistoryGraph;
+import cu.trustGrapher.loading.GraphConfig;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
 
@@ -20,24 +21,15 @@ public class SimFeedbackGraph extends SimAbstractGraph {
      * Creates a feedback graph
      * @param graphPair The graphPair that is to hold this graph
      */
-    public SimFeedbackGraph(GraphPair graphPair) {
-        super(graphPair, (SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()));
+    public SimFeedbackGraph(GraphConfig graphConfig) {
+        super(graphConfig, (SimpleDirectedGraph) new FeedbackHistoryGraph(new FeedbackHistoryEdgeFactory()));
     }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-    /**
-     * This String returned by this is the String displayed on the viewer border
-     */
-    @Override
-    public String getDisplayName() {
-        return "0-FeedbackHistory";
-    }
-
+    
 ///////////////////////////////////Methods//////////////////////////////////////
     public void graphEvent(TrustLogEvent event, boolean forward) {
-        Agent src = ensureAgentExists(event.getAssessor()), sink = ensureAgentExists(event.getAssessee());
+        Agent src = ensureAgentExists(event.getAssessor(), this), sink = ensureAgentExists(event.getAssessee(), this);
         SimFeedbackEdge dynEdge = (SimFeedbackEdge) ensureEdgeExists(src, sink, this);
-        SimFeedbackEdge fullEdge = (SimFeedbackEdge) graphPair.getFullGraph().findEdge(src, sink);
+        SimFeedbackEdge fullEdge = (SimFeedbackEdge) fullGraph.findEdge(src, sink);
         double feedback = event.getFeedback();
         if (forward) {
             //Add the feedback to the full edge so it can be seen in the viewer            
@@ -59,10 +51,11 @@ public class SimFeedbackGraph extends SimAbstractGraph {
     @Override
     public void graphConstructionEvent(TrustLogEvent event) {
         if (event != null) {
-            Agent src = ensureAgentExists(event.getAssessor());
-            Agent sink = ensureAgentExists(event.getAssessee());
-            ensureEdgeExists(src, sink, this);
+            Agent src = ensureAgentExists(event.getAssessor(), fullGraph);
+            Agent sink = ensureAgentExists(event.getAssessee(), fullGraph);
+            ensureEdgeExists(src, sink, fullGraph);
         }
+       
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

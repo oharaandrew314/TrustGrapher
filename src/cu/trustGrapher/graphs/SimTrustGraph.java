@@ -11,7 +11,8 @@ import java.util.Collection;
 
 import org.jgrapht.graph.SimpleDirectedGraph;
 
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
+import cu.trustGrapher.loading.GraphConfig;
 
 /**
  * A graph that shows whether each agent trusts the other
@@ -24,30 +25,22 @@ public class SimTrustGraph extends SimAbstractGraph {
      * Creates a Trust Graph.
      * @param graphPair The graphPair that is to hold this graph
      */
-    public SimTrustGraph(GraphPair graphPair) {
-        super(graphPair, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()));
-    }
-
-//////////////////////////////////Accessors/////////////////////////////////////
-    /**
-     * This String returned by this is the String displayed on the viewer border
-     */
-    public String getDisplayName() {
-        return graphPair.getID() + "-" + graphPair.getAlgorithm().getClass().getSimpleName();
+    public SimTrustGraph(GraphConfig graphConfig) {
+        super(graphConfig, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()));
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     @Override
     public void graphEvent(TrustLogEvent event, boolean forward) {
-        TrustAlgorithm alg = (TrustAlgorithm) graphPair.getAlgorithm();
+        TrustAlgorithm alg = (TrustAlgorithm) getAlgorithm();
         Collection<Agent> vertices = forward ? alg.getReputationGraph().vertexSet() : getVertices();
         for (Agent src : vertices) {
             for (Agent sink : vertices) {
                 try {
                     if (!src.equals(sink)) {
                         if (alg.trusts(src, sink)) { //Ensure an edge exists between the two agents that trust eachother
-                            ensureAgentExists(src.id);
-                            ensureAgentExists(sink.id);
+                            ensureAgentExists(src.id, this);
+                            ensureAgentExists(sink.id, this);
                             ensureEdgeExists(src, sink, this);
                         } else {
                             throw new IllegalArgumentException(); //Remove the edge

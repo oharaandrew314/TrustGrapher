@@ -5,8 +5,8 @@ import cu.trustGrapher.eventplayer.TrustLogEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Random;
-import utilities.BitStylus;
-import utilities.ChatterBox;
+import aohara.utilities.BitStylus;
+import aohara.utilities.ChatterBox;
 
 /**
  * Generates a random Trust Event Log file for use with the TrustGrapher simulator

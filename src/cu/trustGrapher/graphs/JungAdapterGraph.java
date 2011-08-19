@@ -354,7 +354,7 @@ public class JungAdapterGraph<V,E> implements edu.uci.ics.jung.graph.DirectedGra
 	}
 
     public EdgeType getDefaultEdgeType() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return EdgeType.DIRECTED;
     }
 
 }

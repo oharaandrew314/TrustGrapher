@@ -2,13 +2,12 @@
 package cu.trustGrapher.eventplayer;
 
 import cu.trustGrapher.OptionsWindow;
-import cu.trustGrapher.TrustGrapher;
 import java.awt.GridBagLayout;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import utilities.ChatterBox;
+import aohara.utilities.ChatterBox;
 
 /**
  * The PlaybackPanel always exists when graphs are loaded, but it is only displayed when the check box option for it is checked.
@@ -36,12 +35,12 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
         this.eventThread = eventThread;
         initComponents();
         //Load saved properties
-        utilities.PropertyManager config = eventThread.getTrustGrapher().getPropertyManager();
+        aohara.utilities.PropertyManager config = eventThread.getTrustGrapher().getPropertyManager();
         if (config.containsKey(EVENTS_PER_TICK)) { //Try loading value for speedSlider
             try {
                 speedSlider.setValue(Integer.parseInt(config.getProperty(EVENTS_PER_TICK)));
             } catch (NumberFormatException ex) {
-                utilities.ChatterBox.alert("Invalid eventsPerTick property.  Can continue.  Will set to defualt.");
+                aohara.utilities.ChatterBox.alert("Invalid eventsPerTick property.  Can continue.  Will set to defualt.");
             }
         }
 
@@ -53,7 +52,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
                         OptionsWindow.SCRUB_MODE + " property was invalid.");                
             }
         }
-        setVisible(eventThread.getTrustGrapher().togglePlaybackPanel.isSelected());
+        setVisible(eventThread.getTrustGrapher().getTrustMenuBar().togglePlaybackPanelButton.isSelected());
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
@@ -175,7 +174,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
             } else if (buttonText.equals(" <| ")) {
                 eventThread.reverse();
             } else {
-                utilities.ChatterBox.error(this, "actionPerformed()", "An unhandled PlayBackPanel button press occured");
+                aohara.utilities.ChatterBox.error(this, "actionPerformed()", "An unhandled PlayBackPanel button press occured");
             }
         }
     }

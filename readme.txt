@@ -383,7 +383,18 @@ New Feature: There is not an option to toggle the playback panel in the view men
 Feature fix: Should now show that Agents no longer trust eachother due to new low feeedback values (untested)
 Feature fix: You will no longer see Agents with no Edges in Trust Graphs.  An Agents will now only appear when it trusts another one
 Bug Fix: If you add a new Agent to the graph through the event injector, the simulator will no longer crash when it attempts to add it
+Refactor: The Simulator menu bar is now it's own class
 Refactor: Merged forward and backward events with graphEvent method for SimGraphs.  They were too similar to keep seperate
+More Documentation
+
+	Revision 51
+New Bug Fix: The simulator view can be changed from grid to tabbed again
+Bug Fix: Removing a graph from the AlgorithmLoader will now always remove the correct GraphConfig
+New Feature: Updated the look of the options and algorithm loader windows to be cleaner
+New Feature: When the otions button is pressed, if there is a simulation running, it will pause it
+Refactor: Removed GraphPair class, added the fullGraph as a JungAdapterGraph parameter to the SimAbstractGraph
+Refactor: Integrated the GraphConfigManager with the AlgorithmLoader.  It isn't as clean this way, but the other way wasn't necessary.
+More Documentation
 
 --------------------------------------------------------------------------------
 
@@ -400,9 +411,8 @@ Refactor: Merged forward and backward events with graphEvent method for SimGraph
     ------------------
     4.2.0 Low Priority
     ------------------
+	Maybe add event controls to right-click menu
 	Find another way to have GraphPairs know about eachother.  Maybe a graphManager?
-	Integrate the GraphViewer popupMenu and listener with GraphViewer
-	Remove BitStylus dependency for PropertyManager
     Add graphic buttons for the playback bar
 	Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
 
