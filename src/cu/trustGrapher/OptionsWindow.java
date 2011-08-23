@@ -15,7 +15,7 @@ import aohara.utilities.PropertyManager;
 public class OptionsWindow extends javax.swing.JFrame {
 
     public static final String DELAY = "delay", SCRUB_MODE = "scrubMode";
-    private final TrustGrapher trustGrapher;
+    protected TrustGrapher trustGrapher;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public OptionsWindow(TrustGrapher trustGrapher) {

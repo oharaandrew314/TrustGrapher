@@ -19,8 +19,8 @@ public class GraphConfig {
     private File classFile;
     private int index, base, classIndex;
     private boolean display;
-    private Object algorithm;
-    private PropertyManager properties;
+    protected Object algorithm;
+    protected PropertyManager properties;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**

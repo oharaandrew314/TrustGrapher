@@ -4,6 +4,7 @@ package cu.trustGrapher;
 import cu.trustGrapher.loading.*;
 import cu.trustGrapher.eventplayer.*;
 import cu.trustGrapher.visualizer.*;
+import cu.trustGrapher.graphs.SimAbstractGraph;
 import cu.repsystestbed.entities.Agent;
 import cu.repsystestbed.graphs.TestbedEdge;
 
@@ -18,8 +19,6 @@ import java.util.List;
 import java.util.LinkedList;
 
 import aohara.utilities.*;
-import cu.trustGrapher.loading.GraphLoader;
-import cu.trustGrapher.graphs.SimAbstractGraph;
 
 /**
  * An application that will display Trust Graphs generated from a series of feedback events.
@@ -31,16 +30,16 @@ import cu.trustGrapher.graphs.SimAbstractGraph;
  */
 public final class TrustGrapher extends JFrame {
 
-    public static final int CURRENT_REVISION = 52;
+    public static final double VERSION = 1.00;
     public static final int TABBED = 0, GRID = 1; //View types
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
-    private TrustMenuBar menuBar;
-    private List<GraphViewer> viewers; //Each of the viewers is a component which displays a graph
-    private List<SimAbstractGraph> graphs;  //A list of the the graph pairs attached to the viewers
-    private ViewerPopupMenu popupMenu;  //The popup menu that is shown when a viewer is right-clicked
-    private PropertyManager config; //The Property Manager that contains all of the saved algorithmLoader for the applet and algorithm loader
-    private Container graphsPanel; //This container contains all of the TrustGraphViewers as components
-    private EventPlayer eventThread; //Plays through the list of events and updates the graphs and its' listeners
+    protected TrustMenuBar menuBar;
+    protected List<GraphViewer> viewers; //Each of the viewers is a component which displays a graph
+    protected List<SimAbstractGraph> graphs;  //A list of the the graph pairs attached to the viewers
+    protected ViewerPopupMenu popupMenu;  //The popup menu that is shown when a viewer is right-clicked
+    protected PropertyManager config; //The Property Manager that contains all of the saved algorithmLoader for the applet and algorithm loader
+    protected Container graphsPanel; //This container contains all of the TrustGraphViewers as components
+    protected EventPlayer eventThread; //Plays through the list of events and updates the graphs and its' listeners
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -174,7 +173,7 @@ public final class TrustGrapher extends JFrame {
      */
     private void initComponents() {
         //Initialize frame
-        setTitle("TrustGrapher r" + CURRENT_REVISION + " - Written by Andrew O'Hara");
+        setTitle("TrustGrapher v" + VERSION + " - Written by Andrew O'Hara");
         getContentPane().setFont(new Font("Arial", Font.PLAIN, 12));
         getContentPane().setBounds(0, 0, DEFWIDTH, DEFHEIGHT);
         setPreferredSize(new Dimension(DEFWIDTH, DEFHEIGHT));

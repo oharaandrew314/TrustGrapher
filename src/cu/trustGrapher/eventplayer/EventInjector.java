@@ -14,7 +14,7 @@ public final class EventInjector extends javax.swing.JFrame {
 
     private static final int CREATE = 0, MODIFY = 1;
     private int mode;
-    private EventPlayer eventThread;
+    protected EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**

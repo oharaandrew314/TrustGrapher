@@ -12,24 +12,24 @@
 2.0.0 Usage Instructions
     2.1.0 Running the program
     2.2.0 Start Screen
-        2.2.1 The Menu Bar
-    2.3.0 Loading Algorithms
+        2.2.1 The File Menu
+		2.2.2 The Edit Menu
+		2.2.3 The View Menu
+    2.3.0 Loading Graphs
         2.3.1 Loading a log file
-        2.3.2 Loading a Class
-        2.3.3 Removing a class
-        2.3.4 Adding an Algorithm
-        2.3.5 Remving an algorithm
-        2.3.6 Configuring an Algorithm
-        2.3.7 TrustGrapher Properties File
+        2.3.2 Adding an Algorithm Path
+        2.3.3 Removing an Algorithm Path
+        2.3.4 Adding a Graph
+        2.3.5 Remving a Graph
+        2.3.6 Configuring a Graph
     2.4.0 Running the Simulator
         2.4.1 The Playback Panel
-        2.4.2 Right-Clicking in a Viewer Window
+		2.4.2 The Event Panel
+        2.4.3 Right-Clicking in a Viewer Window
 
-3.0.0 Code Maintenance Explanation
+3.0.0 ChangeLog
 
-4.0.0 ChangeLog
-
-5.0.0 ToDo List
+4.0.0 ToDo List
     4.1.0 High Priority
     4.2.0 Low Priority
 
@@ -39,11 +39,11 @@
 1.0.0 Description
 -----------------
 
-This is a playable simulator that simulates a series of feedback events from an .arff log
-The simulator supports a FeedbackHistory graph, reputation algorithm graphs, and trust algorithm graphs
+This is a playable simulator that simulates a series of feedback events from an .arff log file.
+The simulator supports a FeedbackHistory graph, reputation algorithm graphs, and trust algorithm graphs.
 Reputation and Trust algorithms can be loaded from the algorithm loader window
 
-The main purpose of this simulator is to test trust algorithms, and see if and how they can be cheated or "broken"
+The main purpose of this simulator is to test trust algorithms, and see if and how they can be cheated or "broken".
 
 --------------------------------------------------------------------------------
 
@@ -60,98 +60,105 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
     ------------------
     2.2.0 Start Screen
     ------------------
-    You will start at a blank screen with no graph viewers.
-    You will need to open the file menu, and click on "Load Algorithms" to begin loading algorithms
+    You will start at a blank screen, and the AlgorithmLoader Windows will pop up.
+	You can then configure the algorithms and graph that you wish to include in the simulation.
+	Your last configuration will automatically be loaded.
 
         ------------------
-        2.2.1 The Menu Bar
+        2.2.1 The File Menu
         ------------------
         File > Load Algorithms
             Opens the Algorithm Loader Window.  See 2.3.0 for more details
+		File > Save Log File
+			Saves the events currently loaded into the Event Player to an .arff log file
+		File > Export Results
+			This is not yet implemented.  Go to cu.trustGrapher.TrustMenuBar, then search 'Implement export results'.
         File > Exit
             Exits the program
 
+		-------------------
+		2.2.2 The Edit Menu
+		-------------------
+		Edit > Insert Event After
+			Opens a Dialog Box which allows you to create a new TrustLogEvent and place it after the currently selected event in the timeline
+		Edit > Modify Event
+			Opens a Dialog Box which allows you to modify the currently selected event in the timeline
+		Edit > Remove Event
+			Removes the currently seelected event in the timeline from the EventPlayer
+		Edit > Options
+			Opens a window which allows you to set the timelineSlider scrub mode and delay between EventPlayer ticks
+
+		-------------------
+		2.2.3 The View Menu
+		-------------------
         View > Tabbed View
             The default view.  Keeps all viewer windows in a tabbed pane
         View > Grid View
             Separates the graphs panel into a 2 x 3 grid
-        View > Toggle Log Table
-            Shows/hides a table which displays the current log events.  As the simulator plays, events that have occurred are highlighted
-            
+        View > Display Playback Panel
+            Shows/hides a panel which displays the EventPlayer controls and timelineSlider.
+		View > Display Event Panel
+            Shows/hides a panel which displays the events currently in the EventPlayer.  As the simulator plays, the selected event is highlighted
 
-    ------------------------
-    2.3.0 Loading Algorithms
-    ------------------------
-    The algorithm configurations screen allows you import .class and .jar files that contain compatible algorithmsm, as well as to configure algorithms
-    It is important to know the difference between adding and removing a class and an algorithm
-    A class is treated as a reference to the the file that contains an algorithm
-    An algorithm is what is represented by the methods of a class file.  You must first load a class, before you can add an algorithm that uses that class
-    Each algorithm can be configured by choosing a base algorithm, whether or not it is to be displayed in a graph, and what properties it has
-    The base of an algorithm is another algorithm that notifies an algorithm of any changes made to it
-    
-    The feedback history algorithm is already there, and cannot be removed
+    --------------------
+    2.3.0 Loading Graphs
+    --------------------
+    The algorithm configurations screen allows you import .class and .jar files that contain compatible algorithms, as well as to configure graphs.
+    It is important to know the difference between adding and removing an algorithm and a graph.
+    An algorithm is treated as a reference to the the file that contains the algorithm
+    A graph is what contains the algorithm and all of the entities, and may be displayed in a GraphViewer in the Simulator.
+	You must first load an algorithm before you can add a graph that uses that algortihm.
+    Each graph can be configured by choosing a base graph, whether or not it is displayed in the simulator, and by choosing its configuration properties.
+    The base of a graph is held by the graph's algorithm.  When the algortihm runs, it updates its own graph based on the entities in the base graph.
+    The feedback history algorithm is already there, and cannot be removed.
 
         ------------------------
         2.3.1 Loading a Log File
         ------------------------
-        To load a feedback log file into the simulator, click the choose log button on the top-right of the algorithm loader window.
-        You can then choose a valid .arff file
+        To load a feedback log file into the simulator, click the choose log button on the top-right of the AlgorithmLoader window.
+        You can then choose a valid .arff file.
         An .arff file is compatible providing the log events are after a @data tag, and there are no other characters after the last event line
         Each event line must be of the format <int assessorID>,<int assesseeID>,<double feedback>\n
         Due to limitations of the EigenTrust algorithm, the peer id's must start at 0, and have no gaps in between any of the id's
 
-        ---------------------
-        2.3.2 Loading A Class
-        ---------------------
-        To load a comptaible algorithm, click the Add button, next to the class combo box, and then choose a compatible .class or .jar file
-        For an algorithm to be compatible, it must extend the ReputationAlgorithm or TrustAlgorithm class from cu.repsystestbed.algorithms
-        It must also have a default constructor
-        If you chose a .jar file, you must then manually type in fully qualified name of the algorithm that you want to load
+        -------------------------------
+        2.3.2 Loading an Algorithm Path
+        -------------------------------
+        To load a comptaible algorithm, click the Add button next to the Algorithm combo box, and then choose a compatible .class or .jar file
+        For an algorithm to be compatible, it must extend the ReputationAlgorithm or TrustAlgorithm class from cu.repsystestbed.algorithms.
+        It must also have a default constructor.
+        If you chose a .jar file, you must then manually type in the fully qualified name of the algorithm that you want to load.
+
+        --------------------------------
+        2.3.3 Removing an Algorithm Path
+        --------------------------------
+        To remove an algorithm path, select the algorithm that you want to remove in the algorithm combo box, then click the Remove button to the right
+        You will have to confirm your choice.
+        For a class to be elegible for removal, it cannot be used by any loaded graphs.
+
+        --------------------
+        2.3.4 Adding a Graph
+        --------------------
+        If you have loaded an algorithm, you can then click the Add button below the graph list.
+        This will open a selection pane where you can select any algorithm that you have loaded.
+        You can only add a graph if you have previously added a valid base for it (ex. EigenTrust is a base for RankbasedTrustAlg)
+        you can only have 13 algorithms (including the feedbackHistory) added at once.
 
         ----------------------
-        2.3.3 Removing a Class
+        2.3.5 Removing a Graph
         ----------------------
-        To remove a class file, select the class that you want to remove in the class combo box, then click the Remove button to the right
-        You will have to confirm your choice
-        For a class to be elegible for removal, no algorithms are allowed to use it
+        To remove a graph, first select the one that you want to remove from the graph list, then click the remove button below.
+        You cannot remove a graph that is the base of another.
 
         -------------------------
-        2.3.4 Adding an Algorithm
+        2.3.6 Configuring a Graph
         -------------------------
-        If you have loaded an algorithm's class file, you can then click the Add button below the algorithm list
-        This will open a selection pane where you can select any algorithm that you have loaded
-        You can only add an algorithm if you have previously added a valid base for it (ex. EigenTrust is a base for RankbasedTrustAlg)
-        you can only have 12 algorithms (excluding the feedbackHistory) added at once
-
-        ---------------------------
-        2.3.5 Removing an Algorithm
-        ---------------------------
-        To remove an algorithm first select the one that you want to remove from the algorithm list, then click the remove button below
-        You cannot remove an algorithm that is the base of another
-
-        ------------------------------
-        2.3.6 Configuring an Algorithm
-        ------------------------------
-        Once you select an algorithm from the algorithm list, the fields to the right will update to reflect the configurations of that algorithm
+        Once you select a graph from the graph list, the fields to the right will update to reflect the configurations of that algorithm
         You can change:
-            Whether or not the algorithm is displayed as a graph
+            Whether or not the graph is displayed
             The base of the algorithm
             The properties file that contains the instructions on how to use the algorithm and its default values
                 An algorithm doesn't always need to have a properties file to work
-
-        ----------------------------------
-        2.3.7 TrustGrapher Properties File
-        ----------------------------------
-        This program saves TrustGrapher.properties to your home directory
-        if you delete this file, it will be remade the next time you run the program or click the Ok and Apply buttons in the algorithm loader window
-        if you delete the file while the program is running, your configurations will only be lost if you exit the program without first clicking the Ok and Apply buttons in the algorithm loader window
-        It contains:
-            the feedback log that you have loaded
-            The classes that you have loaded and the last directory that you found a class in
-            The algorithms that you have added and their configurations
-            the view mode of the simulator.  You can only have 6 enabled at one time
-        This properties file exists so that when you run the program again, all of your configurations will be loaded and so you don't have to navigate through the entire filesystem to get to the same directory that you were at before
-        This properties file does not contain the properties contained in the algorithm properties files, only their file paths
 
     ---------------------------
     2.4.0 Running the Simulator
@@ -163,15 +170,23 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
         This panel is used to control the playback of the graph
         || Pauses playback
         |> Plays the graph forward
-        <| PLays the graph backwards
-        |>|> FastForwards the graph
-        <|<| Rewinds the graph
+        <| PLays the graph backward
 
-        the Quick Playback Speed slider changes the speed that  the player fastForwards or rewinds at
-        You can manually scrub the large slider at the bottom to change the place in the timeline
+        The Events per Tick Slider changes the number of events that are processed after each EventPlayer tick.
+		This is the most efficient method of increasing the playback speed as opposed to decreasing the tick delay.
+        You can manually scrub or Drag & drop the large slider at the bottom to change the place in the timeline 
+		depending on the options selected in the OptionsWindow.
+
+		---------------------
+		2.4.2 The Event Panel
+		---------------------
+		This panel can be used to navigate through the events, and to modify them.
+		As the events are played, the row pertainig to the current event is highlighted.
+		You can click on a row to instantly go to that event, or scrub it to play across the events at your own time.
+		You can also right-click a row to get a popup menu similar to the edit menu.  See 2.2.2 for more info
 
         ---------------------------------------
-        2.4.2 Right-clicking in a Viewer Window
+        2.4.3 Right-clicking in a Viewer Window
         ---------------------------------------
         Right clicking in a viewer window opens a popup menu.
         Mouse Mode: > Picking
@@ -205,12 +220,6 @@ The main purpose of this simulator is to test trust algorithms, and see if and h
         2.5.3 Trust
         -----------
         Each directed edge indicates that one peer trusts the other
-
---------------------------------------------------------------------------------
-
-----------------------------------
-3.0.0 Code Maintenance Explanation
-----------------------------------
 
 --------------------------------------------------------------------------------
 
@@ -351,7 +360,7 @@ Removed tick marks and labels from playbackSlider
 You can now edit events from the new edit menu
 Added user confirmation for event removal
 Added 'about' menu item
-The log Panel now has a minimum size
+The event Panel now has a minimum size
 The highlighted event in the event panel scroll pane is now always kept in view
 Got rid of some unnecessary code and did some refactoring
 Added some more documentation
@@ -401,6 +410,15 @@ Finished documentation
 Feature Change: If a new feedbackHistory graph is added to the properties file, its visibility will now be false by default
 Refactor: Removed the TrustClassLoader class
 
+	Release Version 1.0
+Fixed a bug in the AlgorithmLoader where the display graph check box did not always work
+Useless graphs are no longer created by the GraphLoader
+The aohara.utilities package is now in the TrustGrapher project src directory.  It is no longer an external library
+Added a Doxygen javaDoc to the Documentation directory.  Each class has its own graphical class diagram
+Added screencast videos to the Documentation directory
+The 'about' menu button is back
+Updated readme instructions
+
 --------------------------------------------------------------------------------
 
 ---------------
@@ -410,7 +428,7 @@ Refactor: Removed the TrustClassLoader class
     -------------------
     4.1.0 High Priority
     -------------------
-	Update instructions
+	None
 
     ------------------
     4.2.0 Low Priority

@@ -11,7 +11,7 @@ import cu.trustGrapher.eventplayer.*;
 public class TrustMenuBar extends javax.swing.JFrame {
 
     public static final String SHOW_PLAYBACK_PANEL = "showPlaybackPanel", SHOW_EVENT_PANEL = "showEventPanel";
-    private TrustGrapher trustGrapher;
+    protected TrustGrapher trustGrapher;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public TrustMenuBar(TrustGrapher trustGrapher) {
@@ -66,6 +66,8 @@ public class TrustMenuBar extends javax.swing.JFrame {
         gridViewButton = new javax.swing.JRadioButtonMenuItem();
         togglePlaybackPanelButton = new javax.swing.JCheckBoxMenuItem();
         toggleEventPanelButton = new javax.swing.JCheckBoxMenuItem();
+        jMenu4 = new javax.swing.JMenu();
+        aboutButton = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setEnabled(false);
@@ -188,6 +190,18 @@ public class TrustMenuBar extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu3);
 
+        jMenu4.setText("Help");
+
+        aboutButton.setText("About");
+        aboutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutButtonActionPerformed(evt);
+            }
+        });
+        jMenu4.add(aboutButton);
+
+        jMenuBar1.add(jMenu4);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -305,8 +319,16 @@ public class TrustMenuBar extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_toggleEventPanelButtonActionPerformed
+
+    private void aboutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutButtonActionPerformed
+        String message = "TrustGrapher - v" + TrustGrapher.VERSION + "\nWritten by Andrew O'Hara";
+        ChatterBox.alert(message);
+    }//GEN-LAST:event_aboutButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem aboutButton;
     private javax.swing.JRadioButtonMenuItem gridViewButton;
+    private javax.swing.JMenu jMenu4;
     private javax.swing.JRadioButtonMenuItem tabbedViewButton;
     public javax.swing.JCheckBoxMenuItem toggleEventPanelButton;
     public javax.swing.JCheckBoxMenuItem togglePlaybackPanelButton;

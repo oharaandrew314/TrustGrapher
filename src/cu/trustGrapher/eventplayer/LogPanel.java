@@ -24,9 +24,9 @@ import aohara.utilities.ChatterBox;
  */
 public final class LogPanel extends JPanel implements EventPlayerListener {
 
-    private JTable logTable; //The JTable containing an array representation of the TrustLogEvents
-    private JPopupMenu menu; //The popupMenu that is shown when a row is right-clicked
-    private EventPlayer eventThread;
+    protected JTable logTable; //The JTable containing an array representation of the TrustLogEvents
+    protected JPopupMenu menu; //The popupMenu that is shown when a row is right-clicked
+    protected EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
     public LogPanel(EventPlayer eventThread) {

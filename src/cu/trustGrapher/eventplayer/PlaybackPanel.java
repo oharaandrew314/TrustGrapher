@@ -25,7 +25,7 @@ public final class PlaybackPanel extends JPanel implements EventPlayerListener {
     private boolean scrubMode = true;  //The scrub mode for the timelineSlider is true by default
     private JButton forwardButton, reverseButton, pauseButton;
     private JSlider speedSlider, timelineSlider;
-    private EventPlayer eventThread;
+    protected EventPlayer eventThread;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**

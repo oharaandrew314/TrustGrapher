@@ -25,10 +25,10 @@ public final class EventPlayer implements ActionListener {
     public static final int REVERSE = -1, PAUSE = 0, FORWARD = 1;
     public static final int DEFAULT_DELAY = 250, DEFUALT_EVENTS_PER_TICK = 1; // This many milliseconds between events while playing regularly
     private int state, currentEventIndex, eventsPerTick;
-    private TrustGrapher trustGrapher;
-    private Timer timer; //Invokes the EventPlayer actionPerormed() method every time the delay expires
-    private List<TrustLogEvent> events; //The list of TrustLogEvents that are played through
-    private List<EventPlayerListener> listeners; //These listeners listen to EventPlayer timeline updates and handle them in some way
+    protected TrustGrapher trustGrapher;
+    protected Timer timer; //Invokes the EventPlayer actionPerormed() method every time the delay expires
+    protected List<TrustLogEvent> events; //The list of TrustLogEvents that are played through
+    protected List<EventPlayerListener> listeners; //These listeners listen to EventPlayer timeline updates and handle them in some way
 
 //////////////////////////////////Constructor///////////////////////////////////
     public EventPlayer(TrustGrapher trustGrapher, List<TrustLogEvent> events) {

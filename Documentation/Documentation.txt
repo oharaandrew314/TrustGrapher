@@ -1,0 +1,5 @@
+The main documentation page is index.html
+
+Each class has its own Class Diagram.
+
+The main class is cu.trustGrapher.TrustGrapher

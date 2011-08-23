@@ -21,7 +21,7 @@ import java.util.Collection;
  * @author Andrew O'Hara
  */
 public class SimReputationGraph extends SimAbstractGraph {
-    private SimFeedbackGraph feedbackGraph;
+    protected SimFeedbackGraph feedbackGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**

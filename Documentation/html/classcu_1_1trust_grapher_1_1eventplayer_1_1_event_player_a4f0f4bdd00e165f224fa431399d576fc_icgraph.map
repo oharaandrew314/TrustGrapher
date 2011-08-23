@@ -1,0 +1,13 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a4b3cc30fb9936d5b1a9bab753bb933d5" title="cu.trustGrapher.eventplayer.EventPlayer.atAnEnd" alt="" coords="381,196,689,223"/>
+<area shape="rect" id="node19" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_playback_panel.html#ae6936511acd402913881a51c07c5c220" title="cu.trustGrapher.eventplayer.PlaybackPanel.playbackPause" alt="" coords="352,272,717,299"/>
+<area shape="rect" id="node5" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#acf73fd20986a59cabd8953985af9d8c0" title="cu.trustGrapher.eventplayer.EventPlayer.goToEvent" alt="" coords="862,157,1181,184"/>
+<area shape="rect" id="node7" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a3238029dcc17bd68be4fd9f5e0e599c1" title="cu.trustGrapher.eventplayer.EventPlayer.actionPerformed" alt="" coords="1400,5,1752,32"/>
+<area shape="rect" id="node9" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a4c4a2671fd24b0e8acf16ef400ab577a" title="cu.trustGrapher.eventplayer.EventPlayer.insertEvent" alt="" coords="1415,56,1737,83"/>
+<area shape="rect" id="node11" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a8b68889f4103abd8372556d519097586" title="cu.trustGrapher.eventplayer.EventPlayer.removeEvent" alt="" coords="1411,107,1741,133"/>
+<area shape="rect" id="node13" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#af6024bae2f24889c332d5894208c526d" title="cu.trustGrapher.eventplayer.EventPlayer.modifyEvent" alt="" coords="1412,157,1740,184"/>
+<area shape="rect" id="node15" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_playback_panel_1_1_timeline_slider_listener.html#a39b9852d77610e662f9be5c6231f251c" title="cu.trustGrapher.eventplayer.PlaybackPanel.TimelineSliderListener.stateChanged" alt="" coords="1333,208,1819,235"/>
+<area shape="rect" id="node17" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_playback_panel_1_1_timeline_slider_listener.html#a5ad4b8778a852f66aff10cc740bbf4f4" title="cu.trustGrapher.eventplayer.PlaybackPanel.TimelineSliderListener.mouseReleased" alt="" coords="1326,259,1826,285"/>
+<area shape="rect" id="node21" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_playback_panel.html#a28adc5421a4e4734b3f586762ed62070" title="cu.trustGrapher.eventplayer.PlaybackPanel.goToIndex" alt="" coords="854,284,1189,311"/>
+<area shape="rect" id="node23" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_playback_panel_1_1_playback_button_listener.html#ac9eada0af52d4c84fb72479aebaddaee" title="cu.trustGrapher.eventplayer.PlaybackPanel.PlaybackButtonListener.actionPerformed" alt="" coords="765,335,1277,361"/>
+</map>

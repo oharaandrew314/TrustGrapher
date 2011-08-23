@@ -32,7 +32,7 @@ import org.apache.commons.collections15.Predicate;
 public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEdge> implements Predicate<Context<Graph<Agent, TestbedEdge>, Object>> {
 
     protected JungAdapterGraph<Agent, TestbedEdge> referenceGraph;
-    private GraphConfig graphConfig;
+    protected GraphConfig graphConfig;
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**

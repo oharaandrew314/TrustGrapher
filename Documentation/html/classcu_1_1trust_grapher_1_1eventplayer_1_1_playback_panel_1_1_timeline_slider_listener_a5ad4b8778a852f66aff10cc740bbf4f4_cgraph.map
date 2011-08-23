@@ -1,0 +1,12 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#acf73fd20986a59cabd8953985af9d8c0" title="cu.trustGrapher.eventplayer.EventPlayer.goToEvent" alt="" coords="555,132,874,159"/>
+<area shape="rect" id="node15" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a2ef2d1231ec96277a17630d36c275561" title="cu.trustGrapher.eventplayer.EventPlayer.pause" alt="" coords="959,208,1252,235"/>
+<area shape="rect" id="node17" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a6571ed2e672fa90bb5ac6c31bfde7321" title="cu.trustGrapher.eventplayer.EventPlayer.reverse" alt="" coords="565,233,864,260"/>
+<area shape="rect" id="node20" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_playback_panel.html#ae6936511acd402913881a51c07c5c220" title="cu.trustGrapher.eventplayer.PlaybackPanel.playbackPause" alt="" coords="923,5,1288,32"/>
+<area shape="rect" id="node24" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a7229b30525ce6211e61725ec0586fd63" title="cu.trustGrapher.eventplayer.EventPlayer.forward" alt="" coords="565,284,864,311"/>
+<area shape="rect" id="node5" href="$classcu_1_1trust_grapher_1_1_trust_grapher.html#afb4a4d2b6966764fb2da9bb718ed2b6e" title="cu.trustGrapher.TrustGrapher.getGraphs" alt="" coords="978,56,1233,83"/>
+<area shape="rect" id="node7" href="$classcu_1_1trust_grapher_1_1_trust_grapher.html#a3b58e8d6bad2d3569c1691d16470d98e" title="cu.trustGrapher.TrustGrapher.getVisibleViewers" alt="" coords="956,107,1255,133"/>
+<area shape="rect" id="node9" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a4b3cc30fb9936d5b1a9bab753bb933d5" title="cu.trustGrapher.eventplayer.EventPlayer.atAnEnd" alt="" coords="951,157,1259,184"/>
+<area shape="rect" id="node11" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#a4f0f4bdd00e165f224fa431399d576fc" title="cu.trustGrapher.eventplayer.EventPlayer.atFront" alt="" coords="1336,31,1635,57"/>
+<area shape="rect" id="node13" href="$classcu_1_1trust_grapher_1_1eventplayer_1_1_event_player.html#aeae08d38b1bb5a699278ff9288eb0e65" title="cu.trustGrapher.eventplayer.EventPlayer.atBack" alt="" coords="1336,132,1635,159"/>
+</map>

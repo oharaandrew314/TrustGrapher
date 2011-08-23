@@ -19,8 +19,8 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     public static final int MAX_GRAPHS = 13, MAX_VISIBLE = 6;
     public static final String GRAPH = "graph", CLASS = "class";
     public static final String LOG_PATH = "logPath", CLASS_PATH = "classPath", PROPERTY_PATH = "propertyPath";
-    private PropertyManager config;
-    private TrustGrapher trustGrapher;
+    protected PropertyManager config;
+    protected TrustGrapher trustGrapher;
     private List<GraphConfig> graphConfigs;
 
 //////////////////////////////////Constructor///////////////////////////////////
@@ -243,7 +243,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                 }
                 String classPath = (classIndex == -1) ? null : config.getProperty(CLASS + classIndex);
                 //Graph property format                       display                    base    classIndex  classPath      properties
-                addGraphConfig( new GraphConfig(i, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3])));
+                addGraphConfig(new GraphConfig(i, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3])));
             }
         }
 
@@ -699,15 +699,14 @@ public class AlgorithmLoader extends javax.swing.JFrame {
 
     private void displayFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayFieldActionPerformed
         if (graphList.getSelectedIndex() != -1 && isVisible()) {
-            if (displayField.isSelected()) {
-                if (getVisibleGraphCount() >= MAX_VISIBLE) {
-                    displayField.setSelected(false);
-                    ChatterBox.alert("You cannot have more than " + MAX_VISIBLE + " visible graphs at one time.");
-                } else {
-                    GraphConfig graphConfig = getSelectedGraph();
-                    graphConfig.setDisplay(displayField.isSelected());
-                    config.setProperty(graphConfig.getKey(), graphConfig.toString());
-                }
+            if (displayField.isSelected() && getVisibleGraphCount() >= MAX_VISIBLE) {
+                displayField.setSelected(false);
+                ChatterBox.alert("You cannot have more than " + MAX_VISIBLE + " visible graphs at one time.");
+                return;
+            } else {
+                GraphConfig graphConfig = getSelectedGraph();
+                graphConfig.setDisplay(displayField.isSelected());
+                config.setProperty(graphConfig.getKey(), graphConfig.toString());
             }
         }
     }//GEN-LAST:event_displayFieldActionPerformed

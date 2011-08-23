@@ -23,8 +23,8 @@ import aohara.utilities.AreWeThereYet;
  */
 public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
 
-    private TrustGrapher trustGrapher;
-    private AreWeThereYet loadingBar;
+    protected TrustGrapher trustGrapher;
+    protected AreWeThereYet loadingBar;
     private File logFile;
 
 //////////////////////////////////Constructor///////////////////////////////////

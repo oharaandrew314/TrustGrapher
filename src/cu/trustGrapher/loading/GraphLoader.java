@@ -28,6 +28,26 @@ public class GraphLoader {
         List<SimAbstractGraph> graphs = new ArrayList<SimAbstractGraph>();
         ArrayList<GraphConfig> trustGraphs = new ArrayList<GraphConfig>();
         for (GraphConfig graphConfig : graphConfigs) {
+
+            //Check if the graph is to be created
+            if (!graphConfig.isDisplayed()) {
+                //And the graph is not displayed and it's a Trust Graph, don't create the graph
+                if (graphConfig.isTrustGraph()) { 
+                    continue;
+                }
+                //If the graph isn't displayed and isn't a TrustGraph, check if it's the base of another graph
+                boolean parseGraph = false;
+                for (GraphConfig gf : graphConfigs) {
+                    if (gf.getBaseIndex() == graphConfig.getIndex()) { //If it's the base of another graph, it can be created
+                        parseGraph = true;
+                        break;
+                    }
+                }
+                if (!parseGraph){
+                    continue;  //If the graph isn't a base, don't create the graph
+                }
+            }
+            //Otherwise, create the graph
             if (graphConfig.isTrustGraph()) { //Trust Algorithms cannot be made yet since the graph that they depend on may not be created yet
                 trustGraphs.add(graphConfig);
             } else if (graphConfig.isFeedbackGraph()) { // add the Feedback Graph

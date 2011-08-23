@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$classcu_1_1repsystestbed_1_1algorithms_1_1_reputation_algorithm.html#a8a740f1327f5c08dc7750722e01e65f3" title="cu.repsystestbed.algorithms.ReputationAlgorithm.isGlobal" alt="" coords="439,5,798,32"/>
+<area shape="rect" id="node5" href="$classcu_1_1repsystestbed_1_1algorithms_1_1_reputation_algorithm.html#a5cf4a7cca9b9a81a15b72f94808dd027" title="cu.repsystestbed.algorithms.ReputationAlgorithm.calculateTrustScore" alt="" coords="405,56,832,83"/>
+<area shape="rect" id="node7" href="$classcu_1_1repsystestbed_1_1graphs_1_1_reputation_edge.html#aa47a529af1adca198661d80279065a0b" title="cu.repsystestbed.graphs.ReputationEdge.setReputation" alt="" coords="446,107,791,133"/>
+</map>
