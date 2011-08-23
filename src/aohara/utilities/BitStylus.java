@@ -1,6 +1,7 @@
 ////////////////////////////////////Bit Stylus//////////////////////////////////
 package aohara.utilities;
 
+import com.java2s.utilities.ExtensionFileFilter;
 import javax.swing.JFileChooser;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,6 +43,11 @@ public class BitStylus {
         return fc.getSelectedFile();
     }
 
+    /**
+     * Creates a file filter for a JFileChooser based on the array of extensions
+     * @param extensions A String array of the file extensions (without the '.') that you want to be accepted
+     * @return The FileFilter from the given extension
+     */
     private static ExtensionFileFilter createFileFilter(String[] extensions){
         if (extensions != null){  //Creating the text that is displayed in the file filter field
             String filterText = "." + extensions[0];
@@ -73,6 +79,7 @@ public class BitStylus {
      *
      * @param title The title for the chooser to display
      * @param defaultDirectory The directory that the chooser is initially viewing
+     * @param extensions A String array of the file extensions (without the '.') that you want to be accepted
      * @return The save file
      */
     public static File chooseSaveLocation(String title, File defaultDirectory, String[] extensions){
@@ -99,6 +106,7 @@ public class BitStylus {
 
     /**
      * Returns a FileInputStream for the given file
+     * Calls (getFile(path)
      * @param file The file that you want to open
      * @return A FileInputStream for tr given file
      */
@@ -175,10 +183,6 @@ public class BitStylus {
         }
 
         ArrayList<String> temp = new ArrayList<String>();
-        String[] tempArray = new String[temp.size()];
-        if (!s.hasNext()) {
-            return null;
-        }
         while (s.hasNext()) {
             temp.add(s.next());
         }

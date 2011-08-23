@@ -1,4 +1,4 @@
-package aohara.utilities;
+package com.java2s.utilities;
 
 import java.io.File;
 
@@ -8,7 +8,7 @@ import javax.swing.filechooser.FileFilter;
  * @author java2s.com
  *
  */
-class ExtensionFileFilter extends FileFilter {
+public class ExtensionFileFilter extends FileFilter {
 
     String description;
     String extensions[];

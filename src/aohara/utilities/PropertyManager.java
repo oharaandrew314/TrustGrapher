@@ -13,10 +13,18 @@ public class PropertyManager extends java.util.Properties{
     protected File propertyFile;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Creates a new property Manager.  The properties file given by the path is automatically loaded or created.
+     * @param path The path to the properties file to load or create.
+     */
     public PropertyManager(String path) {
         this(new File(path));
     }
 
+    /**
+     * Creates a new property Manager.  The given properties file is automatically loaded or created.
+     * @param file The properties file to load or create
+     */
     public PropertyManager(File file) {
         super();
         this.propertyFile = file;
@@ -24,12 +32,19 @@ public class PropertyManager extends java.util.Properties{
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+    /**
+     * Gets the file that the properties are being saved to
+     * @return The properties file
+     */
     public File getPropertyFile() {
         return propertyFile;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
 
+    /**
+     * Loads the properties file that was given in the constructor.  If it does nto exist, it is created.
+     */
     public final void loadPropertyFile(){
         if (propertyFile.exists()){
              try{
@@ -43,6 +58,11 @@ public class PropertyManager extends java.util.Properties{
         }     
     }
 
+    /**
+     * removes the property with the given key.  returns true if it succeeded, or false otherwise.
+     * @param key The key of the property to remove
+     * @return Whether ot not the removal succeeded
+     */
     public boolean remove(String key){
         if (containsKey(key)){
             super.remove(key);
@@ -51,12 +71,18 @@ public class PropertyManager extends java.util.Properties{
         return false;
     }
 
+    /**
+     * @deprecated Use setProperty instead
+     */
     @Deprecated
     public boolean updateProperty(String key, String value) {
         setProperty(key, value);
         return save();
     }
 
+    /**
+     * @deprecated use remove instead
+     */
     @Deprecated
     public boolean removeProperty(String key){
         if (remove(key)){
@@ -65,6 +91,10 @@ public class PropertyManager extends java.util.Properties{
         return false;
     }
 
+    /**
+     * Saves the current properties to the properties file.
+     * @return whether or not the save succeeded
+     */
     public boolean save(){
         if (BitStylus.saveProperties(this, propertyFile)) {
             return true;
@@ -74,6 +104,9 @@ public class PropertyManager extends java.util.Properties{
         }
     }
 
+    /**
+     * @deprecated use clear instead
+     */
     @Deprecated
     public boolean deleteProperties() {
         return BitStylus.deleteFile(propertyFile);

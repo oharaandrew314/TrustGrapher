@@ -7,31 +7,38 @@ package aohara.utilities;
  */
 public class AreWeThereYet extends javax.swing.JDialog {
 
-    private boolean embed, loading;
+    private boolean embed;
 
 //////////////////////////////////Constructor///////////////////////////////////
+    /**
+     * Creates a new loading bar.  It is in a JDialog by default
+     * @param parent The parent component
+     */
     public AreWeThereYet(java.awt.Component parent) {
         this.setLocationRelativeTo(parent);
         embed = false;
-        loading = false;
         initComponents();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
+    /**
+     * Sets this to embed mode and returns the contentPane() so it can be embedded
+     * @return the content pane
+     */
     public java.awt.Container embed() {
         embed = true;
         return getContentPane();
     }
 
-    public boolean loading() {
-        return loading;
-    }
-
 ///////////////////////////////////Methods//////////////////////////////////////
-    public void loadingStarted(int numberLines, String whatIsLoading) {
-        loading = true;
+    /**
+     * The loading bar now indicates that something is loading.
+     * @param totalProgress How many progress events must occur before the loading bar becomes full
+     * @param whatIsLoading The name of the loading task to be completed
+     */
+    public void loadingStarted(int totalProgress, String whatIsLoading) {
         progressBar.setMinimum(0);
-        progressBar.setMaximum(numberLines);
+        progressBar.setMaximum(totalProgress);
         progressBar.setValue(0);
         progressBar.setString("0%");
         progressBar.setStringPainted(true);
@@ -43,21 +50,22 @@ public class AreWeThereYet extends javax.swing.JDialog {
         }
     }
 
-    public void loadingProgress(int lineNumber) {
-        progressBar.setValue(lineNumber);
+    /**
+     * Indicates that another loading progress event has occured.  Increments the loading bar.
+     */
+    public void loadingProgress() {
+        progressBar.setValue(progressBar.getValue() + 1);
         progressBar.setString((String.format("%.3g%n", progressBar.getPercentComplete() * 100)) + "%");
     }
 
-    public void loadingProgress() {
-        loadingProgress(progressBar.getValue() + 1);
-    }
-
+    /**
+     * Indicates that the loading has been completed.  Sets the loading bar to the not loading state.
+     */
     public void loadingComplete() {
         try {
             Thread.currentThread().sleep(200);
         } catch (InterruptedException ex) {
         }
-        loading = false;
         label.setText("Loading Complete");
         progressBar.setValue(0);
         progressBar.setString("");
@@ -70,6 +78,7 @@ public class AreWeThereYet extends javax.swing.JDialog {
 
 ////////////////////////////////Static Methods//////////////////////////////////
     /**
+     * Performs a loading test.
      * @param args the command line arguments
      */
     public static void main(String args[]) {
