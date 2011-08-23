@@ -13,7 +13,7 @@ import aohara.utilities.ChatterBox;
  */
 public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
 
-    private StringBuffer label;
+    private StringBuffer label; //The String that is displayed in the GraphViewer next to the edge
 
 //////////////////////////////////Constructor///////////////////////////////////
     /**
@@ -57,13 +57,9 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
         try {
             super.addFeedback(new Feedback(assessor, assessee, feedback));
             label = new StringBuffer();
-
-
         } catch (Exception ex) {
             ChatterBox.error(this, "addFeedback()", ex.getMessage());
             ex.printStackTrace();
-
-
         }
     }
 
@@ -77,11 +73,7 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
             if (fb.value == feedback) {
                 feedbacks.remove(fb);
                 label = new StringBuffer();
-
-
                 break;
-
-
             }
         }
     }
@@ -90,11 +82,7 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
     public boolean equals(Object o) {
         if (o instanceof SimFeedbackEdge) {
             SimFeedbackEdge other = (SimFeedbackEdge) o;
-
-
             return (src.equals(other.src)) && (sink.equals(other.sink));
-
-
         }
         return false;
 
@@ -104,8 +92,6 @@ public class SimFeedbackEdge extends FeedbackHistoryGraphEdge {
     @Override
     public int hashCode() {
         int hash = 3;
-
-
         return hash;
 
     }

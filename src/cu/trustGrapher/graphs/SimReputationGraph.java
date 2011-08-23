@@ -26,7 +26,8 @@ public class SimReputationGraph extends SimAbstractGraph {
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Creates a Reputation Graph.
-     * @param graphPair The graphPair that is to hold this graph
+     * @param graphConfig This object contains all of the configurations for this graph
+     * @param feedbackGraph The feedbackGraph is needed to find what Agents are currently on it.
      */
     public SimReputationGraph(GraphConfig graphConfig, SimFeedbackGraph feedbackGraph) {
         super(graphConfig, (SimpleDirectedGraph) new ReputationGraph(new ReputationEdgeFactory()));
@@ -34,6 +35,13 @@ public class SimReputationGraph extends SimAbstractGraph {
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
+    /**
+     * Called by the EventPlayer whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
+     * This method handles the addition or subtraction of edges and agents from the dynamic graph, and edge labels for both
+     * based on the event that is currently being processed.
+     * @param event The TrustLogEvent that is being processed
+     * @param forward Whether or not the graph is being played forward
+     */
     @Override
     public void graphEvent(TrustLogEvent event, boolean forward) {
         ReputationAlgorithm alg = (ReputationAlgorithm) getAlgorithm();
@@ -52,7 +60,7 @@ public class SimReputationGraph extends SimAbstractGraph {
                     }
                     ensureAgentExists(src.id, this);
                     ensureAgentExists(sink.id, this);
-                    ((SimReputationEdge) fullGraph.findEdge(src, sink)).setReputation(trustScore);
+                    ((SimReputationEdge) referenceGraph.findEdge(src, sink)).setReputation(trustScore);
                     ((SimReputationEdge) ensureEdgeExists(src, sink, this)).setReputation(trustScore);
                 }
             }

@@ -31,7 +31,7 @@ import cu.trustGrapher.graphs.SimAbstractGraph;
  */
 public final class TrustGrapher extends JFrame {
 
-    public static final int CURRENT_REVISION = 51;
+    public static final int CURRENT_REVISION = 52;
     public static final int TABBED = 0, GRID = 1; //View types
     public static final int DEFWIDTH = 1360, DEFHEIGHT = 768; //default size for the swing graphic components
     private TrustMenuBar menuBar;
@@ -63,23 +63,28 @@ public final class TrustGrapher extends JFrame {
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-    public boolean graphsLoaded(){
+    public boolean graphsLoaded() {
         return eventThread != null && viewers.get(0) != null && graphsPanel != null;
     }
 
     /**
-     * @return Returns the list of GraphPair objects
+     * @return Returns the list of graphs
      */
     public List<SimAbstractGraph> getGraphs() {
         return graphs;
     }
 
+    /**
+     * Returns the int representation of the graphsPanel view type.
+     * There can be a tabbed or grid view.
+     * @return the view type of the graphsPanel
+     */
     public Integer getViewType() {
         String s = config.getProperty("viewType");
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException ex) {
-            return TABBED;
+            return TABBED; //The default view if the property can't be read or doesn't exist
         }
     }
 
@@ -97,7 +102,7 @@ public final class TrustGrapher extends JFrame {
      * @return The visible TrustGraphViewers
      */
     public List<GraphViewer> getVisibleViewers() {
-        if (graphsPanel instanceof JTabbedPane){
+        if (graphsPanel instanceof JTabbedPane) {
             List<GraphViewer> visibleViewers = new java.util.LinkedList<GraphViewer>();
             visibleViewers.add((GraphViewer) ((JTabbedPane) graphsPanel).getSelectedComponent());
             return visibleViewers;
@@ -110,14 +115,20 @@ public final class TrustGrapher extends JFrame {
         return eventThread;
     }
 
-    public TrustMenuBar getTrustMenuBar(){
+    /**
+     * Returns the TrustMenuBar for the simulation window.  This is necessary
+     * despite the getJMenuBar method since there are important fields that must
+     * be accessed from the full class, not just the JMenuBar itself.
+     * @return the TrustMenuBar class for the TrustGrapher simulation window
+     */
+    public TrustMenuBar getTrustMenuBar() {
         return menuBar;
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
     /**
      * Called by the AlgorithmLoader when the user clicks ok.
-     * If a log is already being simulated, pause the simulator
+     * If a log is already being simulated, pause the simulator.
      * Then, build the graphs accoring to the graphConfigs,
      * and then tell the logReader to begin loading the events.
      */
@@ -133,17 +144,15 @@ public final class TrustGrapher extends JFrame {
             graphs = GraphLoader.loadGraphs(graphConfigs);
 
             //Begin reading the log and performing graphConstructionEvents
-            java.io.File logFile = new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH));
-            LogReader logReader = new LogReader(this, logFile, new AreWeThereYet(this));
-            logReader.execute(); //After the log reader thread is complete, startGraph() will be called
+            LogReader.startReader(this, new java.io.File(config.getProperty(AlgorithmLoader.LOG_PATH)), new AreWeThereYet(this));
         } else {
             ChatterBox.alert("No log was loaded, so no action will be taken.");
         }
     }
 
     /**
-     * Creates a new AlgorithmLoader and runs it.  After the user clicks ok, startGraph() will be called
-     * In the meantime, the sumulator will be idle
+     * Creates a new AlgorithmLoader and runs it.  After the user clicks ok, startGraph() will be called.
+     * In the meantime, the sumulator will be idle.
      */
     public void startAlgorithmLoader() {
         AlgorithmLoader.run(this, config);
@@ -179,7 +188,8 @@ public final class TrustGrapher extends JFrame {
     /**
      * Called by the log reader thread upon completion, or by the EventPlayer upon an event modification,
      * or the view type buttons in the menu bar when the view type is changed.
-     * This method adds a new mainPane to the graph, and adds new TrustGraphViewers to the graphsPanel, then starts a new eventThread
+     * This method resets the mainPane of the simulator window, and adds new TrustGraphViewers to the graphsPanel,
+     * then creates and starts a new EventPlayer.
      * @param events The event list returned by the log reader thread or EventPlayer
      */
     public void startGraph(List<TrustLogEvent> events) {
@@ -197,10 +207,10 @@ public final class TrustGrapher extends JFrame {
         for (SimAbstractGraph graph : graphs) {
             if (graph.isDisplayed()) {
                 //Sets the initial layout of the graph.  The graphs must have already had their construction events processed, or the graphs will have a random layout
-                AbstractLayout<Agent, TestbedEdge> layout = new FRLayout<Agent, TestbedEdge>(graph.getFullGraph());
-                layout.setInitializer(new VertexPlacer(layout, new Dimension(DEFWIDTH / 3, DEFHEIGHT / 2)));
+                AbstractLayout<Agent, TestbedEdge> layout = new FRLayout<Agent, TestbedEdge>(graph.getReferenceGraph());
+                layout.setInitializer(new VertexPlacer(new Dimension (DEFWIDTH / 3, DEFHEIGHT /2)));
                 //Creates the new GraphViewer
-                GraphViewer viewer = new GraphViewer(layout, DEFWIDTH / 3, DEFHEIGHT / 2, gm, listener, graph);
+                GraphViewer viewer = new GraphViewer(layout, gm, listener, graph);
                 if (graphsPanel instanceof JPanel) {  //If the graphsPanel is set for grid view
                     viewer.setBorder(BorderFactory.createTitledBorder(graph.getDisplayName()));
                     ((JPanel) graphsPanel).add(viewer);

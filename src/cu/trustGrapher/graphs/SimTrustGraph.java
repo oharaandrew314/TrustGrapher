@@ -23,13 +23,20 @@ public class SimTrustGraph extends SimAbstractGraph {
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Creates a Trust Graph.
-     * @param graphPair The graphPair that is to hold this graph
+     * @param graphConfig This object contains all of the configurations for this graph
      */
     public SimTrustGraph(GraphConfig graphConfig) {
         super(graphConfig, (SimpleDirectedGraph) new TrustGraph(new TrustEdgeFactory()));
     }
 
 ///////////////////////////////////Methods//////////////////////////////////////
+    /**
+     * Called by the EventPlayer whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
+     * This method handles the addition or subtraction of edges and agents from the dynamic graph, and edge labels for both
+     * based on the event that is currently being processed.
+     * @param event The TrustLogEvent that is being processed
+     * @param forward Whether or not the graph is being played forward
+     */
     @Override
     public void graphEvent(TrustLogEvent event, boolean forward) {
         TrustAlgorithm alg = (TrustAlgorithm) getAlgorithm();

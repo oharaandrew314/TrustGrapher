@@ -16,7 +16,9 @@ import org.apache.commons.collections15.Predicate;
 
 /**
  * A graph superclass that inherits lower level Graph methods from JungAdapterGraph
- * This classs accepts a parameter of the jGraphT SimpleDirectedGraph that this graph is to be based on
+ * This classs accepts a parameter of the jGraphT SimpleDirectedGraph that this graph is to be based on.
+ * The parameter will be used to create the superclass which acts as thje dynamic graph,
+ * and also to create a field which is the full graph.
  *
  * This SimAbstractGraph acts as a dynamic graph.  It is not displayed, but components in the full graph will only be
  * displayed if they exist in the dynamic graph.  As events occur, they are added to the dynamic graphs through their
@@ -29,25 +31,27 @@ import org.apache.commons.collections15.Predicate;
  */
 public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEdge> implements Predicate<Context<Graph<Agent, TestbedEdge>, Object>> {
 
-    protected JungAdapterGraph<Agent, TestbedEdge> fullGraph;
+    protected JungAdapterGraph<Agent, TestbedEdge> referenceGraph;
     private GraphConfig graphConfig;
-    
+
 //////////////////////////////////Constructor///////////////////////////////////
     /**
      * Calls superclass and initializes some fields
-     * @param graphPair The graphPair that is to hold this graph
+     * @param graphConfig This object contains all of the configurations for this graph
      * @param innerGraph The TrustTestBed graph that is to be a base graph for this graph
      */
     public SimAbstractGraph(GraphConfig graphConfig, SimpleDirectedGraph innerGraph) {
         super(innerGraph);
-        fullGraph = new JungAdapterGraph<Agent, TestbedEdge>((SimpleDirectedGraph) innerGraph.clone());
+        referenceGraph = new JungAdapterGraph<Agent, TestbedEdge>((SimpleDirectedGraph) innerGraph.clone());
         this.graphConfig = graphConfig;
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
-
-    public JungAdapterGraph getFullGraph(){
-        return fullGraph;
+    /**
+     * @return the full Graph attached to this graph
+     */
+    public JungAdapterGraph getReferenceGraph() {
+        return referenceGraph;
     }
 
     /**
@@ -88,15 +92,15 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * This is the predicate for whether to show the graph entities in the GraphViewer.
      * It is called by the GraphViewer during every repaint for every entity.
      * If the entity exists in this dynamic Graph, return true.  Otherwise false.
-     * @param context The fullGraph and element that is being checked
+     * @param context The referenceGraph and element that is being checked
      * @return Whether to display the element given by the context for the current repaint
      */
     public boolean evaluate(Context<Graph<Agent, TestbedEdge>, Object> context) {
-        if (context.element instanceof TestbedEdge){
+        if (context.element instanceof TestbedEdge) {
             return containsEdge((TestbedEdge) context.element);
-        }else if (context.element instanceof Agent){
+        } else if (context.element instanceof Agent) {
             return containsVertex((Agent) context.element);
-        }else{
+        } else {
             ChatterBox.criticalError(this, "evaluate()", "Uncaught predicate");
             return false;
         }
@@ -107,12 +111,13 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * Ensures that an Agent with the given ID exists in the graph
      * If it doesn't, then it is added
      * @param id the ID of the agent that must exist
+     * @param caller The graph to search in for the agent
      * @return An instance of the Agent that is to exist in the graph
      */
     protected Agent ensureAgentExists(int id, JungAdapterGraph<Agent, TestbedEdge> caller) {
         Agent tempAgent = new Agent(id);
-        for (Agent agent : caller.getVertices()){
-            if (agent.equals(tempAgent)){
+        for (Agent agent : caller.getVertices()) {
+            if (agent.equals(tempAgent)) {
                 return agent;
             }
         }
@@ -126,12 +131,13 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
      * Then return the edge.
      * @param src The Agent that the edge originates from
      * @param sink The Agent that the edge goes to
-     * @param caller The graph that is calling, so that if an edge must be created, it knows what type to make
+     * @param caller The graph that is calling, so that if an edge must be created, it knows what type to make,
+     * and what graph to add it to
      * @return The edge that is assured to be in the graph
      */
     protected TestbedEdge ensureEdgeExists(Agent src, Agent sink, JungAdapterGraph<Agent, TestbedEdge> caller) {
         TestbedEdge edge = caller.findEdge(src, sink);
-        if (edge == null){
+        if (edge == null) {
             edge = newEdge(src, sink, caller);
             caller.addEdge(edge, src, sink);
         }
@@ -183,27 +189,30 @@ public abstract class SimAbstractGraph extends JungAdapterGraph<Agent, TestbedEd
 
     /**
      * Called by the EventPlayer whenever a TrustLogEvent occurs.  It is assumed that this is a full graph.
-     * Adds any new Agents to the full graph referred to by the TrustLogevent and all edges that might possibly exist.
+     * If this is a normal event, only adds any new Agents that there might be.
+     * If it is a null event, it is to signal that there are no more events.
+     * In that case, sll the possible edges that there might be are added instead.
      * @param event The TrustLogEvent that has just occured
      */
     public void graphConstructionEvent(TrustLogEvent event) {
-        if (event == null) {  //A null event is passed to signal that there are no more events.  Add all edges to the graph
-            for (Agent src : fullGraph.getVertices()) {
-                for (Agent sink : fullGraph.getVertices()) {
+        if (event == null) {  //If a null event is passed, add all possible edges to the graph
+            for (Agent src : referenceGraph.getVertices()) {
+                for (Agent sink : referenceGraph.getVertices()) {
                     if (!src.equals(sink)) {
-                        ensureEdgeExists(src, sink, fullGraph);
+                        ensureEdgeExists(src, sink, referenceGraph);
                     }
                 }
             }
         } else { //Otherwise, just add any new Agents to the graph
-            ensureAgentExists(event.getAssessor(), fullGraph);
-            ensureAgentExists(event.getAssessee(), fullGraph);
+            ensureAgentExists(event.getAssessor(), referenceGraph);
+            ensureAgentExists(event.getAssessee(), referenceGraph);
         }
     }
 
     /**
-     * Called by this graph's GraphPair whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
-     * If the graph is playing forward, call the forwardEvent method, otherwise, calls backwardEvent
+     * Called by the EventPlayer whenever a TrustLogEvent occurs.  It is assumed that this graph is a dynamic graph.
+     * This method handles the addition or subtraction of edges and agents from the dynamic graph, and edge labels for both
+     * based on the event that is currently being processed.
      * @param event The TrustLogEvent that is being processed
      * @param forward Whether or not the graph is being played forward
      */

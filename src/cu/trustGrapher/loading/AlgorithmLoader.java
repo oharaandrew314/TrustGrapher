@@ -77,13 +77,13 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     /**
      * Returns the GraphConfig with the specified index.
      * It is necessary to find them with this method as the index of the GraphConfig
-     * is not necessarily equal to its index in the list.
-     * @param i the index of the GraphConfig to find
+     * is not necessarily equal to its index in the list.  Do not use the get method.
+     * @param index the index of the GraphConfig to find
      * @return the GraphConfig with the specified index
      */
-    private GraphConfig getGraphConfig(int i) {
+    private GraphConfig getGraphConfig(int index) {
         for (GraphConfig graphConfig : graphConfigs) {
-            if (i == graphConfig.getIndex()) {
+            if (index == graphConfig.getIndex()) {
                 return graphConfig;
             }
         }
@@ -119,10 +119,10 @@ public class AlgorithmLoader extends javax.swing.JFrame {
     /**
      * @return Returns the number of graphs that are set to visible
      */
-    public int getVisibleGraphCount(){
+    public int getVisibleGraphCount() {
         int count = 0;
-        for (GraphConfig graphConfig : graphConfigs){
-            if (graphConfig.isDisplayed()){
+        for (GraphConfig graphConfig : graphConfigs) {
+            if (graphConfig.isDisplayed()) {
                 count++;
             }
         }
@@ -144,36 +144,20 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         return true;
     }
 
-    private boolean addNewGraph(int index, boolean display, int classIndex) {
+    /**
+     * Adds a new, uninitialized graph to the list.  Returns false if it failed.  A class index of -1 will create
+     * a Feedback History graph.
+     * @param index The index to give to the graph
+     * @param classIndex The properties index of the algorithm classPath to attach to this graph
+     * @return whether or not the graph was succesfully added the the GraphConfigManager
+     */
+    private boolean addNewGraph(int index, int classIndex) {
         String classPath = (classIndex != -1) ? config.getProperty(CLASS + classIndex) : null;
-        GraphConfig graphConfig = new GraphConfig(index, display, -1, classIndex, classPath, null);
+        GraphConfig graphConfig = new GraphConfig(index, false, -1, classIndex, classPath, null);
         if (graphConfig.isTrustGraph() && !hasRepGraph()) {
             ChatterBox.alert("There must be an existing Reputation Graph\nbefore you can add a Trust Graph.");
             return false;
         }
-        return addGraphConfig(graphConfig);
-    }
-
-    /**
-     *
-     * @param index
-     * @param property { display, baseIndex, classFile, configFile
-     * @return
-     */
-    private boolean addGraphFromProperty(int index, String[] property) {
-        int baseIndex = -1;
-        int classIndex = -1;
-        try {
-            baseIndex = Integer.parseInt(property[1]);
-        } catch (NumberFormatException ex) {
-        }
-        try {
-            classIndex = Integer.parseInt(property[2]);
-        } catch (NumberFormatException ex) {
-        }
-        String classPath = (classIndex == -1) ? null : config.getProperty(CLASS + classIndex);
-        //Graph property format                                      display                    base    classIndex  classPath      properties
-        GraphConfig graphConfig  = new GraphConfig(index, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3]));
         return addGraphConfig(graphConfig);
     }
 
@@ -205,8 +189,8 @@ public class AlgorithmLoader extends javax.swing.JFrame {
                 for (GraphConfig a : graphConfigs) { //Add All reputation graphs to the base list
                     if (a.isReputationGraph()) {
                         baseField.addItem(a.getDisplayName());
-                        if (graph.getBase() != -1) {
-                            if (graph.getBase() == a.getIndex()) { //If the current graph listens to this graph, select it
+                        if (graph.getBaseIndex() != -1) {
+                            if (graph.getBaseIndex() == a.getIndex()) { //If the current graph listens to this graph, select it
                                 baseField.setSelectedItem(a.getDisplayName());
                             }
                         }
@@ -225,7 +209,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             classList.removeAllItems();
             for (int i = 0; i < config.keySet().size(); i++) {
                 if (config.containsKey(CLASS + i)) {
-                    classList.addItem(TrustClassLoader.formatClassName(i, config.getProperty(CLASS + i)));
+                    classList.addItem(formatClassName(i, config.getProperty(CLASS + i)));
                 }
             }
             config.setProperty(graph.getKey(), graph.toString());
@@ -241,29 +225,62 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         config.loadPropertyFile();
 
         if (!config.containsKey(GRAPH + 0)) { //If the feedbackHistory graph does not exist in the properties, add it
-            addNewGraph(0, true, -1);
+            addNewGraph(0, -1);
         }
-        //Add the rest of the graphs
+        //Add the graphs from the properties files to the GraphConfig list
         for (int i = 0; i <= config.keySet().size(); i++) {
             if (config.containsKey(GRAPH + i)) {
-                addGraphFromProperty(i, config.getProperty(GRAPH + i).split(","));
+                String[] property = config.getProperty(GRAPH + i).split(",");
+                int baseIndex = -1;
+                int classIndex = -1;
+                try {
+                    baseIndex = Integer.parseInt(property[1]);
+                } catch (NumberFormatException ex) {
+                }
+                try {
+                    classIndex = Integer.parseInt(property[2]);
+                } catch (NumberFormatException ex) {
+                }
+                String classPath = (classIndex == -1) ? null : config.getProperty(CLASS + classIndex);
+                //Graph property format                       display                    base    classIndex  classPath      properties
+                addGraphConfig( new GraphConfig(i, Boolean.parseBoolean(property[0]), baseIndex, classIndex, classPath, new File(property[3])));
             }
         }
 
-        //Set the path field to the last log
+        //Set the log to the last one loaded
         String logPath = config.getProperty(LOG_PATH);
         if (logPath != null) {
             pathField.setText(logPath);
         }
-        graphList.setListData(getGraphDisplayNames()); //Set the graphList
+        graphList.setListData(getGraphDisplayNames()); //Set the graphList names
         graphList.setSelectedIndex(0);
         updateFields();
         setVisible(true);
     }
 
+////////////////////////////////Static Methods//////////////////////////////////
+    /**
+     * Creates and starts the AlgorithmLoader.  Once the AlgorithmLoader ok button is pressed,
+     * the TrustGrapher algorithmLoaded() method will be called
+     * @param trustGrapher Needed to pass the GraphConfigs to the TrustGrapher
+     * @param properties The properties file to be used for saving the graph configurations
+     */
     public static void run(TrustGrapher trustGrapher, PropertyManager properties) {
         AlgorithmLoader algorithmLoader = new AlgorithmLoader(trustGrapher, properties);
         algorithmLoader.start();
+    }
+
+    /**
+     * Takes a classPath and the class index and turns it into an easily readable name
+     * @param index The class index
+     * @param path The path to the class file
+     * @return A display name for the class
+     */
+    public static String formatClassName(int index, String path) {
+        //if it is a .jar, the name appears after the last '.'
+        //Otherwise, it is a .class, and the name will appear after the last '/'
+        char startChar = path.contains(".jar") ? '.' : '/';
+        return "class" + index + "-" + path.substring(path.lastIndexOf(startChar) + 1).replace(".class", "");
     }
 
 /////////////////////////////////GUI Components/////////////////////////////////
@@ -618,7 +635,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         ArrayList<String> classPaths = new ArrayList<String>();
         for (int i = 0; i <= MAX_GRAPHS; i++) {
             if (config.containsKey(CLASS + i)) {
-                classPaths.add(TrustClassLoader.formatClassName(i, config.getProperty(CLASS + i)));
+                classPaths.add(formatClassName(i, config.getProperty(CLASS + i)));
             }
         }
         //Ask which type of graph to add
@@ -626,7 +643,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             String selectedClassName = ChatterBox.selectionPane("Question", "Which graph type would you like to load?", classPaths.toArray());
             if (selectedClassName != null) {
                 int newKey = getNewKey(GRAPH);
-                addNewGraph(newKey, false, classPaths.indexOf((Object) selectedClassName));
+                addNewGraph(newKey, classPaths.indexOf((Object) selectedClassName));
                 config.setProperty(GRAPH + newKey, getGraphConfig(newKey).toString());
 
                 //Add the info to the loader and window
@@ -643,8 +660,8 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         } else if (index != -1) {
             //Check if this graph is being used by another
             for (GraphConfig graphConfig : graphConfigs) {
-                if (graphConfig.getBase() != -1) {
-                    if (graphConfig.getBase() == index) {
+                if (graphConfig.getBaseIndex() != -1) {
+                    if (graphConfig.getBaseIndex() == index) {
                         ChatterBox.alert("You cannot remove a graph that is used by another.");
                         return;
                     }
@@ -652,7 +669,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
             }
 
             config.remove(GRAPH + index); //Remove the GraphConfig from the proeprties
-            for (int i = 0 ; i < graphConfigs.size() ; i++) { //remove the GraphConfig from the list
+            for (int i = 0; i < graphConfigs.size(); i++) { //remove the GraphConfig from the list
                 if (index == graphConfigs.get(i).getIndex()) {
                     graphConfigs.remove(graphConfigs.get(i));
                 }
@@ -725,7 +742,7 @@ public class AlgorithmLoader extends javax.swing.JFrame {
         File directory = config.containsKey(CLASS_PATH) ? new File(config.getProperty(CLASS_PATH)) : null;
         //Open a JFileChoose asking the user to choose a class file to add
         File file = BitStylus.chooseFile("Choose an algorithm to load", directory, new String[]{CLASS, "jar"});
-        Object o = (file != null) ? TrustClassLoader.newAlgorithm(file.getPath()) : null; //Load the object
+        Object o = (file != null) ? GraphConfig.newAlgorithm(file.getPath()) : null; //Load the object
         if (o != null) {
             config.setProperty(CLASS_PATH, file.getParent()); //Save the path of the class file that was loaded
             String path = file.getPath().endsWith(".jar") ? file.getPath() + "!" + o.getClass().getName() : file.getPath();

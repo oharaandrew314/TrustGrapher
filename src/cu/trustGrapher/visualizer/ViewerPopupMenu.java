@@ -15,7 +15,7 @@ import javax.swing.JPopupMenu;
 import aohara.utilities.ChatterBox;
 
 /**
- * Initializes the right-click menu components and event handlers (Does not contain the listeners)
+ * Initializes the right-click menu components and event handlers (Does not contain the listener)
  * @author Andrew O'Hara
  */
 public class ViewerPopupMenu extends JPopupMenu {
@@ -23,6 +23,11 @@ public class ViewerPopupMenu extends JPopupMenu {
     private DefaultModalGraphMouse<Agent, TestbedEdge> gm;
     private GraphViewer currentViewer;
 
+    /**
+     * Initializes the popup menu.
+     * @param gm The mouse Adapter that handles most mouse clicks on the GraphViewer
+     * @param listener The listener that handles the mouse clicks that pertain to this ViewerPopupMenu
+     */
     public ViewerPopupMenu(final DefaultModalGraphMouse<Agent, TestbedEdge> gm, ActionListener listener) {
         this.gm = gm;
         JMenuItem picking = new JMenuItem("Picking");
@@ -51,7 +56,7 @@ public class ViewerPopupMenu extends JPopupMenu {
     }
 
     /**
-     * Shows the popup menu on the current viewer
+     * Shows the popup menu on the current GraphViewer
      */
     public void showPopupMenu(GraphViewer newViewer) {
         currentViewer = newViewer;

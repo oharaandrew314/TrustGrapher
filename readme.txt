@@ -384,7 +384,7 @@ Feature fix: Should now show that Agents no longer trust eachother due to new lo
 Feature fix: You will no longer see Agents with no Edges in Trust Graphs.  An Agents will now only appear when it trusts another one
 Bug Fix: If you add a new Agent to the graph through the event injector, the simulator will no longer crash when it attempts to add it
 Refactor: The Simulator menu bar is now it's own class
-Refactor: Merged forward and backward events with graphEvent method for SimGraphs.  They were too similar to keep seperate
+Refactor: Merged forward and backward events with graphEvent method for SimGraphs.  They were too similar to keep separate
 More Documentation
 
 	Revision 51
@@ -393,8 +393,13 @@ Bug Fix: Removing a graph from the AlgorithmLoader will now always remove the co
 New Feature: Updated the look of the options and algorithm loader windows to be cleaner
 New Feature: When the otions button is pressed, if there is a simulation running, it will pause it
 Refactor: Removed GraphPair class, added the fullGraph as a JungAdapterGraph parameter to the SimAbstractGraph
-Refactor: Integrated the GraphConfigManager with the AlgorithmLoader.  It isn't as clean this way, but the other way wasn't necessary.
+Refactor: Integrated the GraphConfigManager with the AlgorithmLoader.  It isn't as clean this way, but the other way wasn't necessary
 More Documentation
+
+	Revision 52
+Finished documentation
+Feature Change: If a new feedbackHistory graph is added to the properties file, its visibility will now be false by default
+Refactor: Removed the TrustClassLoader class
 
 --------------------------------------------------------------------------------
 
@@ -405,15 +410,11 @@ More Documentation
     -------------------
     4.1.0 High Priority
     -------------------
-    Add new Javadocs
 	Update instructions
 
     ------------------
     4.2.0 Low Priority
     ------------------
-	Maybe add event controls to right-click menu
-	Find another way to have GraphPairs know about eachother.  Maybe a graphManager?
-    Add graphic buttons for the playback bar
-	Integrate libraries into jar  (This is a NetBeans thing.  May have to make custom ant file.  dunno how to do that)
+	None
 
 --------------------------------------------------------------------------------

@@ -12,21 +12,27 @@ import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 
 /**
  * This is a GraphViewer component.  The viewers are created in TrustGrapher after the events have been loaded
- * It displays the graph passed to it from inside the layout parameter
+ * Each GraphViewer displays the graph passed to it.
  * @author Andrew O'Hara
  */
 public class GraphViewer extends edu.uci.ics.jung.visualization.VisualizationViewer {
     private JungAdapterGraph fullGraph;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public GraphViewer(final Layout layout, int width, int height, DefaultModalGraphMouse<Agent, TestbedEdge> gm, MouseAdapter mouseClickListener, SimAbstractGraph graph) {
-        super(layout, new Dimension(width, height));
-        this.fullGraph = graph.getFullGraph();
+    /**
+     * Creates a new GraphViewer.
+     * @param layout Manages how the graph entities will be organized in the viewer window
+     * @param gm This mouse adapter handles the selection and dragging of the GraphViewer
+     * @param mouseClickListener //Listener for GraphViewer right-click menu
+     * @param graph The graph that this viewer will display
+     */
+    public GraphViewer(final Layout layout, DefaultModalGraphMouse<Agent, TestbedEdge> gm, MouseAdapter mouseClickListener, SimAbstractGraph graph) {
+        super(layout);
+        this.fullGraph = graph.getReferenceGraph();
         // the default mouse makes the mouse usable as a picking tool (pick, drag vertices & edges) or as a transforming tool (pan, zoom)
         setGraphMouse(gm);
         addMouseListener(mouseClickListener); //This listener handles the mouse clicks to see if a popup event was done
@@ -42,9 +48,11 @@ public class GraphViewer extends edu.uci.ics.jung.visualization.VisualizationVie
 
         setForeground(Color.white);
         setBackground(Color.GRAY);
-        setBounds(0, 0, width, height);
     }
-    
+
+    /**
+     * @return Returns the fullGraph of the graph that is displayed by this GraphViewer
+     */
     public JungAdapterGraph getFullGraph(){
         return fullGraph;
     }

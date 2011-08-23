@@ -4,7 +4,6 @@ package cu.trustGrapher.eventplayer;
 import cu.trustGrapher.OptionsWindow;
 import cu.trustGrapher.TrustGrapher;
 
-import cu.trustGrapher.loading.GraphLoader;
 import cu.trustGrapher.visualizer.GraphViewer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

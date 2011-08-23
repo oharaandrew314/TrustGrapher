@@ -1,24 +1,24 @@
-////////////////////////////////LogReader//////////////////////////////////
+//////////////////////////////////LogReader/////////////////////////////////////
 package cu.trustGrapher.loading;
 
 import cu.trustGrapher.TrustGrapher;
 import cu.trustGrapher.eventplayer.TrustLogEvent;
+import cu.trustGrapher.graphs.SimAbstractGraph;
+
 import java.io.BufferedReader;
-
-import javax.swing.SwingWorker;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.SwingWorker;
 import aohara.utilities.ChatterBox;
 import aohara.utilities.AreWeThereYet;
-import cu.trustGrapher.graphs.SimAbstractGraph;
 
 /**
- * Description
+ * This takes the log file, parses it into a list of events, constructs the full graphs,
+ * and then returns the list of Events to TrustGrapher.
  * @author Andrew O'Hara
  */
 public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
@@ -28,12 +28,28 @@ public class LogReader extends SwingWorker<ArrayList<TrustLogEvent>, String> {
     private File logFile;
 
 //////////////////////////////////Constructor///////////////////////////////////
-    public LogReader(TrustGrapher trustGrapher, File logFile, AreWeThereYet loadingBar) {
+    /**
+     * Creates the LogReader.  This is only to be called by the static startReader method.
+     */
+    private LogReader(TrustGrapher trustGrapher, File logFile, AreWeThereYet loadingBar) {
         this.loadingBar = loadingBar;
         this.trustGrapher = trustGrapher;
         this.logFile = logFile;
         //Disable the menu bars to stop user from messing up background thread
         trustGrapher.enableMenu(false);
+    }
+
+////////////////////////////////Static Methods//////////////////////////////////
+    /**
+     * Creates the LogReader and runs it.  Once the reader has finished parsing the events,
+     * it will call startGraph() from the TrustGrapher
+     * @param trustGrapher Needed to notify it that the logs have been read and parsed, and to disable the JMenuBar while loading.
+     * @param logFile The log that will be read and parsed into TrustLogEvents
+     * @param loadingBar The loading bar that will be used to display the progress of the log reading
+     */
+    public static void startReader(TrustGrapher trustGrapher, File logFile, AreWeThereYet loadingBar){
+        LogReader logReader = new LogReader(trustGrapher, logFile, loadingBar);
+        logReader.execute();
     }
 
 //////////////////////////////////Accessors/////////////////////////////////////
