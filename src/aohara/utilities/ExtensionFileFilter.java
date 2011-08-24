@@ -1,28 +1,39 @@
-package com.java2s.utilities;
+package aohara.utilities;
 
 import java.io.File;
 
 import javax.swing.filechooser.FileFilter;
 
 /**
- * @author java2s.com
- *
+ * This is a file filter for a JFileChooser.
+ * @author Andrew O'Hara
  */
 public class ExtensionFileFilter extends FileFilter {
 
     String description;
     String extensions[];
 
-    public ExtensionFileFilter(String description, String extension) {
-        this(description, new String[]{extension});
+    /**
+     * Creates a file filter.
+     * @param extension The single file extension to accept.  Do not include the '.'
+     */
+    public ExtensionFileFilter(String extension) {
+        this(new String[]{extension});
     }
 
-    public ExtensionFileFilter(String description, String extensions[]) {
-        if (description == null) {
-            this.description = extensions[0];
-        } else {
-            this.description = description;
+    /**
+     * Creates a file filter.
+     * @param extensions The array of file extensions to accept.  Do not include the ".' in the extensions.
+     */
+    public ExtensionFileFilter(String extensions[]) {
+        description = "." + extensions[0];
+        for (int i = 1; i < extensions.length - 1; i++) { //Don't add the last extension yet
+            description = description + ", ." + extensions[i];
         }
+        if (extensions.length - 1 != 0) { //If the last extension isn't the first extension, add the last extension
+            description = description + " and ." + extensions[extensions.length - 1];
+        }
+        description = description + " files only";
         this.extensions = (String[]) extensions.clone();
         toLower(this.extensions);
     }

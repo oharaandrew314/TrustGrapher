@@ -1,7 +1,6 @@
 ////////////////////////////////////Bit Stylus//////////////////////////////////
 package aohara.utilities;
 
-import com.java2s.utilities.ExtensionFileFilter;
 import javax.swing.JFileChooser;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,28 +37,9 @@ public class BitStylus {
     public static File chooseFile(String title, File defaultDirectory, String[] extensions) {
         JFileChooser fc = new JFileChooser(defaultDirectory);
         fc.setDialogTitle(title);
-        fc.setFileFilter(createFileFilter(extensions)); //Adding the file filter
+        fc.setFileFilter(new ExtensionFileFilter(extensions)); //Adding the file filter
         fc.showOpenDialog(null);
         return fc.getSelectedFile();
-    }
-
-    /**
-     * Creates a file filter for a JFileChooser based on the array of extensions
-     * @param extensions A String array of the file extensions (without the '.') that you want to be accepted
-     * @return The FileFilter from the given extension
-     */
-    private static ExtensionFileFilter createFileFilter(String[] extensions){
-        if (extensions != null){  //Creating the text that is displayed in the file filter field
-            String filterText = "." + extensions[0];
-            for (int i = 1 ; i < extensions.length - 1 ; i++){ //Don't add the last extension yet
-                filterText = filterText + ", ." + extensions[i];
-            }
-            if (extensions.length -1 != 0){ //If the last extension isn't the first extension, add the last extension
-                filterText = filterText + " and ." + extensions[extensions.length - 1];
-            }
-            return new ExtensionFileFilter(filterText + " files only", extensions);
-        }
-        return null;
     }
 
     /**
@@ -85,7 +65,7 @@ public class BitStylus {
     public static File chooseSaveLocation(String title, File defaultDirectory, String[] extensions){
         JFileChooser fc = new JFileChooser(defaultDirectory);
         fc.setDialogTitle(title);
-        fc.setFileFilter(createFileFilter(extensions)); //Adding the file filter
+        fc.setFileFilter(new ExtensionFileFilter(extensions)); //Adding the file filter
         fc.showSaveDialog(null);
         return fc.getSelectedFile();
     }
